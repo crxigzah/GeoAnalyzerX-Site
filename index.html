@@ -537,23 +537,15 @@ html { scroll-behavior: smooth; }
     <a href="#pricing" onclick="goHome();setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),100);return false;">Pricing</a>
     <a href="#download" onclick="goHome();setTimeout(()=>document.getElementById('download')?.scrollIntoView({behavior:'smooth'}),100);return false;">Download</a>
     <a href="#rules" onclick="goHome();setTimeout(()=>document.getElementById('rules')?.scrollIntoView({behavior:'smooth'}),100);return false;">Rules</a>
-    <div class="nav-dropdown-wrap">
-      <a href="#">Policies ▾</a>
-      <div class="nav-dropdown-menu">
-        <a onclick="showPolicy('tos')">Terms of Service</a>
-        <a onclick="showPolicy('privacy')">Privacy Policy</a>
-        <a onclick="showPolicy('fairuse')">Fair Use Policy</a>
-        <a onclick="showPolicy('refund')">Refund Policy</a>
-      </div>
-    </div>
+
     <a href="https://discord.gg/NwyNrp9ZtG" target="_blank" class="nav-discord">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.079.11 18.1.128 18.114a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
       Discord
     </a>
     <div class="currency-picker" id="currency-picker">
-      <button class="currency-btn" data-code="GBP" onclick="setCurrency('GBP')">£ GBP</button>
-      <button class="currency-btn" data-code="USD" onclick="setCurrency('USD')">$ USD</button>
-      <button class="currency-btn" data-code="EUR" onclick="setCurrency('EUR')">€ EUR</button>
+      <button class="currency-btn" data-code="GBP" onclick="setCurrency('GBP')">£</button>
+      <button class="currency-btn" data-code="USD" onclick="setCurrency('USD')">$</button>
+      <button class="currency-btn" data-code="EUR" onclick="setCurrency('EUR')">€</button>
       <button class="currency-btn" data-code="AUD" onclick="setCurrency('AUD')">A$</button>
     </div>
     <div id="nav-auth-guest" style="display:flex;gap:8px;">
@@ -608,9 +600,9 @@ html { scroll-behavior: smooth; }
   <!-- Stats -->
   <div class="stats">
     <div class="stat"><div class="stat-num">195</div><div class="stat-label">Countries Supported</div></div>
-    <div class="stat"><div class="stat-num">AI</div><div class="stat-label">Claude-Powered Analysis</div></div>
-    <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Scene Library Size</div></div>
-    <div class="stat"><div class="stat-num">F7</div><div class="stat-label">One-Key Capture</div></div>
+    <div class="stat"><div class="stat-num">0.3s</div><div class="stat-label">Average Analysis Time</div></div>
+    <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Community Scenes Growing</div></div>
+    <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">AI Always Ready</div></div>
   </div>
 
   <!-- Countries marquee -->
@@ -625,7 +617,7 @@ html { scroll-behavior: smooth; }
       <h2 style="font-size:38px;font-weight:800;letter-spacing:-0.5px;text-align:center;">From install to improvement<br>in minutes</h2>
     </div>
     <div class="steps">
-      <div class="step"><div class="step-num">1</div><h3>Install the Extension</h3><p>Download GeoAnalyzerX, load it as an unpacked extension in Opera or Chrome. Takes 2 minutes — no API key needed.</p></div>
+      <div class="step"><div class="step-num">1</div><h3>Install the Extension</h3><p>Download GeoAnalyzerX, load it as an unpacked extension in Opera or Chrome. Takes 2 minutes — no  needed.</p></div>
       <div class="step"><div class="step-num">2</div><h3>Play Normally</h3><p>Open GeoGuessr and play as you normally would. Press F7 to capture the scene before you guess.</p></div>
       <div class="step"><div class="step-num">3</div><h3>Get a Lesson</h3><p>After a wrong guess, a teaching popup explains exactly what you missed — dead giveaway, visual clues, reference photo.</p></div>
       <div class="step"><div class="step-num">4</div><h3>Contribute to the Community Library</h3><p>Press F7 on any scene to upload it to the shared community database. Everyone's captures make the reference library smarter for all players.</p></div>
@@ -635,8 +627,7 @@ html { scroll-behavior: smooth; }
   <!-- Features -->
   <div class="section" id="features">
     <div class="section-label">Features</div>
-    <h2 style="font-size:38px;font-weight:800;letter-spacing:-0.5px;">Everything you need<br>to master GeoGuessr</h2>
-    <h2>Everything you need to dominate</h2>
+    <h2 style="font-size:38px;font-weight:800;letter-spacing:-0.5px;line-height:1.1;">Everything you need<br>to master GeoGuessr</h2>
     <p>A complete training system that learns alongside you and adapts to your weaknesses.</p>
     <div class="features">
       <div class="feature-card">
@@ -754,8 +745,8 @@ html { scroll-behavior: smooth; }
   <div class="download-section" id="download">
     <div class="download-box">
       <div class="section-label" style="text-align:center;">Get The Extension</div>
-      <h2 style="font-size:36px;font-weight:800;letter-spacing:-0.5px;">Install GeoAnalyzerX<br>in 2 steps</h2>
-      <p style="color:var(--muted);font-size:15px;margin-top:8px;">A Chrome/Opera extension. No Python. No API key. Just install and play.</p>
+      <h2 style="font-size:36px;font-weight:800;letter-spacing:-0.5px;">Install GeoAnalyzerX<br>in 3 steps</h2>
+      <p style="color:var(--muted);font-size:15px;margin-top:8px;">A Chrome/Opera extension. No Python.  Just install and play.</p>
       <div class="download-steps">
         <div class="dl-step">
           <div class="dl-step-num">1</div>
@@ -774,9 +765,27 @@ html { scroll-behavior: smooth; }
         </div>
       </div>
       <a href="https://github.com/crxigzah/GeoAnalyzerX/releases/latest/download/GeoAnalyzerX-Extension.zip" class="download-btn" target="_blank">
-        ⬇ Download GeoAnalyzerX Extension
+        Download GeoAnalyzerX Extension
       </a>
-      <div class="download-note">Free • Works in Opera & Chrome • No API key required</div>
+      <div class="download-note">Free • Works in Opera & Chrome • No account needed to install</div>
+
+      <div style="margin-top:32px">
+        <div class="section-label" style="text-align:center;margin-bottom:12px">See It In Action</div>
+        <div style="border-radius:12px;overflow:hidden;background:#1a1a2e;border:1px solid #2a2a3e;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin-bottom:20px">
+          <div style="text-align:center;color:var(--muted)">
+            <div style="font-size:48px;margin-bottom:8px">▶</div>
+            <div style="font-size:14px">Installation video coming soon</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="border-radius:10px;overflow:hidden;background:#1a1a2e;border:1px solid #2a2a3e;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center">
+            <div style="text-align:center;color:var(--muted);font-size:12px;padding:12px">📸 Analysis panel screenshot</div>
+          </div>
+          <div style="border-radius:10px;overflow:hidden;background:#1a1a2e;border:1px solid #2a2a3e;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center">
+            <div style="text-align:center;color:var(--muted);font-size:12px;padding:12px">📸 Training guide screenshot</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -787,30 +796,7 @@ html { scroll-behavior: smooth; }
       <h2 style="font-size:38px;font-weight:800;letter-spacing:-0.5px;text-align:center;">Frequently Asked<br>Questions</h2>
     </div>
     <div id="faq-list">
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>Is GeoAnalyzerX free to use?</span><span class="faq-arrow">+</span></div>
-        <div class="faq-a">Yes — the core experience is completely free. You get AI scene analysis, post-round teaching popups, the personal scene library, F7 capture, and live GeoX chat at no cost. The Pro tier unlocks priority AI responses, advanced region comparisons, library export, and early access to new features.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>Do I need my own Anthropic API key?</span><span class="faq-arrow">+</span></div>
-        <div class="faq-a">Yes. GeoAnalyzerX uses the Claude API to power its AI analysis. You need to create a free Anthropic account at console.anthropic.com and paste your API key into the GeoAnalyzerX settings panel. Anthropic's free tier covers substantial usage for casual players.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>What browser does GeoAnalyzerX work in?</span><span class="faq-arrow">+</span></div>
-        <div class="faq-a">GeoAnalyzerX is built for Opera with Tampermonkey, which is the tested and supported environment. It may work in other Chromium-based browsers with Tampermonkey installed, but Opera is what development and testing is done in.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>Can I use it in ranked duels or competitive games?</span><span class="faq-arrow">+</span></div>
-        <div class="faq-a">No — and this is a hard rule. GeoAnalyzerX is a training tool only. Using it during multiplayer matches, ranked duels, or any mode where you're competing against other real players is cheating and violates GeoGuessr's Terms of Service. Accounts found doing this will be permanently banned from GeoAnalyzerX.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>How does the scene library work?</span><span class="faq-arrow">+</span></div>
-        <div class="faq-a">Every time you press F7, GeoAnalyzerX uploads a screenshot of your current Street View scene to a shared cloud database, organised by country and region. When a teaching popup fires, Claude pulls the most relevant reference images from the community library to give hyper-relevant feedback. The more players contribute, the smarter the comparisons get.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)"><span>What happens when the server is slow to respond?</span><span class="faq-arrow">+</span></div>
-        <div class="faq-a">GeoAnalyzerX is hosted on Render's free tier, which spins down after inactivity. The first request after a period of inactivity can take 20–50 seconds to wake the server. This only affects login and registration — gameplay analysis calls the Claude API directly and is unaffected. Pro users will get priority server access once that feature ships.</div>
-      </div>
+      
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)"><span>Can I cancel my Pro subscription?</span><span class="faq-arrow">+</span></div>
         <div class="faq-a">Yes, anytime. Pro is billed monthly through Stripe. You can cancel through the Stripe customer portal (accessible from Account Settings → Payment Methods) and your Pro access continues until the end of the current billing period. No questions asked.</div>
@@ -1593,7 +1579,7 @@ const POLICIES = {
       <p>By installing or using GeoAnalyzerX ("the Script", "the Service"), you agree to be bound by these Terms of Service. If you do not agree, do not use GeoAnalyzerX.</p>
 
       <h3>2. Description of Service</h3>
-      <p>GeoAnalyzerX is a Tampermonkey userscript that uses the Anthropic Claude API to provide AI-powered scene analysis, post-round teaching, and a community scene library to help users improve their geographic knowledge. It is a training tool and is not affiliated with, endorsed by, or connected to GeoGuessr AB.</p>
+      <p>GeoAnalyzerX is a the extension userscript that uses the Anthropic Claude API to provide AI-powered scene analysis, post-round teaching, and a community scene library to help users improve their geographic knowledge. It is a training tool and is not affiliated with, endorsed by, or connected to GeoGuessr AB.</p>
 
       <h3>3. Eligibility</h3>
       <p>You must be at least 13 years of age to use GeoAnalyzerX. By creating an account, you represent that you meet this requirement.</p>
@@ -1610,7 +1596,7 @@ const POLICIES = {
       <p>You are responsible for maintaining the security of your account credentials. You must notify us immediately of any unauthorised use. We reserve the right to suspend or terminate accounts that violate these Terms.</p>
 
       <h3>6. Third-Party Services</h3>
-      <p>GeoAnalyzerX requires your own Anthropic API key. Your use of the Anthropic Claude API is governed by Anthropic's own Terms of Service and Usage Policies. GeoAnalyzerX is not responsible for the availability or cost of the Anthropic API.</p>
+      <p>GeoAnalyzerX requires your own . Your use of the Anthropic Claude API is governed by Anthropic's own Terms of Service and Usage Policies. GeoAnalyzerX is not responsible for the availability or cost of the Anthropic API.</p>
 
       <h3>7. Subscriptions and Billing</h3>
       <p>Pro subscriptions are billed monthly through Stripe. By subscribing, you authorise recurring charges. You may cancel at any time; access continues until the end of the current billing period. All prices are inclusive of applicable taxes.</p>
@@ -1645,7 +1631,7 @@ const POLICIES = {
       </ul>
 
       <h3>3. Claude API</h3>
-      <p>When you use AI analysis features, your Street View screenshots are sent directly from your browser to the Anthropic Claude API using your own API key. GeoAnalyzerX's servers do not see or store these images. Your use of the Claude API is subject to Anthropic's Privacy Policy.</p>
+      <p>When you use AI analysis features, your Street View screenshots are sent directly from your browser to the Anthropic Claude API using your own . GeoAnalyzerX's servers do not see or store these images. Your use of the Claude API is subject to Anthropic's Privacy Policy.</p>
 
       <h3>4. Third-Party Processors</h3>
       <ul>
