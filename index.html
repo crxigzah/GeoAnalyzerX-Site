@@ -1277,11 +1277,15 @@ function showDashboard(user, token) {
 }
 
 function logout() {
+  const token = getToken();
   localStorage.clear();
   document.getElementById('landing').style.display   = '';
   document.getElementById('dashboard').style.display = 'none';
   resetNav();
   closeUserMenu();
+  if (token) {
+    fetch(API + '/auth/logout', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) }).catch(()=>{});
+  }
 }
 
 function copyToken() {
