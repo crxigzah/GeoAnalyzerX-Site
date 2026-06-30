@@ -284,9 +284,16 @@ function loadUsers() {
   fetch(`${API}/admin/users`, {headers: adminHeaders()})
     .then(r => r.json())
     .then(d => {
+      if (d.error) {
+        document.getElementById('users-tbody').innerHTML = `<tr><td colspan="8" class="empty" style="color:#ff6b6b">Error: ${escapeHtml(d.error)}</td></tr>`;
+        return;
+      }
       allUsers = d.users || [];
       document.getElementById('user-count').textContent = `${allUsers.length} users`;
       renderUsers(allUsers);
+    })
+    .catch(e => {
+      document.getElementById('users-tbody').innerHTML = `<tr><td colspan="8" class="empty" style="color:#ff6b6b">Network error: ${escapeHtml(e.message)}</td></tr>`;
     });
 }
 
@@ -509,15 +516,25 @@ let currentLogTab = 'all';
 
 function loadAllLogs() {
   fetch(`${API}/admin/activity_logs?limit=500`, {headers: adminHeaders()})
-    .then(r => r.json()).then(d => {
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) {
+        document.getElementById('log-activity-tbody').innerHTML = `<tr><td colspan="5" class="empty" style="color:#ff6b6b">Error: ${escapeHtml(d.error)}</td></tr>`;
+        return;
+      }
       allActivityLogs = d.logs || [];
       renderLogs();
+    })
+    .catch(e => {
+      document.getElementById('log-activity-tbody').innerHTML = `<tr><td colspan="5" class="empty" style="color:#ff6b6b">Network error: ${escapeHtml(e.message)}</td></tr>`;
     });
   fetch(`${API}/admin/chat_logs?limit=200`, {headers: adminHeaders()})
-    .then(r => r.json()).then(d => {
+    .then(r => r.json())
+    .then(d => {
       allChatLogs = d.logs || [];
       if (currentLogTab === 'chat') renderChatLogs();
-    });
+    })
+    .catch(() => {});
 }
 
 function switchLogTab(tab, btn) {
