@@ -600,6 +600,12 @@ function formatDateTime(str) {
   } catch { return str; }
 }
 
+function formatDate(str) {
+  if (!str || str === 'None') return '—';
+  try { return new Date(str).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}); }
+  catch { return str; }
+}
+
 function toast(msg, isError) {
   const el = document.getElementById('toast');
   el.textContent = msg;
