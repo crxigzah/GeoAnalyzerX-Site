@@ -233,18 +233,19 @@ function renderUsers(users) {
     const isPermaBanned = isBanned && (new Date(u.banned_until) - new Date()) > 1000*60*60*24*365;
     return `
     <tr>
-      <td><strong>${u.username}</strong>${isBanned ? `<br><span class="badge badge-banned" style="margin-top:4px;">${isPermaBanned ? '🚫 Permanent' : '🚫 Until ' + formatDate(u.banned_until)}</span>` : ''}</td>
+      <td><strong>${u.username}</strong>${u.disabled ? `<br><span class="badge badge-banned" style="margin-top:4px;">⏸ Disabled</span>` : ''}${isBanned ? `<br><span class="badge badge-banned" style="margin-top:4px;">${isPermaBanned ? '🚫 Permanent' : '🚫 Until ' + formatDate(u.banned_until)}</span>` : ''}</td>
       <td style="color:#8888aa;font-size:12px">${u.email}</td>
       <td><span class="badge badge-${u.tier}">${u.tier}</span></td>
       <td style="color:#8888aa;font-size:12px">${formatDate(u.created_at)}</td>
       <td style="color:#8888aa;font-size:12px">${formatDate(u.last_login)}</td>
       <td>
-        <div style="display:flex;gap:6px;align-items:center;">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
           ${u.tier === 'free'
             ? `<button class="btn btn-sm btn-purple" onclick="setTier(${u.id},'pro','${u.username}')">↑ Pro</button>`
             : `<button class="btn btn-sm btn-danger" onclick="setTier(${u.id},'free','${u.username}')">↓ Free</button>`
           }
           <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resetUsage(${u.id},'${u.username}')">Reset</button>
+          <button class="btn btn-sm" style="background:${u.disabled ? 'rgba(0,201,167,.15)' : '#1a1a2e'};border:1px solid ${u.disabled ? 'rgba(0,201,167,.3)' : '#2a2a3e'};color:${u.disabled ? '#00c9a7' : '#8888aa'};" onclick="toggleDisabled(${u.id},'${u.username}',${!u.disabled})">${u.disabled ? '▶ Enable' : '⏸ Disable'}</button>
           <div class="ban-menu">
             <button class="btn btn-sm" style="background:${isBanned ? 'rgba(255,100,100,.15)' : '#1a1a2e'};border:1px solid ${isBanned ? 'rgba(255,100,100,.3)' : '#2a2a3e'};color:${isBanned ? '#ff6b6b' : '#8888aa'};" onclick="toggleBanMenu(event,${u.id})">${isBanned ? '🚫 Banned' : '🚫 Ban'}</button>
             <div class="ban-dropdown" id="ban-menu-${u.id}">
@@ -262,6 +263,18 @@ function renderUsers(users) {
       </td>
     </tr>`;
   }).join('');
+}
+
+function toggleDisabled(userId, username, disabled) {
+  if (!confirm(`${disabled ? 'Disable' : 'Enable'} ${username}'s account?`)) return;
+  fetch(`${API}/admin/toggle_disabled`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({admin_key: adminKey, user_id: userId, disabled})
+  }).then(r => r.json()).then(d => {
+    toast(d.success ? `✓ ${username} ${disabled ? 'disabled' : 'enabled'}` : 'Error: ' + (d.error || 'failed'), !d.success);
+    if (d.success) loadUsers();
+  });
 }
 
 function toggleBanMenu(e, userId) {
