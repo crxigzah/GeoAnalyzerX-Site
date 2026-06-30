@@ -197,17 +197,45 @@ let adminToken = '';
 let allUsers = [];
 let inactivityTimer = null;
 let autoRefreshInterval = null;
+let sseSource = null;
 const INACTIVITY_MS = 5 * 60 * 1000; // 5 minutes
 
 function startAutoRefresh() {
+  // Poll every 30s as a fallback for stats/users in case SSE drops
   clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(() => {
     if (!adminToken) return;
     fetch(`${API}/admin/stats`, {headers: adminHeaders()})
       .then(r => r.json()).then(d => { if (!d.error) loadStats(d); });
     loadUsers();
-    loadAllLogs();
-  }, 30000); // every 30 seconds
+  }, 30000);
+  // Open SSE stream for instant log updates
+  startSSE();
+}
+
+function startSSE() {
+  if (sseSource) { sseSource.close(); sseSource = null; }
+  // EventSource doesn't support custom headers — pass tokens as query params
+  const url = `${API}/admin/events?key=${encodeURIComponent(adminKey)}&token=${encodeURIComponent(adminToken)}`;
+  sseSource = new EventSource(url);
+  sseSource.onmessage = (e) => {
+    try {
+      const event = JSON.parse(e.data);
+      allActivityLogs.unshift(event);
+      if (allActivityLogs.length > 500) allActivityLogs.pop();
+      renderLogs();
+      // Brief green flash on the event count to show something arrived
+      const countEl = document.getElementById('log-count');
+      if (countEl) {
+        countEl.style.color = '#00c9a7';
+        setTimeout(() => { countEl.style.color = '#8888aa'; }, 800);
+      }
+    } catch(ex) {}
+  };
+  sseSource.onerror = () => {
+    // SSE dropped — close cleanly; the 30s poll fallback is already running
+    if (sseSource) { sseSource.close(); sseSource = null; }
+  };
 }
 
 function resetInactivityTimer() {
@@ -223,6 +251,7 @@ function doLogout(msg) {
   sessionStorage.removeItem('gax_admin_token');
   clearTimeout(inactivityTimer);
   clearInterval(autoRefreshInterval);
+  if (sseSource) { sseSource.close(); sseSource = null; }
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   if (msg) {
