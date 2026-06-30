@@ -148,6 +148,24 @@
         </table>
       </div>
     </div>
+
+    <!-- Chat Logs -->
+    <div class="card">
+      <div class="card-header">
+        <h2>💬 GeoX Chat Logs</h2>
+        <span id="chat-log-count"></span>
+      </div>
+      <div class="search-bar" style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="chat-log-search" placeholder="Search by username or location..." oninput="filterChatLogs()" style="max-width:300px;">
+        <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="loadChatLogs()">↻ Refresh</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Time</th><th>User</th><th>Correct Location</th><th>Guessed</th><th>Player Message</th><th>GeoX Reply</th></tr></thead>
+          <tbody id="chat-log-tbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -197,6 +215,7 @@ function doLogin() {
           document.getElementById('dashboard').style.display = 'block';
           loadStats(sd);
           loadUsers();
+          loadChatLogs();
           startClock();
         });
     })
@@ -431,6 +450,42 @@ function refreshAll() {
   fetch(`${API}/admin/stats`, {headers: adminHeaders()})
     .then(r => r.json()).then(d => { if (!d.error) loadStats(d); });
   loadUsers();
+  loadChatLogs();
+}
+
+let allChatLogs = [];
+
+function loadChatLogs() {
+  fetch(`${API}/admin/chat_logs`, {headers: adminHeaders()})
+    .then(r => r.json())
+    .then(d => {
+      allChatLogs = d.logs || [];
+      document.getElementById('chat-log-count').textContent = `${allChatLogs.length} messages`;
+      renderChatLogs(allChatLogs);
+    });
+}
+
+function renderChatLogs(logs) {
+  const tbody = document.getElementById('chat-log-tbody');
+  if (!logs.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">No chat logs yet</td></tr>'; return; }
+  tbody.innerHTML = logs.map(l => `
+    <tr>
+      <td style="color:#8888aa;font-size:11px;white-space:nowrap">${formatDate(l.created_at)}</td>
+      <td><strong>${escapeHtml(l.username || '—')}</strong></td>
+      <td style="font-size:12px;color:#00c9a7">${escapeHtml(l.correct_location || '—')}</td>
+      <td style="font-size:12px;color:#ff6b6b">${escapeHtml(l.guessed_location || '—')}</td>
+      <td style="font-size:12px;max-width:200px;word-break:break-word">${escapeHtml(l.user_message || '')}</td>
+      <td style="font-size:12px;max-width:300px;word-break:break-word;color:#c0c0d8">${escapeHtml(l.ai_reply || '')}</td>
+    </tr>`).join('');
+}
+
+function filterChatLogs() {
+  const q = document.getElementById('chat-log-search').value.toLowerCase();
+  renderChatLogs(allChatLogs.filter(l =>
+    (l.username || '').toLowerCase().includes(q) ||
+    (l.correct_location || '').toLowerCase().includes(q) ||
+    (l.guessed_location || '').toLowerCase().includes(q)
+  ));
 }
 
 function formatDate(str) {
