@@ -47,6 +47,21 @@
   .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
   .badge-pro  { background:rgba(240,165,0,.15); color:#f0a500; border:1px solid rgba(240,165,0,.3); }
   .badge-free { background:rgba(0,201,167,.1); color:#00c9a7; border:1px solid rgba(0,201,167,.2); }
+  .badge-banned { background:rgba(255,100,100,.15); color:#ff6b6b; border:1px solid rgba(255,100,100,.3); }
+
+  .ban-menu { position:relative; display:inline-block; }
+  .ban-dropdown {
+    position:absolute; top:100%; right:0; margin-top:4px;
+    background:#1a1a2e; border:1px solid #2a2a3e; border-radius:8px;
+    min-width:140px; z-index:100; display:none; overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  .ban-dropdown.open { display:block; }
+  .ban-dropdown button {
+    display:block; width:100%; text-align:left; padding:8px 12px;
+    background:none; border:none; color:#e0e0f0; font-size:12px; cursor:pointer;
+  }
+  .ban-dropdown button:hover { background:rgba(255,100,100,.1); color:#ff6b6b; }
 
   .search-bar { padding:16px 20px; border-bottom:1px solid #1e1e2e; }
   .search-bar input { width:100%; max-width:300px; padding:8px 12px; background:#1a1a2e; border:1px solid #2a2a3e; border-radius:8px; color:#e0e0f0; font-size:13px; outline:none; }
@@ -213,23 +228,60 @@ function loadUsers() {
 function renderUsers(users) {
   const tbody = document.getElementById('users-tbody');
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">No users found</td></tr>'; return; }
-  tbody.innerHTML = users.map(u => `
+  tbody.innerHTML = users.map(u => {
+    const isBanned = u.banned_until && new Date(u.banned_until) > new Date();
+    const isPermaBanned = isBanned && (new Date(u.banned_until) - new Date()) > 1000*60*60*24*365;
+    return `
     <tr>
-      <td><strong>${u.username}</strong></td>
+      <td><strong>${u.username}</strong>${isBanned ? `<br><span class="badge badge-banned" style="margin-top:4px;">${isPermaBanned ? '🚫 Permanent' : '🚫 Until ' + formatDate(u.banned_until)}</span>` : ''}</td>
       <td style="color:#8888aa;font-size:12px">${u.email}</td>
       <td><span class="badge badge-${u.tier}">${u.tier}</span></td>
       <td style="color:#8888aa;font-size:12px">${formatDate(u.created_at)}</td>
       <td style="color:#8888aa;font-size:12px">${formatDate(u.last_login)}</td>
       <td>
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;gap:6px;align-items:center;">
           ${u.tier === 'free'
             ? `<button class="btn btn-sm btn-purple" onclick="setTier(${u.id},'pro','${u.username}')">↑ Pro</button>`
             : `<button class="btn btn-sm btn-danger" onclick="setTier(${u.id},'free','${u.username}')">↓ Free</button>`
           }
-          <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resetUsage(${u.id},'${u.username}')">Reset Daily</button>
+          <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resetUsage(${u.id},'${u.username}')">Reset</button>
+          <div class="ban-menu">
+            <button class="btn btn-sm" style="background:${isBanned ? 'rgba(255,100,100,.15)' : '#1a1a2e'};border:1px solid ${isBanned ? 'rgba(255,100,100,.3)' : '#2a2a3e'};color:${isBanned ? '#ff6b6b' : '#8888aa'};" onclick="toggleBanMenu(event,${u.id})">${isBanned ? '🚫 Banned' : '🚫 Ban'}</button>
+            <div class="ban-dropdown" id="ban-menu-${u.id}">
+              ${isBanned ? `<button onclick="banUser(${u.id},'${u.username}','unban')">✓ Unban</button>` : `
+              <button onclick="banUser(${u.id},'${u.username}','1d')">1 Day</button>
+              <button onclick="banUser(${u.id},'${u.username}','3d')">3 Days</button>
+              <button onclick="banUser(${u.id},'${u.username}','1w')">1 Week</button>
+              <button onclick="banUser(${u.id},'${u.username}','1m')">1 Month</button>
+              <button onclick="banUser(${u.id},'${u.username}','permanent')">Permanent</button>
+              `}
+            </div>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id},'${u.username}')">🗑</button>
         </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
+}
+
+function toggleBanMenu(e, userId) {
+  e.stopPropagation();
+  document.querySelectorAll('.ban-dropdown').forEach(d => { if (d.id !== `ban-menu-${userId}`) d.classList.remove('open'); });
+  document.getElementById(`ban-menu-${userId}`).classList.toggle('open');
+}
+document.addEventListener('click', () => document.querySelectorAll('.ban-dropdown').forEach(d => d.classList.remove('open')));
+
+function banUser(userId, username, duration) {
+  const labels = {'1d':'1 day','3d':'3 days','1w':'1 week','1m':'1 month','permanent':'PERMANENTLY','unban':'unban'};
+  if (!confirm(`${duration === 'unban' ? 'Unban' : 'Ban'} ${username} ${duration === 'unban' ? '' : 'for ' + labels[duration]}?`)) return;
+  fetch(`${API}/admin/ban_user`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({admin_key: adminKey, user_id: userId, duration})
+  }).then(r => r.json()).then(d => {
+    toast(d.success ? `✓ ${username} ${duration === 'unban' ? 'unbanned' : 'banned'}` : 'Error: ' + (d.error || 'failed'), !d.success);
+    if (d.success) loadUsers();
+  });
 }
 
 function filterUsers() {
@@ -253,6 +305,19 @@ function setTier(userId, tier, username) {
         return !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
       }));
     } else { toast('Error: ' + (d.error || 'failed'), true); }
+  });
+}
+
+function deleteUser(userId, username) {
+  if (!confirm(`Permanently delete ${username}? This cannot be undone.`)) return;
+  if (!confirm(`Are you absolutely sure? This will erase their account, sessions, and usage history.`)) return;
+  fetch(`${API}/admin/delete_user`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({admin_key: adminKey, user_id: userId})
+  }).then(r => r.json()).then(d => {
+    toast(d.success ? `✓ Deleted ${username}` : 'Error: ' + (d.error || 'failed'), !d.success);
+    if (d.success) { allUsers = allUsers.filter(u => u.id !== userId); refreshAll(); }
   });
 }
 
