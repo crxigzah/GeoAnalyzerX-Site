@@ -93,10 +93,12 @@
   <div class="login-box">
     <div style="font-size:32px;margin-bottom:12px">🌍</div>
     <h1>GeoAnalyzerX Admin</h1>
-    <p>Enter your admin key to continue</p>
+    <p>Sign in with your admin account</p>
+    <input type="email" id="admin-email-input" placeholder="Email" onkeydown="if(event.key==='Enter')doLogin()">
+    <input type="password" id="admin-password-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
     <input type="password" id="admin-key-input" placeholder="Admin key" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
-    <div id="login-error" style="color:#ff6b6b;font-size:12px;margin-top:10px;display:none;">Invalid admin key</div>
+    <div id="login-error" style="color:#ff6b6b;font-size:12px;margin-top:10px;display:none;">Invalid credentials, admin key, or account is not an admin</div>
   </div>
 </div>
 
@@ -140,8 +142,8 @@
       </div>
       <div style="overflow-x:auto">
         <table>
-          <thead><tr><th>Username</th><th>Email</th><th>Tier</th><th>Signed Up</th><th>Last Login</th><th>Actions</th></tr></thead>
-          <tbody id="users-tbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
+          <thead><tr><th>Username</th><th>Email</th><th>Tier</th><th>Verified</th><th>Admin</th><th>Signed Up</th><th>Last Login</th><th>Actions</th></tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -153,27 +155,46 @@
 <script>
 const API = 'https://geoanalyzerx.onrender.com';
 let adminKey = '';
+let adminToken = '';
 let allUsers = [];
 
 function doLogin() {
+  const email = document.getElementById('admin-email-input').value.trim();
+  const password = document.getElementById('admin-password-input').value;
   const key = document.getElementById('admin-key-input').value.trim();
-  if (!key) return;
-  adminKey = key;
-  fetch(`${API}/admin/stats?admin_key=${encodeURIComponent(key)}`)
+  if (!email || !password || !key) return;
+  document.getElementById('login-error').style.display = 'none';
+  fetch(`${API}/admin/login`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({admin_key: key, email, password})
+  })
     .then(r => r.json())
     .then(d => {
-      if (d.error) {
+      if (d.error || !d.admin_token) {
+        document.getElementById('login-error').textContent = d.error || 'Invalid credentials, admin key, or account is not an admin';
         document.getElementById('login-error').style.display = 'block';
-        adminKey = '';
         return;
       }
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      loadStats(d);
-      loadUsers();
-      startClock();
+      adminKey = key;
+      adminToken = d.admin_token;
+      return fetch(`${API}/admin/stats?admin_key=${encodeURIComponent(adminKey)}&admin_token=${encodeURIComponent(adminToken)}`)
+        .then(r => r.json())
+        .then(sd => {
+          if (sd.error) {
+            document.getElementById('login-error').textContent = sd.error;
+            document.getElementById('login-error').style.display = 'block';
+            adminKey = ''; adminToken = '';
+            return;
+          }
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          loadStats(sd);
+          loadUsers();
+          startClock();
+        });
     })
-    .catch(() => { document.getElementById('login-error').style.display = 'block'; adminKey = ''; });
+    .catch(() => { document.getElementById('login-error').textContent = 'Could not connect to server'; document.getElementById('login-error').style.display = 'block'; adminKey = ''; adminToken = ''; });
 }
 
 function startClock() {
@@ -216,7 +237,7 @@ function loadStats(d) {
 }
 
 function loadUsers() {
-  fetch(`${API}/admin/users?admin_key=${encodeURIComponent(adminKey)}`)
+  fetch(`${API}/admin/users?admin_key=${encodeURIComponent(adminKey)}&admin_token=${encodeURIComponent(adminToken)}`)
     .then(r => r.json())
     .then(d => {
       allUsers = d.users || [];
@@ -227,7 +248,7 @@ function loadUsers() {
 
 function renderUsers(users) {
   const tbody = document.getElementById('users-tbody');
-  if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">No users found</td></tr>'; return; }
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">No users found</td></tr>'; return; }
   tbody.innerHTML = users.map(u => {
     const isBanned = u.banned_until && new Date(u.banned_until) > new Date();
     const isPermaBanned = isBanned && (new Date(u.banned_until) - new Date()) > 1000*60*60*24*365;
@@ -236,6 +257,12 @@ function renderUsers(users) {
       <td><strong>${u.username}</strong>${u.disabled ? `<br><span class="badge badge-banned" style="margin-top:4px;">⏸ Disabled</span>` : ''}${isBanned ? `<br><span class="badge badge-banned" style="margin-top:4px;">${isPermaBanned ? '🚫 Permanent' : '🚫 Until ' + formatDate(u.banned_until)}</span>` : ''}</td>
       <td style="color:#8888aa;font-size:12px">${u.email}</td>
       <td><span class="badge badge-${u.tier}">${u.tier}</span></td>
+      <td>${u.email_verified
+            ? `<span class="badge badge-free">✓ Verified</span>`
+            : `<span class="badge badge-banned">✗ Unverified</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resendVerification(${u.id},'${u.username}')">✉ Resend</button>`}</td>
+      <td>${u.is_admin
+            ? `<span class="badge badge-pro">★ Admin</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="setAdmin(${u.id},'${u.username}',false)">Demote</button>`
+            : `<button class="btn btn-sm btn-purple" onclick="setAdmin(${u.id},'${u.username}',true)">Make Admin</button>`}</td>
       <td style="color:#8888aa;font-size:12px">${formatDate(u.created_at)}</td>
       <td style="color:#8888aa;font-size:12px">${formatDate(u.last_login)}</td>
       <td>
@@ -270,7 +297,7 @@ function toggleDisabled(userId, username, disabled) {
   fetch(`${API}/admin/toggle_disabled`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({admin_key: adminKey, user_id: userId, disabled})
+    body: JSON.stringify({admin_key: adminKey, admin_token: adminToken, user_id: userId, disabled})
   }).then(r => r.json()).then(d => {
     toast(d.success ? `✓ ${username} ${disabled ? 'disabled' : 'enabled'}` : 'Error: ' + (d.error || 'failed'), !d.success);
     if (d.success) loadUsers();
@@ -290,7 +317,7 @@ function banUser(userId, username, duration) {
   fetch(`${API}/admin/ban_user`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({admin_key: adminKey, user_id: userId, duration})
+    body: JSON.stringify({admin_key: adminKey, admin_token: adminToken, user_id: userId, duration})
   }).then(r => r.json()).then(d => {
     toast(d.success ? `✓ ${username} ${duration === 'unban' ? 'unbanned' : 'banned'}` : 'Error: ' + (d.error || 'failed'), !d.success);
     if (d.success) loadUsers();
@@ -307,12 +334,42 @@ function setTier(userId, tier, username) {
   fetch(`${API}/admin/set_tier`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({admin_key: adminKey, user_id: userId, tier})
+    body: JSON.stringify({admin_key: adminKey, admin_token: adminToken, user_id: userId, tier})
   }).then(r => r.json()).then(d => {
     if (d.success || d.ok) {
       toast(`✓ ${username} is now ${tier}`);
       const u = allUsers.find(u => u.id === userId);
       if (u) u.tier = tier;
+      renderUsers(allUsers.filter(u => {
+        const q = document.getElementById('user-search').value.toLowerCase();
+        return !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+      }));
+    } else { toast('Error: ' + (d.error || 'failed'), true); }
+  });
+}
+
+function resendVerification(userId, username) {
+  if (!confirm(`Resend verification code to ${username}?`)) return;
+  fetch(`${API}/admin/resend_verification`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({admin_key: adminKey, admin_token: adminToken, user_id: userId})
+  }).then(r => r.json()).then(d => {
+    toast(d.success ? `✓ Verification code resent to ${username}` : 'Error: ' + (d.error || 'failed'), !d.success);
+  });
+}
+
+function setAdmin(userId, username, isAdmin) {
+  if (!confirm(`${isAdmin ? 'Promote' : 'Demote'} ${username} ${isAdmin ? 'to' : 'from'} admin?`)) return;
+  fetch(`${API}/admin/set_admin`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({admin_key: adminKey, admin_token: adminToken, user_id: userId, is_admin: isAdmin})
+  }).then(r => r.json()).then(d => {
+    if (d.success) {
+      toast(`✓ ${username} is ${isAdmin ? 'now an admin' : 'no longer an admin'}`);
+      const u = allUsers.find(u => u.id === userId);
+      if (u) u.is_admin = isAdmin;
       renderUsers(allUsers.filter(u => {
         const q = document.getElementById('user-search').value.toLowerCase();
         return !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
@@ -327,7 +384,7 @@ function deleteUser(userId, username) {
   fetch(`${API}/admin/delete_user`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({admin_key: adminKey, user_id: userId})
+    body: JSON.stringify({admin_key: adminKey, admin_token: adminToken, user_id: userId})
   }).then(r => r.json()).then(d => {
     toast(d.success ? `✓ Deleted ${username}` : 'Error: ' + (d.error || 'failed'), !d.success);
     if (d.success) { allUsers = allUsers.filter(u => u.id !== userId); refreshAll(); }
@@ -339,7 +396,7 @@ function resetUsage(userId, username) {
   fetch(`${API}/admin/reset_usage`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({admin_key: adminKey, user_id: userId})
+    body: JSON.stringify({admin_key: adminKey, admin_token: adminToken, user_id: userId})
   }).then(r => r.json()).then(d => {
     toast(d.success ? `✓ Reset ${username}'s daily usage` : 'Error: ' + (d.error || 'failed'), !d.success);
     refreshAll();
@@ -347,7 +404,7 @@ function resetUsage(userId, username) {
 }
 
 function refreshAll() {
-  fetch(`${API}/admin/stats?admin_key=${encodeURIComponent(adminKey)}`)
+  fetch(`${API}/admin/stats?admin_key=${encodeURIComponent(adminKey)}&admin_token=${encodeURIComponent(adminToken)}`)
     .then(r => r.json()).then(d => { if (!d.error) loadStats(d); });
   loadUsers();
 }
