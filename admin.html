@@ -195,6 +195,57 @@ const API = 'https://geoanalyzerx.onrender.com';
 let adminKey = '';
 let adminToken = '';
 let allUsers = [];
+let inactivityTimer = null;
+const INACTIVITY_MS = 5 * 60 * 1000; // 5 minutes
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    doLogout('Logged out due to 5 minutes of inactivity.');
+  }, INACTIVITY_MS);
+}
+
+function doLogout(msg) {
+  adminKey = ''; adminToken = '';
+  sessionStorage.removeItem('gax_admin_key');
+  sessionStorage.removeItem('gax_admin_token');
+  clearTimeout(inactivityTimer);
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  if (msg) {
+    document.getElementById('login-error').textContent = msg;
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+// Restore session on page load/refresh
+window.addEventListener('load', () => {
+  const savedKey   = sessionStorage.getItem('gax_admin_key');
+  const savedToken = sessionStorage.getItem('gax_admin_token');
+  if (savedKey && savedToken) {
+    adminKey = savedKey;
+    adminToken = savedToken;
+    // Verify the saved session is still valid before showing dashboard
+    fetch(`${API}/admin/stats`, {headers: adminHeaders()})
+      .then(r => r.json())
+      .then(sd => {
+        if (sd.error) { doLogout('Session expired, please log in again.'); return; }
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        loadStats(sd);
+        loadUsers();
+        loadAllLogs();
+        startClock();
+        resetInactivityTimer();
+      })
+      .catch(() => doLogout());
+  }
+});
+
+// Reset inactivity timer on any user interaction
+['click','keydown','mousemove','scroll'].forEach(evt =>
+  document.addEventListener(evt, () => { if (adminToken) resetInactivityTimer(); }, { passive: true })
+);
 
 function adminHeaders(extra) {
   return Object.assign({'Content-Type':'application/json','X-Admin-Key':adminKey,'X-Admin-Token':adminToken}, extra || {});
@@ -221,6 +272,8 @@ function doLogin() {
       }
       adminKey = key;
       adminToken = d.admin_token;
+      sessionStorage.setItem('gax_admin_key', key);
+      sessionStorage.setItem('gax_admin_token', d.admin_token);
       return fetch(`${API}/admin/stats`, {headers: adminHeaders()})
         .then(r => r.json())
         .then(sd => {
@@ -228,6 +281,8 @@ function doLogin() {
             document.getElementById('login-error').textContent = sd.error;
             document.getElementById('login-error').style.display = 'block';
             adminKey = ''; adminToken = '';
+            sessionStorage.removeItem('gax_admin_key');
+            sessionStorage.removeItem('gax_admin_token');
             return;
           }
           document.getElementById('login-screen').style.display = 'none';
@@ -236,6 +291,7 @@ function doLogin() {
           loadUsers();
           loadAllLogs();
           startClock();
+          resetInactivityTimer();
         });
     })
     .catch(() => { document.getElementById('login-error').textContent = 'Could not connect to server'; document.getElementById('login-error').style.display = 'block'; adminKey = ''; adminToken = ''; });
