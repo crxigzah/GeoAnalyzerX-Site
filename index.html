@@ -1172,7 +1172,19 @@ async function login() {
     const res  = await fetch(API + '/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password, totp_code}) });
     const data = await res.json();
     if (!res.ok) {
-      if (data.code === 'unverified') { errEl.textContent = '✉️ Please verify your email before signing in. Check your inbox/spam, or register again to get a new code.'; errEl.style.color='#ff6b6b'; errEl.style.display = 'block'; return; }
+      if (data.code === 'unverified') {
+        errEl.textContent = 'Sending you a new verification code...';
+        errEl.style.color='var(--muted)'; errEl.style.display = 'block';
+        try {
+          const vres = await fetch(API + '/auth/request_verification', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
+          const vdata = await vres.json();
+          if (!vres.ok) { errEl.textContent = vdata.error || 'Could not send a new code. Please try again.'; errEl.style.color='#ff6b6b'; errEl.style.display = 'block'; return; }
+          pendingVerifyToken = vdata.token;
+          pendingVerifyUser  = vdata.user;
+          switchTab('verify');
+        } catch (e) { errEl.textContent = 'Could not connect to server. Try again.'; errEl.style.color='#ff6b6b'; errEl.style.display = 'block'; }
+        return;
+      }
       if (data.code === 'totp_required') { document.getElementById('login-totp-group').style.display = ''; errEl.textContent = 'Enter your 2FA code to continue'; errEl.style.color='var(--muted)'; errEl.style.display = 'block'; return; }
       if (data.code === 'totp_invalid') { document.getElementById('login-totp-group').style.display = ''; errEl.textContent = 'Incorrect 2FA code'; errEl.style.color='#ff6b6b'; errEl.style.display = 'block'; return; }
       errEl.textContent = data.error; errEl.style.display = 'block'; return;
