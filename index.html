@@ -629,8 +629,8 @@ html { scroll-behavior: smooth; }
   <!-- Features -->
   <div class="section" id="features">
     <div class="section-label">Features</div>
-    <h2 style="font-size:38px;font-weight:800;letter-spacing:-0.5px;line-height:1.1;">Everything you need<br>to master GeoGuessr</h2>
-    <p>A complete training system that learns alongside you and adapts to your weaknesses.</p>
+    <h2 style="font-size:38px;font-weight:800;letter-spacing:-0.5px;line-height:1.1;text-align:center;">Everything you need<br>to master GeoGuessr</h2>
+    <p style="text-align:center;color:var(--muted);max-width:500px;margin:0 auto;">A complete training system that learns alongside you and adapts to your weaknesses.</p>
     <div class="features">
       <div class="feature-card">
         <div class="feature-icon">🧠</div>
@@ -874,31 +874,31 @@ html { scroll-behavior: smooth; }
       </div>
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)"><span>Does GeoAnalyzerX work offline?</span><span class="faq-arrow">+</span></div>
-        <div class="faq-a">Scene capture (F7) and the local scene library work without an internet connection. However, AI analysis, teaching popups, and GeoX chat all require an active connection to the Claude API. Your account also needs to sync with our servers to verify your tier.</div>
-        <div class="faq-item">
-          <div class="faq-q" onclick="toggleFaq(this)"><span>Does GeoAnalyzerX work in all game modes?</span><span class="faq-arrow">+</span></div>
-          <div class="faq-a">GeoAnalyzerX works in standard single player games and training modes. It must never be used in competitive multiplayer, ranked duels, or any game mode where you play against other real players. It is a training tool only.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-q" onclick="toggleFaq(this)"><span>How accurate is the location analysis?</span><span class="faq-arrow">+</span></div>
-          <div class="faq-a">When you are in an active game round, GeoAnalyzerX uses the exact GPS coordinates from GeoGuessr and confirms the precise location instantly. Outside of a game, the AI analyses visual clues to estimate location with high accuracy for well-covered regions.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-q" onclick="toggleFaq(this)"><span>What is the community scene library?</span><span class="faq-arrow">+</span></div>
-          <div class="faq-a">Every time any user presses F7 during a game, the scene is uploaded to a shared cloud library tagged by country and region. When a training guide fires, it pulls reference images from this library to compare your scene with real examples from the correct location. The more players use F7, the better the library gets for everyone.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-q" onclick="toggleFaq(this)"><span>Can I use GeoAnalyzerX on mobile?</span><span class="faq-arrow">+</span></div>
-          <div class="faq-a">GeoAnalyzerX is a browser extension for Opera and Chrome on desktop. It does not currently support mobile browsers. We recommend playing GeoGuessr on desktop for the best training experience.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-q" onclick="toggleFaq(this)"><span>What happens to my data?</span><span class="faq-arrow">+</span></div>
-          <div class="faq-a">Scene images uploaded via F7 are stored in our community library and may be seen by other users as reference images. Your account details (email, username) are stored securely and never sold or shared. See our Privacy Policy for full details.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-q" onclick="toggleFaq(this)"><span>How do I cancel my Pro subscription?</span><span class="faq-arrow">+</span></div>
-          <div class="faq-a">You can cancel anytime from your Stripe billing portal. Your Pro access continues until the end of your current billing period. Contact support@geoanalyzerx.com if you need any help with your subscription.</div>
-        </div>
+        <div class="faq-a">AI analysis, teaching popups, and GeoX chat all require an active internet connection. F7 scene capture requires a connection to upload to the community library.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Does GeoAnalyzerX work in all game modes?</span><span class="faq-arrow">+</span></div>
+        <div class="faq-a">GeoAnalyzerX works in standard single player games and training modes. It must never be used in competitive multiplayer, ranked duels, or any game mode where you play against other real players. It is a training tool only.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>How accurate is the location analysis?</span><span class="faq-arrow">+</span></div>
+        <div class="faq-a">When you are in an active game round, GeoAnalyzerX uses the exact GPS coordinates from GeoGuessr and confirms the precise location instantly. Outside of a game, the AI analyses visual clues to estimate location with high accuracy for well-covered regions.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>What is the community scene library?</span><span class="faq-arrow">+</span></div>
+        <div class="faq-a">Every time any user presses F7 during a game, the scene is uploaded to a shared cloud library tagged by country and region. When a training guide fires, it pulls reference images from this library to compare your scene with real examples from the correct location. The more players use F7, the better the library gets for everyone.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Can I use GeoAnalyzerX on mobile?</span><span class="faq-arrow">+</span></div>
+        <div class="faq-a">GeoAnalyzerX is a browser extension for Opera and Chrome on desktop. It does not currently support mobile browsers. We recommend playing GeoGuessr on desktop for the best training experience.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>What happens to my data?</span><span class="faq-arrow">+</span></div>
+        <div class="faq-a">Scene images uploaded via F7 are stored in our community library and may be seen by other users as reference images. Your account details (email, username) are stored securely and never sold or shared. See our Privacy Policy for full details.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>How do I cancel my Pro subscription?</span><span class="faq-arrow">+</span></div>
+        <div class="faq-a">You can cancel anytime from your Stripe billing portal. Your Pro access continues until the end of your current billing period. Contact support@geoanalyzerx.com if you need any help with your subscription.</div>
       </div>
     </div>
   </div>
