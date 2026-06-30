@@ -149,20 +149,39 @@
       </div>
     </div>
 
-    <!-- Chat Logs -->
+    <!-- Logs -->
     <div class="card">
       <div class="card-header">
-        <h2>💬 GeoX Chat Logs</h2>
-        <span id="chat-log-count"></span>
+        <h2>📋 Logs</h2>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="log-search" placeholder="Search..." oninput="filterLogs()" style="max-width:220px;padding:6px 10px;background:#0d0d1a;border:1px solid #2a2a3e;border-radius:6px;color:#e0e0f0;font-size:12px;">
+          <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;padding:6px 12px;" onclick="loadAllLogs()">↻ Refresh</button>
+          <span id="log-count" style="color:#8888aa;font-size:12px;"></span>
+        </div>
       </div>
-      <div class="search-bar" style="display:flex;gap:8px;align-items:center;">
-        <input type="text" id="chat-log-search" placeholder="Search by username or location..." oninput="filterChatLogs()" style="max-width:300px;">
-        <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="loadChatLogs()">↻ Refresh</button>
+      <div class="tab-bar" style="padding:0 20px;margin-bottom:0;">
+        <button class="tab active" onclick="switchLogTab('all', this)">All</button>
+        <button class="tab" onclick="switchLogTab('auth', this)">🔐 Auth</button>
+        <button class="tab" onclick="switchLogTab('security', this)">🚨 Security</button>
+        <button class="tab" onclick="switchLogTab('ai', this)">🤖 AI Usage</button>
+        <button class="tab" onclick="switchLogTab('scenes', this)">📸 Scenes</button>
+        <button class="tab" onclick="switchLogTab('admin', this)">⚙️ Admin Actions</button>
+        <button class="tab" onclick="switchLogTab('chat', this)">💬 GeoX Chat</button>
       </div>
-      <div style="overflow-x:auto">
+
+      <!-- Activity log table (all tabs except chat) -->
+      <div id="log-activity-panel" style="overflow-x:auto">
         <table>
-          <thead><tr><th>Time</th><th>User</th><th>Correct Location</th><th>Guessed</th><th>Player Message</th><th>GeoX Reply</th></tr></thead>
-          <tbody id="chat-log-tbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
+          <thead><tr><th>Time</th><th>Event</th><th>User</th><th>Detail</th><th>IP</th></tr></thead>
+          <tbody id="log-activity-tbody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- Chat log table (chat tab only) -->
+      <div id="log-chat-panel" style="overflow-x:auto;display:none">
+        <table>
+          <thead><tr><th>Time</th><th>User</th><th>Correct Location</th><th>Guessed</th><th>Player Said</th><th>GeoX Replied</th></tr></thead>
+          <tbody id="log-chat-tbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -215,7 +234,7 @@ function doLogin() {
           document.getElementById('dashboard').style.display = 'block';
           loadStats(sd);
           loadUsers();
-          loadChatLogs();
+          loadAllLogs();
           startClock();
         });
     })
@@ -450,48 +469,135 @@ function refreshAll() {
   fetch(`${API}/admin/stats`, {headers: adminHeaders()})
     .then(r => r.json()).then(d => { if (!d.error) loadStats(d); });
   loadUsers();
-  loadChatLogs();
+  loadAllLogs();
 }
 
-let allChatLogs = [];
+// ── Logs ─────────────────────────────────────────────────
+const EVENT_LABELS = {
+  register:          { icon: '👤', label: 'Register',         color: '#00c9a7' },
+  email_verified:    { icon: '✉️',  label: 'Email Verified',   color: '#00c9a7' },
+  login:             { icon: '🔓', label: 'Login',            color: '#8888aa' },
+  login_failed:      { icon: '❌', label: 'Login Failed',     color: '#ff6b6b' },
+  logout:            { icon: '🔒', label: 'Logout',           color: '#5a5a7a' },
+  password_changed:  { icon: '🔑', label: 'Password Changed', color: '#f59e0b' },
+  rate_limit_login:  { icon: '🚨', label: 'Rate Limited',     color: '#ff6b6b' },
+  ai_analyse:        { icon: '🔍', label: 'Analyse',          color: '#7c3aed' },
+  teaching_guide:    { icon: '📖', label: 'Training Guide',   color: '#7c3aed' },
+  ai_chat:           { icon: '💬', label: 'AI Chat',          color: '#7c3aed' },
+  scene_upload:      { icon: '📸', label: 'F7 Upload',        color: '#00c9a7' },
+  admin_disable:     { icon: '🚫', label: 'User Disabled',    color: '#ff6b6b' },
+  admin_enable:      { icon: '✅', label: 'User Enabled',     color: '#00c9a7' },
+  admin_ban:         { icon: '🔨', label: 'User Banned',      color: '#ff6b6b' },
+  admin_unban:       { icon: '🕊️', label: 'User Unbanned',   color: '#00c9a7' },
+  admin_delete_user: { icon: '🗑️', label: 'User Deleted',    color: '#ff6b6b' },
+  admin_reset_usage: { icon: '↺',  label: 'Usage Reset',      color: '#f59e0b' },
+  admin_set_tier:    { icon: '⭐', label: 'Tier Changed',     color: '#f59e0b' },
+};
 
-function loadChatLogs() {
-  fetch(`${API}/admin/chat_logs`, {headers: adminHeaders()})
-    .then(r => r.json())
-    .then(d => {
+const TAB_FILTERS = {
+  all:      null,
+  auth:     ['register','email_verified','login','login_failed','logout','password_changed'],
+  security: ['login_failed','rate_limit_login','admin_ban','admin_disable','admin_delete_user'],
+  ai:       ['ai_analyse','teaching_guide'],
+  scenes:   ['scene_upload'],
+  admin:    ['admin_disable','admin_enable','admin_ban','admin_unban','admin_delete_user','admin_reset_usage','admin_set_tier'],
+};
+
+let allActivityLogs = [];
+let allChatLogs = [];
+let currentLogTab = 'all';
+
+function loadAllLogs() {
+  fetch(`${API}/admin/activity_logs?limit=500`, {headers: adminHeaders()})
+    .then(r => r.json()).then(d => {
+      allActivityLogs = d.logs || [];
+      renderLogs();
+    });
+  fetch(`${API}/admin/chat_logs?limit=200`, {headers: adminHeaders()})
+    .then(r => r.json()).then(d => {
       allChatLogs = d.logs || [];
-      document.getElementById('chat-log-count').textContent = `${allChatLogs.length} messages`;
-      renderChatLogs(allChatLogs);
+      if (currentLogTab === 'chat') renderChatLogs();
     });
 }
 
-function renderChatLogs(logs) {
-  const tbody = document.getElementById('chat-log-tbody');
-  if (!logs.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">No chat logs yet</td></tr>'; return; }
-  tbody.innerHTML = logs.map(l => `
-    <tr>
-      <td style="color:#8888aa;font-size:11px;white-space:nowrap">${formatDate(l.created_at)}</td>
-      <td><strong>${escapeHtml(l.username || '—')}</strong></td>
-      <td style="font-size:12px;color:#00c9a7">${escapeHtml(l.correct_location || '—')}</td>
-      <td style="font-size:12px;color:#ff6b6b">${escapeHtml(l.guessed_location || '—')}</td>
-      <td style="font-size:12px;max-width:200px;word-break:break-word">${escapeHtml(l.user_message || '')}</td>
-      <td style="font-size:12px;max-width:300px;word-break:break-word;color:#c0c0d8">${escapeHtml(l.ai_reply || '')}</td>
-    </tr>`).join('');
+function switchLogTab(tab, btn) {
+  currentLogTab = tab;
+  document.querySelectorAll('.tab-bar .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('log-activity-panel').style.display = tab === 'chat' ? 'none' : 'block';
+  document.getElementById('log-chat-panel').style.display    = tab === 'chat' ? 'block' : 'none';
+  if (tab === 'chat') renderChatLogs(); else renderLogs();
 }
 
-function filterChatLogs() {
-  const q = document.getElementById('chat-log-search').value.toLowerCase();
-  renderChatLogs(allChatLogs.filter(l =>
+function filterLogs() {
+  if (currentLogTab === 'chat') renderChatLogs(); else renderLogs();
+}
+
+function renderLogs() {
+  const q = document.getElementById('log-search').value.toLowerCase();
+  const filter = TAB_FILTERS[currentLogTab];
+  let logs = allActivityLogs;
+  if (filter) logs = logs.filter(l => filter.includes(l.event_type));
+  if (q) logs = logs.filter(l =>
+    (l.event_type || '').includes(q) ||
+    (l.username || '').toLowerCase().includes(q) ||
+    (l.detail || '').toLowerCase().includes(q) ||
+    (l.ip || '').includes(q)
+  );
+  document.getElementById('log-count').textContent = `${logs.length} events`;
+  const tbody = document.getElementById('log-activity-tbody');
+  if (!logs.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">No events yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = logs.map(l => {
+    const meta = EVENT_LABELS[l.event_type] || { icon: '•', label: l.event_type, color: '#8888aa' };
+    return `<tr>
+      <td style="color:#8888aa;font-size:11px;white-space:nowrap">${formatDateTime(l.created_at)}</td>
+      <td><span style="color:${meta.color};font-weight:700;white-space:nowrap">${meta.icon} ${meta.label}</span></td>
+      <td style="font-weight:600">${escapeHtml(l.username || '—')}</td>
+      <td style="font-size:12px;color:#c0c0d8;max-width:300px;word-break:break-word">${escapeHtml(l.detail || '—')}</td>
+      <td style="font-size:11px;color:#5a5a7a;white-space:nowrap">${escapeHtml(l.ip || '—')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderChatLogs() {
+  const q = document.getElementById('log-search').value.toLowerCase();
+  let logs = allChatLogs;
+  if (q) logs = logs.filter(l =>
     (l.username || '').toLowerCase().includes(q) ||
     (l.correct_location || '').toLowerCase().includes(q) ||
-    (l.guessed_location || '').toLowerCase().includes(q)
-  ));
+    (l.guessed_location || '').toLowerCase().includes(q) ||
+    (l.user_message || '').toLowerCase().includes(q)
+  );
+  document.getElementById('log-count').textContent = `${logs.length} messages`;
+  const tbody = document.getElementById('log-chat-tbody');
+  if (!logs.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty">No chat logs yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = logs.map(l => `<tr>
+    <td style="color:#8888aa;font-size:11px;white-space:nowrap">${formatDateTime(l.created_at)}</td>
+    <td style="font-weight:600">${escapeHtml(l.username || '—')}</td>
+    <td style="font-size:12px;color:#00c9a7">${escapeHtml(l.correct_location || '—')}</td>
+    <td style="font-size:12px;color:#ff6b6b">${escapeHtml(l.guessed_location || '—')}</td>
+    <td style="font-size:12px;max-width:220px;word-break:break-word">${escapeHtml(l.user_message || '')}</td>
+    <td style="font-size:12px;max-width:280px;word-break:break-word;color:#c0c0d8">${escapeHtml(l.ai_reply || '')}</td>
+  </tr>`).join('');
 }
 
-function formatDate(str) {
+// Keep old names working so existing calls don't break
+function loadChatLogs() { loadAllLogs(); }
+function filterChatLogs() { filterLogs(); }
+
+function formatDateTime(str) {
   if (!str || str === 'None') return '—';
-  try { return new Date(str).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}); }
-  catch { return str; }
+  try {
+    const d = new Date(str);
+    return d.toLocaleDateString('en-GB', {day:'numeric', month:'short'}) + ' ' +
+           d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  } catch { return str; }
 }
 
 function toast(msg, isError) {
