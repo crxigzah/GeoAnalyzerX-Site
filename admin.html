@@ -228,7 +228,7 @@ function loadStats(d) {
   }
   tbody.innerHTML = d.usage_today.map(u => `
     <tr>
-      <td><strong>${u.username}</strong></td>
+      <td><strong>${escapeHtml(u.username)}</strong></td>
       <td><span class="badge badge-${u.tier}">${u.tier}</span></td>
       <td>
         <span style="margin-right:8px">${u.f7||0}/10</span>
@@ -252,53 +252,65 @@ function loadUsers() {
     });
 }
 
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function renderUsers(users) {
   const tbody = document.getElementById('users-tbody');
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">No users found</td></tr>'; return; }
   tbody.innerHTML = users.map(u => {
     const isBanned = u.banned_until && new Date(u.banned_until) > new Date();
     const isPermaBanned = isBanned && (new Date(u.banned_until) - new Date()) > 1000*60*60*24*365;
+    const uname = escapeHtml(u.username);
+    const uemail = escapeHtml(u.email);
     return `
     <tr>
-      <td><strong>${u.username}</strong>${u.disabled ? `<br><span class="badge badge-banned" style="margin-top:4px;">⏸ Disabled</span>` : ''}${isBanned ? `<br><span class="badge badge-banned" style="margin-top:4px;">${isPermaBanned ? '🚫 Permanent' : '🚫 Until ' + formatDate(u.banned_until)}</span>` : ''}</td>
-      <td style="color:#8888aa;font-size:12px">${u.email}</td>
+      <td><strong>${uname}</strong>${u.disabled ? `<br><span class="badge badge-banned" style="margin-top:4px;">⏸ Disabled</span>` : ''}${isBanned ? `<br><span class="badge badge-banned" style="margin-top:4px;">${isPermaBanned ? '🚫 Permanent' : '🚫 Until ' + formatDate(u.banned_until)}</span>` : ''}</td>
+      <td style="color:#8888aa;font-size:12px">${uemail}</td>
       <td><span class="badge badge-${u.tier}">${u.tier}</span></td>
       <td>${u.email_verified
             ? `<span class="badge badge-free">✓ Verified</span>`
-            : `<span class="badge badge-banned">✗ Unverified</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resendVerification(${u.id},'${u.username}')">✉ Resend</button>`}</td>
+            : `<span class="badge badge-banned">✗ Unverified</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resendVerification(${u.id})">✉ Resend</button>`}</td>
       <td>${u.is_admin
-            ? `<span class="badge badge-pro">★ Admin</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="setAdmin(${u.id},'${u.username}',false)">Demote</button>`
-            : `<button class="btn btn-sm btn-purple" onclick="setAdmin(${u.id},'${u.username}',true)">Make Admin</button>`}</td>
+            ? `<span class="badge badge-pro">★ Admin</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="setAdmin(${u.id},false)">Demote</button>`
+            : `<button class="btn btn-sm btn-purple" onclick="setAdmin(${u.id},true)">Make Admin</button>`}</td>
       <td style="color:#8888aa;font-size:12px">${formatDate(u.created_at)}</td>
       <td style="color:#8888aa;font-size:12px">${formatDate(u.last_login)}</td>
       <td>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
           ${u.tier === 'free'
-            ? `<button class="btn btn-sm btn-purple" onclick="setTier(${u.id},'pro','${u.username}')">↑ Pro</button>`
-            : `<button class="btn btn-sm btn-danger" onclick="setTier(${u.id},'free','${u.username}')">↓ Free</button>`
+            ? `<button class="btn btn-sm btn-purple" onclick="setTier(${u.id},'pro')">↑ Pro</button>`
+            : `<button class="btn btn-sm btn-danger" onclick="setTier(${u.id},'free')">↓ Free</button>`
           }
-          <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resetUsage(${u.id},'${u.username}')">Reset</button>
-          <button class="btn btn-sm" style="background:${u.disabled ? 'rgba(0,201,167,.15)' : '#1a1a2e'};border:1px solid ${u.disabled ? 'rgba(0,201,167,.3)' : '#2a2a3e'};color:${u.disabled ? '#00c9a7' : '#8888aa'};" onclick="toggleDisabled(${u.id},'${u.username}',${!u.disabled})">${u.disabled ? '▶ Enable' : '⏸ Disable'}</button>
+          <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resetUsage(${u.id})">Reset</button>
+          <button class="btn btn-sm" style="background:${u.disabled ? 'rgba(0,201,167,.15)' : '#1a1a2e'};border:1px solid ${u.disabled ? 'rgba(0,201,167,.3)' : '#2a2a3e'};color:${u.disabled ? '#00c9a7' : '#8888aa'};" onclick="toggleDisabled(${u.id},${!u.disabled})">${u.disabled ? '▶ Enable' : '⏸ Disable'}</button>
           <div class="ban-menu">
             <button class="btn btn-sm" style="background:${isBanned ? 'rgba(255,100,100,.15)' : '#1a1a2e'};border:1px solid ${isBanned ? 'rgba(255,100,100,.3)' : '#2a2a3e'};color:${isBanned ? '#ff6b6b' : '#8888aa'};" onclick="toggleBanMenu(event,${u.id})">${isBanned ? '🚫 Banned' : '🚫 Ban'}</button>
             <div class="ban-dropdown" id="ban-menu-${u.id}">
-              ${isBanned ? `<button onclick="banUser(${u.id},'${u.username}','unban')">✓ Unban</button>` : `
-              <button onclick="banUser(${u.id},'${u.username}','1d')">1 Day</button>
-              <button onclick="banUser(${u.id},'${u.username}','3d')">3 Days</button>
-              <button onclick="banUser(${u.id},'${u.username}','1w')">1 Week</button>
-              <button onclick="banUser(${u.id},'${u.username}','1m')">1 Month</button>
-              <button onclick="banUser(${u.id},'${u.username}','permanent')">Permanent</button>
+              ${isBanned ? `<button onclick="banUser(${u.id},'unban')">✓ Unban</button>` : `
+              <button onclick="banUser(${u.id},'1d')">1 Day</button>
+              <button onclick="banUser(${u.id},'3d')">3 Days</button>
+              <button onclick="banUser(${u.id},'1w')">1 Week</button>
+              <button onclick="banUser(${u.id},'1m')">1 Month</button>
+              <button onclick="banUser(${u.id},'permanent')">Permanent</button>
               `}
             </div>
           </div>
-          <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id},'${u.username}')">🗑</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id})">🗑</button>
         </div>
       </td>
     </tr>`;
   }).join('');
 }
 
-function toggleDisabled(userId, username, disabled) {
+function usernameOf(userId) {
+  const u = allUsers.find(u => u.id === userId);
+  return u ? u.username : 'this user';
+}
+
+function toggleDisabled(userId, disabled) {
+  const username = usernameOf(userId);
   if (!confirm(`${disabled ? 'Disable' : 'Enable'} ${username}'s account?`)) return;
   fetch(`${API}/admin/toggle_disabled`, {
     method: 'POST',
@@ -317,7 +329,8 @@ function toggleBanMenu(e, userId) {
 }
 document.addEventListener('click', () => document.querySelectorAll('.ban-dropdown').forEach(d => d.classList.remove('open')));
 
-function banUser(userId, username, duration) {
+function banUser(userId, duration) {
+  const username = usernameOf(userId);
   const labels = {'1d':'1 day','3d':'3 days','1w':'1 week','1m':'1 month','permanent':'PERMANENTLY','unban':'unban'};
   if (!confirm(`${duration === 'unban' ? 'Unban' : 'Ban'} ${username} ${duration === 'unban' ? '' : 'for ' + labels[duration]}?`)) return;
   fetch(`${API}/admin/ban_user`, {
@@ -335,7 +348,8 @@ function filterUsers() {
   renderUsers(allUsers.filter(u => u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)));
 }
 
-function setTier(userId, tier, username) {
+function setTier(userId, tier) {
+  const username = usernameOf(userId);
   if (!confirm(`Set ${username} to ${tier}?`)) return;
   fetch(`${API}/admin/set_tier`, {
     method: 'POST',
@@ -354,7 +368,8 @@ function setTier(userId, tier, username) {
   });
 }
 
-function resendVerification(userId, username) {
+function resendVerification(userId) {
+  const username = usernameOf(userId);
   if (!confirm(`Resend verification code to ${username}?`)) return;
   fetch(`${API}/admin/resend_verification`, {
     method: 'POST',
@@ -365,7 +380,8 @@ function resendVerification(userId, username) {
   });
 }
 
-function setAdmin(userId, username, isAdmin) {
+function setAdmin(userId, isAdmin) {
+  const username = usernameOf(userId);
   if (!confirm(`${isAdmin ? 'Promote' : 'Demote'} ${username} ${isAdmin ? 'to' : 'from'} admin?`)) return;
   fetch(`${API}/admin/set_admin`, {
     method: 'POST',
@@ -384,7 +400,8 @@ function setAdmin(userId, username, isAdmin) {
   });
 }
 
-function deleteUser(userId, username) {
+function deleteUser(userId) {
+  const username = usernameOf(userId);
   if (!confirm(`Permanently delete ${username}? This cannot be undone.`)) return;
   if (!confirm(`Are you absolutely sure? This will erase their account, sessions, and usage history.`)) return;
   fetch(`${API}/admin/delete_user`, {
@@ -397,7 +414,8 @@ function deleteUser(userId, username) {
   });
 }
 
-function resetUsage(userId, username) {
+function resetUsage(userId) {
+  const username = usernameOf(userId);
   if (!confirm(`Reset today's usage for ${username}?`)) return;
   fetch(`${API}/admin/reset_usage`, {
     method: 'POST',
