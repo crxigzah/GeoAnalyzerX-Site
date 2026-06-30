@@ -1155,7 +1155,14 @@ async function resendVerifyCode() {
 }
 
 // ── Login ─────────────────────────────────────────────────
+let loginInFlight = false;
+
 async function login() {
+  if (loginInFlight) return;
+  loginInFlight = true;
+  const btn = document.querySelector('#form-login .form-btn');
+  btn?.setAttribute('disabled', 'true');
+  try {
   const email    = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const totp_code = document.getElementById('login-totp').value.trim();
@@ -1194,6 +1201,10 @@ async function login() {
     closeModal();
     showDashboard(data.user, data.token);
   } catch(e) { errEl.textContent = 'Could not connect to server. Try again.'; errEl.style.display = 'block'; }
+  } finally {
+    loginInFlight = false;
+    btn?.removeAttribute('disabled');
+  }
 }
 
 // ── Dashboard ─────────────────────────────────────────────
