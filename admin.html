@@ -196,7 +196,19 @@ let adminKey = '';
 let adminToken = '';
 let allUsers = [];
 let inactivityTimer = null;
+let autoRefreshInterval = null;
 const INACTIVITY_MS = 5 * 60 * 1000; // 5 minutes
+
+function startAutoRefresh() {
+  clearInterval(autoRefreshInterval);
+  autoRefreshInterval = setInterval(() => {
+    if (!adminToken) return;
+    fetch(`${API}/admin/stats`, {headers: adminHeaders()})
+      .then(r => r.json()).then(d => { if (!d.error) loadStats(d); });
+    loadUsers();
+    loadAllLogs();
+  }, 30000); // every 30 seconds
+}
 
 function resetInactivityTimer() {
   clearTimeout(inactivityTimer);
@@ -210,6 +222,7 @@ function doLogout(msg) {
   sessionStorage.removeItem('gax_admin_key');
   sessionStorage.removeItem('gax_admin_token');
   clearTimeout(inactivityTimer);
+  clearInterval(autoRefreshInterval);
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   if (msg) {
@@ -225,17 +238,20 @@ window.addEventListener('load', () => {
   if (savedKey && savedToken) {
     adminKey = savedKey;
     adminToken = savedToken;
-    // Verify the saved session is still valid before showing dashboard
+    // Hide login screen immediately to avoid flash — we'll show it again
+    // if the verify call fails
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    // Verify the saved session is still valid
     fetch(`${API}/admin/stats`, {headers: adminHeaders()})
       .then(r => r.json())
       .then(sd => {
         if (sd.error) { doLogout('Session expired, please log in again.'); return; }
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
         loadStats(sd);
         loadUsers();
         loadAllLogs();
         startClock();
+        startAutoRefresh();
         resetInactivityTimer();
       })
       .catch(() => doLogout());
@@ -291,6 +307,7 @@ function doLogin() {
           loadUsers();
           loadAllLogs();
           startClock();
+          startAutoRefresh();
           resetInactivityTimer();
         });
     })
