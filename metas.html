@@ -503,6 +503,36 @@ async function showCountry(c) {
 }
 
 function renderGuide(c, data) {
+  // Block-based manual guide
+  if (data.blocks && data.blocks.length) {
+    const html = data.blocks.map(block => {
+      switch(block.type) {
+        case 'heading':
+          return `<h2 style="font-size:22px;font-weight:800;margin:36px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--border);">${block.data.text||''}</h2>`;
+        case 'text':
+          return `<p style="color:#c0c0d8;line-height:1.8;font-size:15px;margin-bottom:16px;white-space:pre-wrap;">${block.data.text||''}</p>`;
+        case 'image':
+          return `<div style="margin:20px 0;">${block.data.src ? `<img src="${block.data.src}" style="width:100%;border-radius:12px;display:block;">` : ''}${block.data.caption ? `<div style="text-align:center;font-size:13px;color:var(--muted);margin-top:8px;">${block.data.caption}</div>` : ''}</div>`;
+        case 'tip':
+          return `<div style="background:rgba(0,201,167,0.08);border-left:4px solid #00c9a7;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;"><div style="font-size:12px;font-weight:700;color:#00c9a7;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">💡 Tip</div><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${block.data.text||''}</p></div>`;
+        case 'warning':
+          return `<div style="background:rgba(255,107,107,0.08);border-left:4px solid #ff6b6b;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;"><div style="font-size:12px;font-weight:700;color:#ff6b6b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">⚠️ Easy to Confuse With</div><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${block.data.text||''}</p></div>`;
+        case 'two-col':
+          return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:16px 0;"><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;"><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${block.data.left||''}</p></div><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;"><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${block.data.right||''}</p></div></div>`;
+        default:
+          return '';
+      }
+    }).join('');
+
+    document.getElementById('cv-body').innerHTML = `
+      <div style="max-width:100%;">${html}</div>
+      <div style="text-align:center;margin-top:48px;">
+        <button onclick="showMap()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:12px 24px;border-radius:10px;cursor:pointer;font-size:14px;transition:all .2s;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">← Back to World Map</button>
+      </div>`;
+    return;
+  }
+
+  // Fallback: AI-generated structured guide
   const clues = (data.visual_clues || []).map(cl => `
     <div class="clue-card">
       <div class="clue-icon">${cl.icon || '📍'}</div>

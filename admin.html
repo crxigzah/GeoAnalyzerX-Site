@@ -185,8 +185,111 @@
         </table>
       </div>
     </div>
+
+    <!-- Country Guides -->
+    <div class="card">
+      <div class="card-header">
+        <h2>🗺️ Country Meta Guides</h2>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="openGuideEditor(null)">+ Write New Guide</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Country</th><th>ISO</th><th>Source</th><th>Last Updated</th><th>Actions</th></tr></thead>
+          <tbody id="guides-tbody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- Guide Editor — full screen, block-based like PlonkIt -->
+<div id="guide-editor" style="display:none;position:fixed;inset:0;background:#080810;z-index:600;overflow-y:auto;">
+  <div style="max-width:900px;margin:0 auto;padding:32px 24px 80px;">
+
+    <!-- Editor header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;position:sticky;top:0;background:#080810;padding:16px 0;z-index:10;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <button onclick="closeGuideEditor()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">← Back</button>
+        <span id="editor-title" style="font-size:16px;font-weight:700;color:var(--text)">Guide Editor</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="previewGuide()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;">Preview</button>
+        <button onclick="saveGuide()" style="background:#00c9a7;border:none;color:#080810;font-weight:700;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;">Save Guide</button>
+      </div>
+    </div>
+
+    <!-- Country info -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Country Name</label>
+        <input id="ge-country" placeholder="e.g. Australia" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:15px;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">ISO Code (2 letters)</label>
+        <input id="ge-iso" placeholder="AU" maxlength="2" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:15px;text-transform:uppercase;">
+      </div>
+    </div>
+
+    <!-- Block list -->
+    <div id="block-list" style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px;"></div>
+
+    <!-- Add block buttons -->
+    <div style="border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;">
+      <div style="color:var(--muted);font-size:13px;margin-bottom:14px;">Add a new block</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="addBlock('heading')" class="add-block-btn">📌 Heading</button>
+        <button onclick="addBlock('text')" class="add-block-btn">📝 Text</button>
+        <button onclick="addBlock('image')" class="add-block-btn">🖼️ Image</button>
+        <button onclick="addBlock('tip')" class="add-block-btn">💡 Tip</button>
+        <button onclick="addBlock('warning')" class="add-block-btn">⚠️ Warning</button>
+        <button onclick="addBlock('two-col')" class="add-block-btn">⬛⬛ Two Column</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.add-block-btn {
+  background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;
+  transition:border-color .2s,color .2s;
+}
+.add-block-btn:hover { border-color:#00c9a7;color:#00c9a7; }
+.block-card {
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;
+  position:relative;
+}
+.block-card:hover { border-color:#2a2a4a; }
+.block-toolbar {
+  display:flex;gap:6px;align-items:center;margin-bottom:12px;
+}
+.block-tag {
+  font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.5px;background:var(--bg2);padding:3px 8px;border-radius:4px;
+}
+.block-move { background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px; }
+.block-move:hover { color:var(--text); }
+.block-delete { background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;margin-left:auto; }
+.block-delete:hover { color:#ff6b6b; }
+.block-input {
+  width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;color:var(--text);font-size:14px;line-height:1.6;resize:vertical;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.block-input:focus { outline:none;border-color:#00c9a7; }
+.block-input-title {
+  width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);
+  color:var(--text);font-size:18px;font-weight:700;padding:6px 0;margin-bottom:10px;
+}
+.block-input-title:focus { outline:none;border-bottom-color:#00c9a7; }
+.img-upload-zone {
+  border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;
+  cursor:pointer;transition:border-color .2s;
+}
+.img-upload-zone:hover { border-color:#00c9a7; }
+.img-preview { max-width:100%;border-radius:8px;margin-top:10px;display:none; }
+.two-col-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+</style>
 
 <div class="toast" id="toast"></div>
 
@@ -196,53 +299,18 @@ let adminKey = '';
 let adminToken = '';
 let allUsers = [];
 let inactivityTimer = null;
-let autoRefreshInterval = null;
-let sseSource = null;
-const INACTIVITY_MS = 5 * 60 * 1000; // 5 minutes
+let pollInterval = null;
+let lastEventTime = null;
+const INACTIVITY_MS = 5 * 60 * 1000;
 
-function startAutoRefresh() {
-  // Poll every 30s as a fallback for stats/users in case SSE drops
-  clearInterval(autoRefreshInterval);
-  autoRefreshInterval = setInterval(() => {
-    if (!adminToken) return;
-    fetch(`${API}/admin/stats`, {headers: adminHeaders()})
-      .then(r => r.json()).then(d => { if (!d.error) loadStats(d); });
-    loadUsers();
-  }, 30000);
-  // Open SSE stream for instant log updates
-  startSSE();
-}
-
-function startSSE() {
-  if (sseSource) { sseSource.close(); sseSource = null; }
-  // EventSource doesn't support custom headers — pass tokens as query params
-  const url = `${API}/admin/events?key=${encodeURIComponent(adminKey)}&token=${encodeURIComponent(adminToken)}`;
-  sseSource = new EventSource(url);
-  sseSource.onmessage = (e) => {
-    try {
-      const event = JSON.parse(e.data);
-      allActivityLogs.unshift(event);
-      if (allActivityLogs.length > 500) allActivityLogs.pop();
-      renderLogs();
-      // Brief green flash on the event count to show something arrived
-      const countEl = document.getElementById('log-count');
-      if (countEl) {
-        countEl.style.color = '#00c9a7';
-        setTimeout(() => { countEl.style.color = '#8888aa'; }, 800);
-      }
-    } catch(ex) {}
-  };
-  sseSource.onerror = () => {
-    // SSE dropped — close cleanly; the 30s poll fallback is already running
-    if (sseSource) { sseSource.close(); sseSource = null; }
-  };
+// ── Auth helpers ──────────────────────────────────────────
+function adminHeaders(extra) {
+  return Object.assign({'Content-Type':'application/json','X-Admin-Key':adminKey,'X-Admin-Token':adminToken}, extra || {});
 }
 
 function resetInactivityTimer() {
   clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => {
-    doLogout('Logged out due to 5 minutes of inactivity.');
-  }, INACTIVITY_MS);
+  inactivityTimer = setTimeout(() => doLogout('Logged out due to 5 minutes of inactivity.'), INACTIVITY_MS);
 }
 
 function doLogout(msg) {
@@ -250,8 +318,7 @@ function doLogout(msg) {
   sessionStorage.removeItem('gax_admin_key');
   sessionStorage.removeItem('gax_admin_token');
   clearTimeout(inactivityTimer);
-  clearInterval(autoRefreshInterval);
-  if (sseSource) { sseSource.close(); sseSource = null; }
+  clearInterval(pollInterval);
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   if (msg) {
@@ -260,46 +327,76 @@ function doLogout(msg) {
   }
 }
 
-// Restore session on page load/refresh
-window.addEventListener('load', () => {
-  const savedKey   = sessionStorage.getItem('gax_admin_key');
-  const savedToken = sessionStorage.getItem('gax_admin_token');
-  if (savedKey && savedToken) {
-    adminKey = savedKey;
-    adminToken = savedToken;
-    // Hide login screen immediately to avoid flash — we'll show it again
-    // if the verify call fails
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    // Verify the saved session is still valid
-    fetch(`${API}/admin/stats`, {headers: adminHeaders()})
-      .then(r => r.json())
-      .then(sd => {
-        if (sd.error) { doLogout('Session expired, please log in again.'); return; }
-        loadStats(sd);
-        loadUsers();
-        loadAllLogs();
-        startClock();
-        startAutoRefresh();
-        resetInactivityTimer();
-      })
-      .catch(() => doLogout());
-  }
-});
-
-// Reset inactivity timer on any user interaction
 ['click','keydown','mousemove','scroll'].forEach(evt =>
   document.addEventListener(evt, () => { if (adminToken) resetInactivityTimer(); }, { passive: true })
 );
 
-function adminHeaders(extra) {
-  return Object.assign({'Content-Type':'application/json','X-Admin-Key':adminKey,'X-Admin-Token':adminToken}, extra || {});
+// ── Session restore on refresh ────────────────────────────
+window.addEventListener('load', () => {
+  const savedKey   = sessionStorage.getItem('gax_admin_key');
+  const savedToken = sessionStorage.getItem('gax_admin_token');
+  if (savedKey && savedToken) {
+    adminKey = savedKey; adminToken = savedToken;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadDashboard();
+  }
+});
+
+// ── Single dashboard load ─────────────────────────────────
+function loadDashboard() {
+  fetch(`${API}/admin/dashboard`, {headers: adminHeaders()})
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { doLogout('Session expired, please log in again.'); return; }
+      loadStats(d.stats);
+      allUsers = d.users || [];
+      document.getElementById('user-count').textContent = `${allUsers.length} users`;
+      renderUsers(allUsers);
+      allActivityLogs = d.logs || [];
+      allChatLogs = d.chats || [];
+      renderLogs();
+      if (allActivityLogs.length) lastEventTime = allActivityLogs[0].created_at;
+      startClock();
+      startPoll();
+      resetInactivityTimer();
+      loadGuides();
+    })
+    .catch(() => doLogout('Could not connect.'));
 }
 
+// ── Fast incremental poll (every 3 seconds, tiny payload) ──
+function startPoll() {
+  clearInterval(pollInterval);
+  pollInterval = setInterval(() => {
+    if (!adminToken) return;
+    const since = lastEventTime ? `&since=${encodeURIComponent(lastEventTime)}` : '';
+    fetch(`${API}/admin/poll?key=${encodeURIComponent(adminKey)}&token=${encodeURIComponent(adminToken)}${since}`)
+      .then(r => r.json())
+      .then(d => {
+        if (!d.events || !d.events.length) return;
+        // Prepend new events and update the last-seen timestamp
+        allActivityLogs.unshift(...d.events.reverse());
+        if (allActivityLogs.length > 500) allActivityLogs.length = 500;
+        lastEventTime = allActivityLogs[0].created_at;
+        renderLogs();
+        // Flash the log count green to show something arrived
+        const el = document.getElementById('log-count');
+        if (el) { el.style.color = '#00c9a7'; setTimeout(() => el.style.color = '#8888aa', 800); }
+      })
+      .catch(() => {});
+  }, 3000);
+}
+
+function refreshAll() {
+  loadDashboard();
+}
+
+// ── Login ─────────────────────────────────────────────────
 function doLogin() {
-  const email = document.getElementById('admin-email-input').value.trim();
+  const email    = document.getElementById('admin-email-input').value.trim();
   const password = document.getElementById('admin-password-input').value;
-  const key = document.getElementById('admin-key-input').value.trim();
+  const key      = document.getElementById('admin-key-input').value.trim();
   const totp_code = document.getElementById('admin-totp-input').value.trim();
   if (!email || !password || !key) return;
   document.getElementById('login-error').style.display = 'none';
@@ -308,39 +405,24 @@ function doLogin() {
     headers: {'Content-Type':'application/json','X-Admin-Key':key},
     body: JSON.stringify({email, password, totp_code})
   })
-    .then(r => r.json())
-    .then(d => {
-      if (d.error || !d.admin_token) {
-        document.getElementById('login-error').textContent = d.error || 'Invalid credentials, admin key, or account is not an admin';
-        document.getElementById('login-error').style.display = 'block';
-        return;
-      }
-      adminKey = key;
-      adminToken = d.admin_token;
-      sessionStorage.setItem('gax_admin_key', key);
-      sessionStorage.setItem('gax_admin_token', d.admin_token);
-      return fetch(`${API}/admin/stats`, {headers: adminHeaders()})
-        .then(r => r.json())
-        .then(sd => {
-          if (sd.error) {
-            document.getElementById('login-error').textContent = sd.error;
-            document.getElementById('login-error').style.display = 'block';
-            adminKey = ''; adminToken = '';
-            sessionStorage.removeItem('gax_admin_key');
-            sessionStorage.removeItem('gax_admin_token');
-            return;
-          }
-          document.getElementById('login-screen').style.display = 'none';
-          document.getElementById('dashboard').style.display = 'block';
-          loadStats(sd);
-          loadUsers();
-          loadAllLogs();
-          startClock();
-          startAutoRefresh();
-          resetInactivityTimer();
-        });
-    })
-    .catch(() => { document.getElementById('login-error').textContent = 'Could not connect to server'; document.getElementById('login-error').style.display = 'block'; adminKey = ''; adminToken = ''; });
+  .then(r => r.json())
+  .then(d => {
+    if (d.error || !d.admin_token) {
+      document.getElementById('login-error').textContent = d.error || 'Invalid credentials';
+      document.getElementById('login-error').style.display = 'block';
+      return;
+    }
+    adminKey = key; adminToken = d.admin_token;
+    sessionStorage.setItem('gax_admin_key', key);
+    sessionStorage.setItem('gax_admin_token', d.admin_token);
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadDashboard();
+  })
+  .catch(() => {
+    document.getElementById('login-error').textContent = 'Could not connect to server';
+    document.getElementById('login-error').style.display = 'block';
+  });
 }
 
 function startClock() {
@@ -380,23 +462,6 @@ function loadStats(d) {
       </td>
       <td>${u.analyses||0}</td>
     </tr>`).join('');
-}
-
-function loadUsers() {
-  fetch(`${API}/admin/users`, {headers: adminHeaders()})
-    .then(r => r.json())
-    .then(d => {
-      if (d.error) {
-        document.getElementById('users-tbody').innerHTML = `<tr><td colspan="8" class="empty" style="color:#ff6b6b">Error: ${escapeHtml(d.error)}</td></tr>`;
-        return;
-      }
-      allUsers = d.users || [];
-      document.getElementById('user-count').textContent = `${allUsers.length} users`;
-      renderUsers(allUsers);
-    })
-    .catch(e => {
-      document.getElementById('users-tbody').innerHTML = `<tr><td colspan="8" class="empty" style="color:#ff6b6b">Network error: ${escapeHtml(e.message)}</td></tr>`;
-    });
 }
 
 function escapeHtml(s) {
@@ -574,13 +639,6 @@ function resetUsage(userId) {
   });
 }
 
-function refreshAll() {
-  fetch(`${API}/admin/stats`, {headers: adminHeaders()})
-    .then(r => r.json()).then(d => { if (!d.error) loadStats(d); });
-  loadUsers();
-  loadAllLogs();
-}
-
 // ── Logs ─────────────────────────────────────────────────
 const EVENT_LABELS = {
   register:          { icon: '👤', label: 'Register',         color: '#00c9a7' },
@@ -615,29 +673,6 @@ const TAB_FILTERS = {
 let allActivityLogs = [];
 let allChatLogs = [];
 let currentLogTab = 'all';
-
-function loadAllLogs() {
-  fetch(`${API}/admin/activity_logs?limit=500`, {headers: adminHeaders()})
-    .then(r => r.json())
-    .then(d => {
-      if (d.error) {
-        document.getElementById('log-activity-tbody').innerHTML = `<tr><td colspan="5" class="empty" style="color:#ff6b6b">Error: ${escapeHtml(d.error)}</td></tr>`;
-        return;
-      }
-      allActivityLogs = d.logs || [];
-      renderLogs();
-    })
-    .catch(e => {
-      document.getElementById('log-activity-tbody').innerHTML = `<tr><td colspan="5" class="empty" style="color:#ff6b6b">Network error: ${escapeHtml(e.message)}</td></tr>`;
-    });
-  fetch(`${API}/admin/chat_logs?limit=200`, {headers: adminHeaders()})
-    .then(r => r.json())
-    .then(d => {
-      allChatLogs = d.logs || [];
-      if (currentLogTab === 'chat') renderChatLogs();
-    })
-    .catch(() => {});
-}
 
 function switchLogTab(tab, btn) {
   currentLogTab = tab;
@@ -709,6 +744,162 @@ function renderChatLogs() {
 // Keep old names working so existing calls don't break
 function loadChatLogs() { loadAllLogs(); }
 function filterChatLogs() { filterLogs(); }
+
+// ── Country Guides ────────────────────────────────────────
+let allGuides = [];
+let editorBlocks = [];
+let blockIdCounter = 0;
+
+function loadGuides() {
+  fetch(`${API}/admin/country_metas`, {headers: adminHeaders()})
+    .then(r => r.json())
+    .then(d => {
+      allGuides = d.guides || [];
+      const tbody = document.getElementById('guides-tbody');
+      if (!allGuides.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No guides yet — write the first one!</td></tr>';
+        return;
+      }
+      tbody.innerHTML = allGuides.map(g => `
+        <tr>
+          <td style="font-weight:600">${escapeHtml(g.country)}</td>
+          <td style="color:var(--muted);font-size:12px">${g.iso}</td>
+          <td><span style="color:${g.source==='manual'?'#00c9a7':'#7c3aed'};font-size:12px;font-weight:600">${g.source==='manual'?'✍️ Manual':'🤖 AI'}</span></td>
+          <td style="color:var(--muted);font-size:12px">${formatDate(g.updated_at)}</td>
+          <td><button onclick="editGuide('${g.iso}','${escapeHtml(g.country)}')" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Edit</button></td>
+        </tr>`).join('');
+    });
+}
+
+function openGuideEditor(iso, country) {
+  editorBlocks = [];
+  blockIdCounter = 0;
+  document.getElementById('ge-country').value = country || '';
+  document.getElementById('ge-iso').value = iso || '';
+  document.getElementById('editor-title').textContent = country ? `Editing: ${country}` : 'New Guide';
+  document.getElementById('block-list').innerHTML = '';
+  document.getElementById('guide-editor').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGuideEditor() {
+  document.getElementById('guide-editor').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+async function editGuide(iso, country) {
+  openGuideEditor(iso, country);
+  try {
+    const res = await fetch(`${API}/ai/country_meta`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({country, iso})
+    });
+    const data = await res.json();
+    if (data._source === 'manual' && data.blocks) {
+      data.blocks.forEach(b => addBlock(b.type, b.data || {}));
+    }
+  } catch(e) {}
+}
+
+function addBlock(type, data={}) {
+  const id = ++blockIdCounter;
+  const block = { id, type, data: {...data} };
+  editorBlocks.push(block);
+  renderBlock(block);
+}
+
+function renderBlock(block) {
+  const el = document.createElement('div');
+  el.className = 'block-card';
+  el.dataset.blockId = block.id;
+  const labels = {heading:'📌 Heading', text:'📝 Text', image:'🖼️ Image', tip:'💡 Tip', warning:'⚠️ Warning', 'two-col':'⬛⬛ Two Column'};
+  let inner = '';
+  switch(block.type) {
+    case 'heading':
+      inner = `<input class="block-input block-input-title" placeholder="Section heading..." value="${escapeHtml(block.data.text||'')}" oninput="updateBlockData(${block.id},'text',this.value)">`;
+      break;
+    case 'text':
+      inner = `<textarea class="block-input" rows="6" placeholder="Write your guide content here — explain what to look for, describe specific visual clues, regional differences, anything you know about this country in GeoGuessr." oninput="updateBlockData(${block.id},'text',this.value)">${escapeHtml(block.data.text||'')}</textarea>`;
+      break;
+    case 'image':
+      inner = `<div class="img-upload-zone" onclick="document.getElementById('img-input-${block.id}').click()"><input type="file" id="img-input-${block.id}" accept="image/*" style="display:none" onchange="handleImageUpload(${block.id},this)">${block.data.src ? `<img src="${block.data.src}" style="max-width:100%;border-radius:8px;margin-bottom:10px;display:block;">` : '<div style="color:var(--muted);font-size:28px;margin-bottom:8px">🖼️</div><div style="color:var(--muted);font-size:14px">Click to upload image</div>'}</div><input class="block-input" placeholder="Caption (optional)..." style="margin-top:10px;" value="${escapeHtml(block.data.caption||'')}" oninput="updateBlockData(${block.id},'caption',this.value)">`;
+      break;
+    case 'tip':
+      inner = `<div style="background:rgba(0,201,167,0.07);border-left:3px solid #00c9a7;border-radius:0 8px 8px 0;padding:12px 14px"><div style="font-size:12px;color:#00c9a7;font-weight:700;margin-bottom:6px">💡 TIP</div><textarea class="block-input" rows="3" placeholder="A specific tip or giveaway clue..." oninput="updateBlockData(${block.id},'text',this.value)" style="background:transparent;border:1px solid rgba(0,201,167,0.2);padding:8px;">${escapeHtml(block.data.text||'')}</textarea></div>`;
+      break;
+    case 'warning':
+      inner = `<div style="background:rgba(255,107,107,0.07);border-left:3px solid #ff6b6b;border-radius:0 8px 8px 0;padding:12px 14px"><div style="font-size:12px;color:#ff6b6b;font-weight:700;margin-bottom:6px">⚠️ EASY TO CONFUSE WITH</div><textarea class="block-input" rows="3" placeholder="What country this is confused with and the key visual difference..." oninput="updateBlockData(${block.id},'text',this.value)" style="background:transparent;border:1px solid rgba(255,107,107,0.2);padding:8px;">${escapeHtml(block.data.text||'')}</textarea></div>`;
+      break;
+    case 'two-col':
+      inner = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Left column</div><textarea class="block-input" rows="7" placeholder="Left column content..." oninput="updateBlockData(${block.id},'left',this.value)">${escapeHtml(block.data.left||'')}</textarea></div><div><div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Right column</div><textarea class="block-input" rows="7" placeholder="Right column content..." oninput="updateBlockData(${block.id},'right',this.value)">${escapeHtml(block.data.right||'')}</textarea></div></div>`;
+      break;
+  }
+  el.innerHTML = `<div class="block-toolbar"><span class="block-tag">${labels[block.type]||block.type}</span><button class="block-move" onclick="moveBlock(${block.id},-1)">↑</button><button class="block-move" onclick="moveBlock(${block.id},1)">↓</button><button class="block-delete" onclick="deleteBlock(${block.id})">✕</button></div><div class="block-inner">${inner}</div>`;
+  document.getElementById('block-list').appendChild(el);
+}
+
+function updateBlockData(id, key, value) {
+  const b = editorBlocks.find(b => b.id === id);
+  if (b) b.data[key] = value;
+}
+
+function deleteBlock(id) {
+  editorBlocks = editorBlocks.filter(b => b.id !== id);
+  document.querySelector(`[data-block-id="${id}"]`)?.remove();
+}
+
+function moveBlock(id, dir) {
+  const idx = editorBlocks.findIndex(b => b.id === id);
+  if (idx < 0) return;
+  const ni = idx + dir;
+  if (ni < 0 || ni >= editorBlocks.length) return;
+  [editorBlocks[idx], editorBlocks[ni]] = [editorBlocks[ni], editorBlocks[idx]];
+  const list = document.getElementById('block-list');
+  list.innerHTML = '';
+  editorBlocks.forEach(b => renderBlock(b));
+}
+
+function handleImageUpload(blockId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const b = editorBlocks.find(x => x.id === blockId);
+    if (!b) return;
+    b.data.src = e.target.result;
+    const list = document.getElementById('block-list');
+    list.innerHTML = '';
+    editorBlocks.forEach(x => renderBlock(x));
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewGuide() {
+  const country = document.getElementById('ge-country').value.trim();
+  if (!country) { toast('Add country name first', true); return; }
+  window.open(`/metas/${country.toLowerCase().replace(/\s+/g,'-')}`, '_blank');
+}
+
+async function saveGuide() {
+  const country = document.getElementById('ge-country').value.trim();
+  const iso = document.getElementById('ge-iso').value.trim().toUpperCase();
+  if (!country || !iso || iso.length !== 2) { toast('Country name and 2-letter ISO code required', true); return; }
+  if (!editorBlocks.length) { toast('Add at least one block', true); return; }
+  const content = { blocks: editorBlocks.map(b => ({ type: b.type, data: b.data })) };
+  try {
+    const res = await fetch(`${API}/admin/country_meta`, {
+      method:'POST', headers: adminHeaders(),
+      body: JSON.stringify({country, iso, content})
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    toast(`Guide for ${country} saved!`);
+    closeGuideEditor();
+    loadGuides();
+  } catch(e) {
+    toast('Save failed: ' + e.message, true);
+  }
+}
 
 function formatDateTime(str) {
   if (!str || str === 'None') return '—';
