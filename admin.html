@@ -937,7 +937,10 @@ function loadGuides() {
           <td style="color:var(--muted);font-size:12px">${g.iso}</td>
           <td><span style="color:${g.source==='manual'?'#00c9a7':'#7c3aed'};font-size:12px;font-weight:600">${g.source==='manual'?'✍️ Manual':'🤖 AI'}</span></td>
           <td style="color:var(--muted);font-size:12px">${formatDate(g.updated_at)}</td>
-          <td><button onclick="editGuide('${g.iso}','${escapeHtml(g.country)}')" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Edit</button></td>
+          <td style="display:flex;gap:6px;">
+            <button onclick="editGuide('${g.iso}','${escapeHtml(g.country)}')" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Edit</button>
+            <button onclick="deleteGuide('${g.iso}','${escapeHtml(g.country)}')" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Delete</button>
+          </td>
         </tr>`).join('');
     });
 }
@@ -971,6 +974,21 @@ function openGuideEditor(iso, country) {
 function closeGuideEditor() {
   document.getElementById('guide-editor').style.display = 'none';
   document.body.style.overflow = '';
+}
+
+async function deleteGuide(iso, country) {
+  if (!confirm(`Delete the ${country} guide? This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`${API}/admin/country_meta/${iso}`, {
+      method: 'DELETE', headers: adminHeaders()
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    toast(`${country} guide deleted`);
+    loadGuides();
+  } catch(e) {
+    toast('Delete failed: ' + e.message, true);
+  }
 }
 
 async function editGuide(iso, country) {
