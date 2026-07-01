@@ -264,6 +264,8 @@ const COUNTRIES = [
   {slug:'panama',name:'Panama',iso:'PA'},
   {slug:'puerto-rico',name:'Puerto Rico',iso:'PR'},
   {slug:'united-states',name:'United States',iso:'US'},
+  {slug:'hawaii',name:'Hawaii',iso:'US'},
+  {slug:'alaska',name:'Alaska',iso:'US'},
   {slug:'us-virgin-islands',name:'US Virgin Islands',iso:'VI'},
   // Oceania
   {slug:'american-samoa',name:'American Samoa',iso:'AS'},
@@ -292,7 +294,8 @@ const UNIQUE_COUNTRIES = COUNTRIES.filter(c => {
 });
 
 const isoToCountry = {};
-UNIQUE_COUNTRIES.forEach(c => { isoToCountry[c.iso] = c; });
+// Only store first occurrence per ISO so Hawaii/Alaska (iso:'US') don't overwrite United States
+UNIQUE_COUNTRIES.forEach(c => { if (!isoToCountry[c.iso]) isoToCountry[c.iso] = c; });
 
 const slugToCountry = {};
 UNIQUE_COUNTRIES.forEach(c => { slugToCountry[c.slug] = c; });
@@ -365,14 +368,14 @@ const numToISO = {
   178:'CG', 180:'CD', 184:'CK', 188:'CR', 191:'HR', 192:'CU', 196:'CY',
   203:'CZ', 204:'BJ', 208:'DK', 212:'DM', 214:'DO', 218:'EC', 222:'SV',
   226:'GQ', 231:'ET', 232:'ER', 233:'EE', 242:'FJ', 246:'FI', 250:'FR',
-  258:'PF', 262:'DJ', 266:'GA', 268:'GE', 270:'GM', 276:'DE', 288:'GH',
+  258:'PF', 262:'DJ', 266:'GA', 268:'GE', 270:'GM', 275:'IL', 276:'DE', 288:'GH',
   300:'GR', 304:'GL', 308:'GD', 316:'GU', 320:'GT', 324:'GN', 328:'GY',
   332:'HT', 340:'HN', 344:'HK', 348:'HU', 352:'IS', 356:'IN', 360:'ID',
   364:'IR', 368:'IQ', 372:'IE', 376:'IL', 380:'IT', 384:'CI', 388:'JM',
   392:'JP', 398:'KZ', 400:'JO', 404:'KE', 408:'KP', 410:'KR', 414:'KW',
   417:'KG', 418:'LA', 422:'LB', 426:'LS', 428:'LV', 430:'LR', 434:'LY',
   438:'LI', 440:'LT', 442:'LU', 446:'MO', 450:'MG', 454:'MW', 458:'MY',
-  462:'MV', 466:'ML', 480:'MU', 484:'MX', 492:'MC', 496:'MN', 498:'MD',
+  462:'MV', 466:'ML', 470:'MT', 480:'MU', 484:'MX', 492:'MC', 496:'MN', 498:'MD',
   499:'ME', 504:'MA', 508:'MZ', 512:'OM', 516:'NA', 520:'NR', 524:'NP',
   528:'NL', 540:'NC', 548:'VU', 554:'NZ', 558:'NI', 562:'NE', 566:'NG',
   578:'NO', 580:'MP', 583:'FM', 584:'MH', 585:'PW', 586:'PK', 591:'PA',
@@ -391,26 +394,16 @@ fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
   .then(r => r.json())
   .then(world => {
     const countries = topojson.feature(world, world.objects.countries);
-
-    // DEBUG: log all country IDs so we can see what Brazil's actual ID is
-    const brazilFeature = countries.features.find(d =>
-      String(d.id) === '76' || String(d.id) === '076'
-    );
-    console.log('[GeoAnalyzerX metas] Brazil feature:', brazilFeature ? 'found with id=' + brazilFeature.id : 'NOT FOUND at ID 76');
-    console.log('[GeoAnalyzerX metas] Sample IDs:', countries.features.slice(0,10).map(d=>d.id));
-    console.log('[GeoAnalyzerX metas] numToISO[76]:', numToISO[76], '| numToISO["76"]:', numToISO["76"]);
-    console.log('[GeoAnalyzerX metas] GEOGUESSR_COUNTRIES has BR:', GEOGUESSR_COUNTRIES.has('BR'));
-
     mapGroup.selectAll('.country-path')
       .data(countries.features)
       .enter().append('path')
       .attr('class', d => {
-        const iso = numToISO[d.id];
+        const iso = numToISO[+d.id];
         return 'country-path ' + (iso && GEOGUESSR_COUNTRIES.has(iso) ? 'geoguessr' : 'no-coverage');
       })
       .attr('d', path)
       .on('mousemove', function(event, d) {
-        const iso = numToISO[d.id];
+        const iso = numToISO[+d.id];
         const c = iso && isoToCountry[iso];
         if (!c) return;
         tooltip.style.display = 'block';
@@ -424,11 +417,86 @@ fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
       })
       .on('mouseleave', () => { tooltip.style.display = 'none'; })
       .on('click', (event, d) => {
-        const iso = numToISO[d.id];
+        const iso = numToISO[+d.id];
         const c = iso && isoToCountry[iso];
         if (!c || !GEOGUESSR_COUNTRIES.has(iso)) return;
         navigateTo(c.slug);
       });
+
+    // Small territories that are too small to appear as polygons in the
+    // 110m TopoJSON — rendered as teal dots at their EXACT geographic coordinates.
+    const SMALL_DOTS = [
+      {iso:'FO', slug:'faroe-islands',            name:'Faroe Islands',           lat:62.0,  lng:-6.9},
+      {iso:'JE', slug:'jersey',                   name:'Jersey',                  lat:49.2,  lng:-2.1},
+      {iso:'AD', slug:'andorra',                  name:'Andorra',                 lat:42.5,  lng:1.5},
+      {iso:'GI', slug:'gibraltar',                name:'Gibraltar',               lat:36.1,  lng:-5.3},
+      {iso:'IM', slug:'isle-of-man',              name:'Isle of Man',             lat:54.2,  lng:-4.5},
+      {iso:'MC', slug:'monaco',                   name:'Monaco',                  lat:43.7,  lng:7.4},
+      {iso:'LI', slug:'liechtenstein',            name:'Liechtenstein',           lat:47.1,  lng:9.5},
+      {iso:'SM', slug:'san-marino',               name:'San Marino',              lat:43.9,  lng:12.5},
+      {iso:'MT', slug:'malta',                    name:'Malta',                   lat:35.9,  lng:14.5},
+      {iso:'MK', slug:'north-macedonia',          name:'North Macedonia',         lat:41.6,  lng:21.7},
+      {iso:'VI', slug:'us-virgin-islands',        name:'US Virgin Islands',       lat:18.3,  lng:-64.9},
+      {iso:'CW', slug:'curacao',                  name:'Curaçao',                 lat:12.1,  lng:-69.0},
+      {iso:'ST', slug:'sao-tome-and-principe',    name:'São Tomé & Príncipe',     lat:0.2,   lng:6.7},
+      {iso:'HK', slug:'hong-kong',                name:'Hong Kong',               lat:22.3,  lng:114.2},
+      {iso:'AS', slug:'american-samoa',           name:'American Samoa',          lat:-14.3, lng:-170.7},
+      {iso:'GU', slug:'guam',                     name:'Guam',                    lat:13.5,  lng:144.8},
+      {iso:'MP', slug:'northern-mariana-islands', name:'N. Mariana Islands',      lat:15.2,  lng:145.8},
+      {iso:'CX', slug:'christmas-island',         name:'Christmas Island',        lat:-10.5, lng:105.7},
+    ];
+
+    SMALL_DOTS.forEach(t => {
+      const projected = projection([t.lng, t.lat]);
+      if (!projected) return;
+      mapGroup.append('circle')
+        .attr('cx', projected[0])
+        .attr('cy', projected[1])
+        .attr('r', 1.8)
+        .attr('fill', '#a78bfa')
+        .attr('stroke', '#7c3aed')
+        .attr('stroke-width', 0.5)
+        .style('cursor', 'pointer')
+        .on('mousemove', (event) => {
+          tooltip.style.display = 'block';
+          tooltip.style.left = (event.clientX + 14) + 'px';
+          tooltip.style.top  = (event.clientY - 44) + 'px';
+          document.getElementById('tt-flag').innerHTML = flagImg(t.iso, 20);
+          document.getElementById('tt-name').textContent = t.name;
+          document.getElementById('tt-hint').innerHTML = '<span class="tt-hint">Click for GeoGuessr guide →</span>';
+        })
+        .on('mouseleave', () => { tooltip.style.display = 'none'; })
+        .on('click', () => navigateTo(t.slug));
+    });
+
+    // Alaska and Hawaii — invisible overlays so hovering/clicking their actual
+    // map polygons/islands shows the right name and goes to the right guide,
+    // not the generic "United States". Transparent so they don't change appearance.
+    const US_REGIONS = [
+      {slug:'alaska', name:'Alaska', lat:64.2, lng:-153.0, r:22},
+      {slug:'hawaii', name:'Hawaii', lat:20.8, lng:-157.0, r:7},
+    ];
+    US_REGIONS.forEach(t => {
+      const projected = projection([t.lng, t.lat]);
+      if (!projected) return;
+      mapGroup.append('circle')
+        .attr('cx', projected[0])
+        .attr('cy', projected[1])
+        .attr('r', t.r)
+        .attr('fill', 'transparent')
+        .attr('stroke', 'none')
+        .style('cursor', 'pointer')
+        .on('mousemove', (event) => {
+          tooltip.style.display = 'block';
+          tooltip.style.left = (event.clientX + 14) + 'px';
+          tooltip.style.top  = (event.clientY - 44) + 'px';
+          document.getElementById('tt-flag').innerHTML = flagImg('US', 20);
+          document.getElementById('tt-name').textContent = t.name;
+          document.getElementById('tt-hint').innerHTML = '<span class="tt-hint">Click for GeoGuessr guide →</span>';
+        })
+        .on('mouseleave', () => { tooltip.style.display = 'none'; })
+        .on('click', () => navigateTo(t.slug));
+    });
   });
 
 
