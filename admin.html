@@ -246,6 +246,7 @@
           <button onclick="addBlock('text')" class="add-block-btn">¶ Text</button>
           <button onclick="addBlock('image')" class="add-block-btn">🖼 Image</button>
           <button onclick="addBlock('two-col')" class="add-block-btn">⬛⬛ Two Column</button>
+          <button onclick="addBlock('nav')" class="add-block-btn">🔗 Nav Buttons</button>
           <button onclick="addBlock('tip')" class="add-block-btn">💡 Tip</button>
           <button onclick="addBlock('warning')" class="add-block-btn">⚠️ Confuse</button>
         </div>
@@ -853,7 +854,7 @@ function renderBlock(block) {
   el.className = 'block-card';
   el.dataset.blockId = block.id;
 
-  const labels = {heading:'H', text:'¶', image:'🖼', tip:'💡', warning:'⚠️', 'two-col':'⬛⬛'};
+  const labels = {heading:'H', text:'¶', image:'🖼', tip:'💡', warning:'⚠️', 'two-col':'⬛⬛', nav:'🔗'};
   let inner = '';
 
   switch(block.type) {
@@ -903,6 +904,17 @@ function renderBlock(block) {
         </div>
       </div>`;
       break;
+    case 'nav':
+      const headings = editorBlocks.filter(b => b.type === 'heading' && b.data.text);
+      inner = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">🔗 Navigation Buttons — links to your headings</div>
+        ${headings.length
+          ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${headings.map(h=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;color:var(--text);">${escapeHtml(h.data.text)}</div>`).join('')}</div>
+             <div style="font-size:11px;color:var(--muted);margin-top:10px;">These buttons appear at the top of the guide and scroll to each section when clicked. Add more Heading blocks to get more buttons.</div>`
+          : `<div style="color:var(--muted);font-size:13px;">Add some Heading blocks to your guide first — they'll automatically appear as nav buttons here.</div>`
+        }
+      </div>`;
+      break;
   }
 
   el.innerHTML = `
@@ -927,7 +939,16 @@ function autoResize(ta) {
 
 function syncBlock(id, key, value) {
   const b = editorBlocks.find(b => b.id === id);
-  if (b) { b.data[key] = value; updatePreview(); }
+  if (b) {
+    b.data[key] = value;
+    // If a heading changed, re-render nav blocks so their button list stays in sync
+    if (b.type === 'heading') {
+      const list = document.getElementById('block-list');
+      list.innerHTML = '';
+      editorBlocks.forEach(x => renderBlock(x));
+    }
+    updatePreview();
+  }
 }
 
 function deleteBlock(id) {
@@ -1032,6 +1053,17 @@ function updatePreview() {
         break;
       case 'two-col':
         html += `<div class="prev-2col"><div class="prev-2col-cell prev-p" style="margin:0">${escapeHtml(b.data.left||'')}</div><div class="prev-2col-cell prev-p" style="margin:0">${escapeHtml(b.data.right||'')}</div></div>`;
+        break;
+      case 'nav':
+        const navHeadings = editorBlocks.filter(x => x.type === 'heading' && x.data.text);
+        if (navHeadings.length) {
+          html += `<div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 24px;">
+            ${navHeadings.map(h => {
+              const anchor = h.data.text.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+              return `<div style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;color:#c0c0d8;cursor:pointer;">${escapeHtml(h.data.text)}</div>`;
+            }).join('')}
+          </div>`;
+        }
         break;
     }
   });
