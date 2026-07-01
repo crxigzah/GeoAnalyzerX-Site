@@ -973,6 +973,8 @@ function openGuideEditor(iso, country) {
   // doesn't trigger the global mouse/keyboard listeners so the timer would
   // fire even when the user is actively writing a guide.
   clearTimeout(inactivityTimer);
+  // Ping the server so it's awake before the user tries to upload images
+  fetch(`${API}/health`).catch(() => {});
 }
 
 function closeGuideEditor() {
@@ -1280,28 +1282,47 @@ function loadImageFile(blockId, file) {
     list.innerHTML = '';
     editorBlocks.forEach(x => renderBlock(x));
 
-    // Upload to server immediately — don't wait for Save
+    // Upload to server immediately — retry up to 3 times for Render cold starts
     const iso = document.getElementById('ge-iso').value.trim().toUpperCase() || 'guide';
-    try {
-      const res = await fetch(`${API}/admin/upload_guide_image`, {
-        method: 'POST',
-        headers: adminHeaders(),
-        body: JSON.stringify({ image: e.target.result, iso })
-      });
-      const data = await res.json();
-      if (data.url) {
-        b.data.src = data.url;
-        b.data._uploading = false;
-        toast('Image uploaded ✓');
-      } else {
-        b.data.src = '';
-        b.data._uploading = false;
-        toast('Image upload failed: ' + (data.error || 'unknown'), true);
+    let uploaded = false;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        // Update status on retry attempts
+        if (attempt > 1) {
+          const card = document.querySelector(`[data-block-id="${blockId}"]`);
+          if (card) {
+            const zone = card.querySelector('.img-drop-zone');
+            if (zone) zone.querySelector('div')?.childNodes[2] && (zone.querySelector('div').lastChild.textContent = `Waking server... attempt ${attempt}/3`);
+          }
+        }
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 55000);
+        const res = await fetch(`${API}/admin/upload_guide_image`, {
+          method: 'POST',
+          headers: adminHeaders(),
+          body: JSON.stringify({ image: e.target.result, iso }),
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        const data = await res.json();
+        if (data.url) {
+          b.data.src = data.url;
+          b.data._uploading = false;
+          uploaded = true;
+          toast('Image uploaded ✓');
+          break;
+        } else {
+          throw new Error(data.error || 'Upload failed');
+        }
+      } catch(err) {
+        if (attempt === 3) {
+          b.data.src = '';
+          b.data._uploading = false;
+          toast('Image upload failed after 3 attempts — check connection', true);
+        }
+        // Wait 2s before retrying
+        if (attempt < 3) await new Promise(r => setTimeout(r, 2000));
       }
-    } catch(err) {
-      b.data.src = '';
-      b.data._uploading = false;
-      toast('Image upload failed — check connection', true);
     }
 
     lastImageBlockId = blockId;
