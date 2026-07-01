@@ -106,7 +106,12 @@ nav { position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.92);backdrop-fi
     <div class="legend-item"><div class="legend-dot" style="background:#1e1e38"></div>No Street View coverage</div>
   </div>
 
-  <svg id="world-map" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg"></svg>
+  <svg id="world-map" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="cursor:grab;"></svg>
+  <div style="display:flex;justify-content:center;gap:8px;margin:8px 0 0;">
+    <button id="zoom-in" style="background:var(--card);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">+</button>
+    <button id="zoom-reset" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:0 12px;height:32px;border-radius:8px;cursor:pointer;font-size:12px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">Reset</button>
+    <button id="zoom-out" style="background:var(--card);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">−</button>
+  </div>
 
   <div class="country-grid" id="country-grid"></div>
 </div>
@@ -135,91 +140,184 @@ nav { position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.92);backdrop-fi
 <script>
 const API = 'https://geoanalyzerx.onrender.com';
 
-// All countries in GeoGuessr with Street View coverage
-// ISO Alpha-2 codes
+// Countries actually in GeoGuessr with Street View coverage.
+// Sourced from GeoGuessr Explorer Mode — coloured = in, black hatched = not in.
+// NOT included: Libya, Sudan, Somalia, most of Central/West Africa, Syria, Yemen,
+// North Korea, Afghanistan, Turkmenistan, Tajikistan, most Pacific microstates.
 const GEOGUESSR_COUNTRIES = new Set([
-  'AU','BR','US','JP','IN','ZA','FR','AR','NO','TH','PT','NZ','MX','KR','TR',
-  'CO','SE','FI','PL','ID','CL','UA','CA','RU','DE','GB','IT','ES','KE','PE',
-  'EG','SG','MY','TW','VN','PH','BD','PK','LK','NP','KZ','GE','AM','AZ','UZ',
-  'MN','NG','GH','SN','ET','TZ','UG','ZM','ZW','MZ','MW','BW','NA','RW','MG',
-  'CM','CI','BJ','TG','BF','ML','NE','TD','CD','CG','GA','AO','ER','DJ','SO',
-  'BI','SS','SD','LY','TN','MA','DZ','MR','GM','SL','LR','GN','GW','CV','ST',
-  'GQ','CF','MU','SC','KM','SZ','LS','RE','JO','IQ','SY','LB','IL','PS','YE',
-  'SA','AE','KW','BH','QA','OM','PK','AF','IR','TM','TJ','KG','AM','GE','MD',
-  'BY','LT','LV','EE','AL','MK','RS','ME','BA','HR','SI','SK','CZ','HU','RO',
-  'BG','GR','CY','MT','IS','IE','DK','NL','BE','LU','AT','CH','LI','MC','SM',
-  'VA','AD','HN','GT','BZ','SV','NI','CR','PA','CU','JM','HT','DO','TT','BB',
-  'GD','VC','LC','AG','DM','KN','BS','TC','KY','VI','PR','VE','GY','SR','EC',
-  'BO','PY','UY','FK','GL','FO','SJ','AX','IM','JE','GG','GI','MP','GU','AS',
-  'CK','PF','WS','TO','FJ','VU','SB','PW','FM','MH','KI','NR','TV','WF',
-  'NC','PG','TL','BN','MM','KH','LA','MO','HK','CN','MV','BT','IO',
-  // key ones for GeoGuessr specifically
-  'RU','KZ','MN','CN','IN','PK','BD','MM','TH','VN','MY','ID','PH','JP','KR','TW',
-  'AU','NZ','ZA','NG','EG','MA','KE','ET','TZ','GH','CI','SN','CM',
-  'FR','DE','GB','IT','ES','PT','NL','BE','SE','NO','FI','DK','PL','CZ','HU','RO',
-  'GR','TR','UA','RU','BY','LT','LV','EE','HR','RS','BA','SI','SK','AT','CH',
-  'US','CA','MX','BR','AR','CL','CO','PE','VE','EC','BO','PY','UY',
-  'IL','SA','AE','JO','IQ','IR','LB','SY','YE','OM','KW','QA','BH',
-  'ZA','KE','NG','EG','MA','ET','TZ','GH','SN','CM','UG','RW','ZM','ZW','MZ','NA','BW','BI','MG','MU'
+  // Americas
+  'US','CA','MX','GT','BZ','SV','HN','NI','CR','PA',
+  'CU','JM','HT','DO','TT','BB','GD','VC','LC','AG','DM','KN',
+  'BR','AR','CL','CO','PE','EC','BO','PY','UY','VE','GY','SR',
+  // Europe
+  'GB','IE','FR','DE','IT','ES','PT','NL','BE','LU','AT','CH',
+  'SE','NO','DK','FI','IS','PL','CZ','SK','HU','RO','BG','GR',
+  'HR','SI','RS','BA','ME','AL','MK','CY','MT',
+  'EE','LV','LT','UA','BY','GE','AM','AZ','TR',
+  'MD','LI','MC','SM','AD',
+  // Asia
+  'RU','MN','KZ','KG','UZ',
+  'CN','JP','KR','TW','HK','MO',
+  'TH','VN','KH','LA','MM','MY','SG','ID','PH','BN','TL',
+  'IN','BD','LK','NP','BT','PK',
+  'IL','JO','IQ','IR','SA','AE','QA','BH','KW','OM','LB',
+  // Africa
+  'ZA','KE','NG','GH','ET','TZ','UG','RW','BI',
+  'CM','CI','SN','MG','MZ','ZW','ZM','BW','NA','MW','LS','SZ',
+  'TN','MA','EG','MU','SC','RE',
+  // Oceania
+  'AU','NZ','FJ','PG',
+  // Greenland (covered as DK territory)
+  'GL',
 ]);
 
-// Country data: slug -> {name, flag, iso}
+// Verified GeoGuessr countries with guide data
 const COUNTRIES = [
-  {slug:'australia',name:'Australia',flag:'🇦🇺',iso:'AU'},{slug:'brazil',name:'Brazil',flag:'🇧🇷',iso:'BR'},
-  {slug:'united-states',name:'United States',flag:'🇺🇸',iso:'US'},{slug:'japan',name:'Japan',flag:'🇯🇵',iso:'JP'},
-  {slug:'india',name:'India',flag:'🇮🇳',iso:'IN'},{slug:'south-africa',name:'South Africa',flag:'🇿🇦',iso:'ZA'},
-  {slug:'france',name:'France',flag:'🇫🇷',iso:'FR'},{slug:'argentina',name:'Argentina',flag:'🇦🇷',iso:'AR'},
-  {slug:'norway',name:'Norway',flag:'🇳🇴',iso:'NO'},{slug:'thailand',name:'Thailand',flag:'🇹🇭',iso:'TH'},
-  {slug:'portugal',name:'Portugal',flag:'🇵🇹',iso:'PT'},{slug:'new-zealand',name:'New Zealand',flag:'🇳🇿',iso:'NZ'},
-  {slug:'mexico',name:'Mexico',flag:'🇲🇽',iso:'MX'},{slug:'south-korea',name:'South Korea',flag:'🇰🇷',iso:'KR'},
-  {slug:'turkey',name:'Turkey',flag:'🇹🇷',iso:'TR'},{slug:'colombia',name:'Colombia',flag:'🇨🇴',iso:'CO'},
-  {slug:'sweden',name:'Sweden',flag:'🇸🇪',iso:'SE'},{slug:'finland',name:'Finland',flag:'🇫🇮',iso:'FI'},
-  {slug:'poland',name:'Poland',flag:'🇵🇱',iso:'PL'},{slug:'indonesia',name:'Indonesia',flag:'🇮🇩',iso:'ID'},
-  {slug:'chile',name:'Chile',flag:'🇨🇱',iso:'CL'},{slug:'ukraine',name:'Ukraine',flag:'🇺🇦',iso:'UA'},
-  {slug:'canada',name:'Canada',flag:'🇨🇦',iso:'CA'},{slug:'russia',name:'Russia',flag:'🇷🇺',iso:'RU'},
-  {slug:'germany',name:'Germany',flag:'🇩🇪',iso:'DE'},{slug:'united-kingdom',name:'United Kingdom',flag:'🇬🇧',iso:'GB'},
-  {slug:'italy',name:'Italy',flag:'🇮🇹',iso:'IT'},{slug:'spain',name:'Spain',flag:'🇪🇸',iso:'ES'},
-  {slug:'kenya',name:'Kenya',flag:'🇰🇪',iso:'KE'},{slug:'peru',name:'Peru',flag:'🇵🇪',iso:'PE'},
-  {slug:'egypt',name:'Egypt',flag:'🇪🇬',iso:'EG'},{slug:'nigeria',name:'Nigeria',flag:'🇳🇬',iso:'NG'},
-  {slug:'china',name:'China',flag:'🇨🇳',iso:'CN'},{slug:'vietnam',name:'Vietnam',flag:'🇻🇳',iso:'VN'},
-  {slug:'philippines',name:'Philippines',flag:'🇵🇭',iso:'PH'},{slug:'malaysia',name:'Malaysia',flag:'🇲🇾',iso:'MY'},
-  {slug:'singapore',name:'Singapore',flag:'🇸🇬',iso:'SG'},{slug:'taiwan',name:'Taiwan',flag:'🇹🇼',iso:'TW'},
-  {slug:'bangladesh',name:'Bangladesh',flag:'🇧🇩',iso:'BD'},{slug:'pakistan',name:'Pakistan',flag:'🇵🇰',iso:'PK'},
-  {slug:'sri-lanka',name:'Sri Lanka',flag:'🇱🇰',iso:'LK'},{slug:'netherlands',name:'Netherlands',flag:'🇳🇱',iso:'NL'},
-  {slug:'belgium',name:'Belgium',flag:'🇧🇪',iso:'BE'},{slug:'denmark',name:'Denmark',flag:'🇩🇰',iso:'DK'},
-  {slug:'czech-republic',name:'Czech Republic',flag:'🇨🇿',iso:'CZ'},{slug:'romania',name:'Romania',flag:'🇷🇴',iso:'RO'},
-  {slug:'hungary',name:'Hungary',flag:'🇭🇺',iso:'HU'},{slug:'greece',name:'Greece',flag:'🇬🇷',iso:'GR'},
-  {slug:'israel',name:'Israel',flag:'🇮🇱',iso:'IL'},{slug:'jordan',name:'Jordan',flag:'🇯🇴',iso:'JO'},
-  {slug:'ghana',name:'Ghana',flag:'🇬🇭',iso:'GH'},{slug:'senegal',name:'Senegal',flag:'🇸🇳',iso:'SN'},
-  {slug:'uruguay',name:'Uruguay',flag:'🇺🇾',iso:'UY'},{slug:'ecuador',name:'Ecuador',flag:'🇪🇨',iso:'EC'},
-  {slug:'bolivia',name:'Bolivia',flag:'🇧🇴',iso:'BO'},{slug:'paraguay',name:'Paraguay',flag:'🇵🇾',iso:'PY'},
-  {slug:'mongolia',name:'Mongolia',flag:'🇲🇳',iso:'MN'},{slug:'kazakhstan',name:'Kazakhstan',flag:'🇰🇿',iso:'KZ'},
-  {slug:'georgia',name:'Georgia',flag:'🇬🇪',iso:'GE'},{slug:'morocco',name:'Morocco',flag:'🇲🇦',iso:'MA'},
-  {slug:'ethiopia',name:'Ethiopia',flag:'🇪🇹',iso:'ET'},{slug:'tanzania',name:'Tanzania',flag:'🇹🇿',iso:'TZ'},
-  {slug:'uganda',name:'Uganda',flag:'🇺🇬',iso:'UG'},{slug:'cambodia',name:'Cambodia',flag:'🇰🇭',iso:'KH'},
-  {slug:'myanmar',name:'Myanmar',flag:'🇲🇲',iso:'MM'},{slug:'iceland',name:'Iceland',flag:'🇮🇸',iso:'IS'},
-  {slug:'ireland',name:'Ireland',flag:'🇮🇪',iso:'IE'},{slug:'austria',name:'Austria',flag:'🇦🇹',iso:'AT'},
-  {slug:'switzerland',name:'Switzerland',flag:'🇨🇭',iso:'CH'},{slug:'croatia',name:'Croatia',flag:'🇭🇷',iso:'HR'},
-  {slug:'serbia',name:'Serbia',flag:'🇷🇸',iso:'RS'},{slug:'slovakia',name:'Slovakia',flag:'🇸🇰',iso:'SK'},
-  {slug:'estonia',name:'Estonia',flag:'🇪🇪',iso:'EE'},{slug:'latvia',name:'Latvia',flag:'🇱🇻',iso:'LV'},
-  {slug:'lithuania',name:'Lithuania',flag:'🇱🇹',iso:'LT'},{slug:'bulgaria',name:'Bulgaria',flag:'🇧🇬',iso:'BG'},
-  {slug:'albania',name:'Albania',flag:'🇦🇱',iso:'AL'},{slug:'north-macedonia',name:'North Macedonia',flag:'🇲🇰',iso:'MK'},
-  {slug:'costa-rica',name:'Costa Rica',flag:'🇨🇷',iso:'CR'},{slug:'guatemala',name:'Guatemala',flag:'🇬🇹',iso:'GT'},
-  {slug:'cuba',name:'Cuba',flag:'🇨🇺',iso:'CU'},{slug:'dominican-republic',name:'Dominican Republic',flag:'🇩🇴',iso:'DO'},
-  {slug:'venezuela',name:'Venezuela',flag:'🇻🇪',iso:'VE'},{slug:'iran',name:'Iran',flag:'🇮🇷',iso:'IR'},
-  {slug:'iraq',name:'Iraq',flag:'🇮🇶',iso:'IQ'},{slug:'saudi-arabia',name:'Saudi Arabia',flag:'🇸🇦',iso:'SA'},
-  {slug:'united-arab-emirates',name:'United Arab Emirates',flag:'🇦🇪',iso:'AE'},
-  {slug:'kyrgyzstan',name:'Kyrgyzstan',flag:'🇰🇬',iso:'KG'},{slug:'uzbekistan',name:'Uzbekistan',flag:'🇺🇿',iso:'UZ'},
-  {slug:'latvia',name:'Latvia',flag:'🇱🇻',iso:'LV'},{slug:'rwanda',name:'Rwanda',flag:'🇷🇼',iso:'RW'},
-  {slug:'zambia',name:'Zambia',flag:'🇿🇲',iso:'ZM'},{slug:'zimbabwe',name:'Zimbabwe',flag:'🇿🇼',iso:'ZW'},
-  {slug:'namibia',name:'Namibia',flag:'🇳🇦',iso:'NA'},{slug:'botswana',name:'Botswana',flag:'🇧🇼',iso:'BW'},
-  {slug:'mozambique',name:'Mozambique',flag:'🇲🇿',iso:'MZ'},{slug:'madagascar',name:'Madagascar',flag:'🇲🇬',iso:'MG'},
-  {slug:'cameroon',name:'Cameroon',flag:'🇨🇲',iso:'CM'},{slug:'ivory-coast',name:"Ivory Coast",flag:'🇨🇮',iso:'CI'},
-  {slug:'nepal',name:'Nepal',flag:'🇳🇵',iso:'NP'},{slug:'bhutan',name:'Bhutan',flag:'🇧🇹',iso:'BT'},
-  {slug:'laos',name:'Laos',flag:'🇱🇦',iso:'LA'},{slug:'hong-kong',name:'Hong Kong',flag:'🇭🇰',iso:'HK'},
-  {slug:'macao',name:'Macao',flag:'🇲🇴',iso:'MO'},{slug:'tunisia',name:'Tunisia',flag:'🇹🇳',iso:'TN'},
-  {slug:'algeria',name:'Algeria',flag:'🇩🇿',iso:'DZ'},{slug:'kyrgyzstan',name:'Kyrgyzstan',flag:'🇰🇬',iso:'KG'},
-  {slug:'papua-new-guinea',name:'Papua New Guinea',flag:'🇵🇬',iso:'PG'},
+  // Americas
+  {slug:'united-states',name:'United States',iso:'US'},
+  {slug:'canada',name:'Canada',iso:'CA'},
+  {slug:'mexico',name:'Mexico',iso:'MX'},
+  {slug:'guatemala',name:'Guatemala',iso:'GT'},
+  {slug:'belize',name:'Belize',iso:'BZ'},
+  {slug:'el-salvador',name:'El Salvador',iso:'SV'},
+  {slug:'honduras',name:'Honduras',iso:'HN'},
+  {slug:'nicaragua',name:'Nicaragua',iso:'NI'},
+  {slug:'costa-rica',name:'Costa Rica',iso:'CR'},
+  {slug:'panama',name:'Panama',iso:'PA'},
+  {slug:'cuba',name:'Cuba',iso:'CU'},
+  {slug:'jamaica',name:'Jamaica',iso:'JM'},
+  {slug:'haiti',name:'Haiti',iso:'HT'},
+  {slug:'dominican-republic',name:'Dominican Republic',iso:'DO'},
+  {slug:'trinidad-tobago',name:'Trinidad & Tobago',iso:'TT'},
+  {slug:'barbados',name:'Barbados',iso:'BB'},
+  {slug:'brazil',name:'Brazil',iso:'BR'},
+  {slug:'argentina',name:'Argentina',iso:'AR'},
+  {slug:'chile',name:'Chile',iso:'CL'},
+  {slug:'colombia',name:'Colombia',iso:'CO'},
+  {slug:'peru',name:'Peru',iso:'PE'},
+  {slug:'ecuador',name:'Ecuador',iso:'EC'},
+  {slug:'bolivia',name:'Bolivia',iso:'BO'},
+  {slug:'paraguay',name:'Paraguay',iso:'PY'},
+  {slug:'uruguay',name:'Uruguay',iso:'UY'},
+  {slug:'venezuela',name:'Venezuela',iso:'VE'},
+  {slug:'guyana',name:'Guyana',iso:'GY'},
+  {slug:'suriname',name:'Suriname',iso:'SR'},
+  // Europe
+  {slug:'united-kingdom',name:'United Kingdom',iso:'GB'},
+  {slug:'ireland',name:'Ireland',iso:'IE'},
+  {slug:'france',name:'France',iso:'FR'},
+  {slug:'germany',name:'Germany',iso:'DE'},
+  {slug:'italy',name:'Italy',iso:'IT'},
+  {slug:'spain',name:'Spain',iso:'ES'},
+  {slug:'portugal',name:'Portugal',iso:'PT'},
+  {slug:'netherlands',name:'Netherlands',iso:'NL'},
+  {slug:'belgium',name:'Belgium',iso:'BE'},
+  {slug:'luxembourg',name:'Luxembourg',iso:'LU'},
+  {slug:'austria',name:'Austria',iso:'AT'},
+  {slug:'switzerland',name:'Switzerland',iso:'CH'},
+  {slug:'sweden',name:'Sweden',iso:'SE'},
+  {slug:'norway',name:'Norway',iso:'NO'},
+  {slug:'denmark',name:'Denmark',iso:'DK'},
+  {slug:'finland',name:'Finland',iso:'FI'},
+  {slug:'iceland',name:'Iceland',iso:'IS'},
+  {slug:'poland',name:'Poland',iso:'PL'},
+  {slug:'czech-republic',name:'Czech Republic',iso:'CZ'},
+  {slug:'slovakia',name:'Slovakia',iso:'SK'},
+  {slug:'hungary',name:'Hungary',iso:'HU'},
+  {slug:'romania',name:'Romania',iso:'RO'},
+  {slug:'bulgaria',name:'Bulgaria',iso:'BG'},
+  {slug:'greece',name:'Greece',iso:'GR'},
+  {slug:'croatia',name:'Croatia',iso:'HR'},
+  {slug:'slovenia',name:'Slovenia',iso:'SI'},
+  {slug:'serbia',name:'Serbia',iso:'RS'},
+  {slug:'bosnia',name:'Bosnia & Herzegovina',iso:'BA'},
+  {slug:'montenegro',name:'Montenegro',iso:'ME'},
+  {slug:'albania',name:'Albania',iso:'AL'},
+  {slug:'north-macedonia',name:'North Macedonia',iso:'MK'},
+  {slug:'cyprus',name:'Cyprus',iso:'CY'},
+  {slug:'malta',name:'Malta',iso:'MT'},
+  {slug:'estonia',name:'Estonia',iso:'EE'},
+  {slug:'latvia',name:'Latvia',iso:'LV'},
+  {slug:'lithuania',name:'Lithuania',iso:'LT'},
+  {slug:'ukraine',name:'Ukraine',iso:'UA'},
+  {slug:'belarus',name:'Belarus',iso:'BY'},
+  {slug:'moldova',name:'Moldova',iso:'MD'},
+  {slug:'georgia',name:'Georgia',iso:'GE'},
+  {slug:'armenia',name:'Armenia',iso:'AM'},
+  {slug:'azerbaijan',name:'Azerbaijan',iso:'AZ'},
+  {slug:'turkey',name:'Turkey',iso:'TR'},
+  // Asia
+  {slug:'russia',name:'Russia',iso:'RU'},
+  {slug:'mongolia',name:'Mongolia',iso:'MN'},
+  {slug:'kazakhstan',name:'Kazakhstan',iso:'KZ'},
+  {slug:'kyrgyzstan',name:'Kyrgyzstan',iso:'KG'},
+  {slug:'uzbekistan',name:'Uzbekistan',iso:'UZ'},
+  {slug:'china',name:'China',iso:'CN'},
+  {slug:'japan',name:'Japan',iso:'JP'},
+  {slug:'south-korea',name:'South Korea',iso:'KR'},
+  {slug:'taiwan',name:'Taiwan',iso:'TW'},
+  {slug:'hong-kong',name:'Hong Kong',iso:'HK'},
+  {slug:'macao',name:'Macao',iso:'MO'},
+  {slug:'thailand',name:'Thailand',iso:'TH'},
+  {slug:'vietnam',name:'Vietnam',iso:'VN'},
+  {slug:'cambodia',name:'Cambodia',iso:'KH'},
+  {slug:'laos',name:'Laos',iso:'LA'},
+  {slug:'myanmar',name:'Myanmar',iso:'MM'},
+  {slug:'malaysia',name:'Malaysia',iso:'MY'},
+  {slug:'singapore',name:'Singapore',iso:'SG'},
+  {slug:'indonesia',name:'Indonesia',iso:'ID'},
+  {slug:'philippines',name:'Philippines',iso:'PH'},
+  {slug:'brunei',name:'Brunei',iso:'BN'},
+  {slug:'timor-leste',name:'Timor-Leste',iso:'TL'},
+  {slug:'india',name:'India',iso:'IN'},
+  {slug:'bangladesh',name:'Bangladesh',iso:'BD'},
+  {slug:'sri-lanka',name:'Sri Lanka',iso:'LK'},
+  {slug:'nepal',name:'Nepal',iso:'NP'},
+  {slug:'bhutan',name:'Bhutan',iso:'BT'},
+  {slug:'pakistan',name:'Pakistan',iso:'PK'},
+  {slug:'israel',name:'Israel',iso:'IL'},
+  {slug:'jordan',name:'Jordan',iso:'JO'},
+  {slug:'iraq',name:'Iraq',iso:'IQ'},
+  {slug:'iran',name:'Iran',iso:'IR'},
+  {slug:'saudi-arabia',name:'Saudi Arabia',iso:'SA'},
+  {slug:'united-arab-emirates',name:'United Arab Emirates',iso:'AE'},
+  {slug:'qatar',name:'Qatar',iso:'QA'},
+  {slug:'bahrain',name:'Bahrain',iso:'BH'},
+  {slug:'kuwait',name:'Kuwait',iso:'KW'},
+  {slug:'oman',name:'Oman',iso:'OM'},
+  {slug:'lebanon',name:'Lebanon',iso:'LB'},
+  // Africa
+  {slug:'south-africa',name:'South Africa',iso:'ZA'},
+  {slug:'kenya',name:'Kenya',iso:'KE'},
+  {slug:'nigeria',name:'Nigeria',iso:'NG'},
+  {slug:'ghana',name:'Ghana',iso:'GH'},
+  {slug:'ethiopia',name:'Ethiopia',iso:'ET'},
+  {slug:'tanzania',name:'Tanzania',iso:'TZ'},
+  {slug:'uganda',name:'Uganda',iso:'UG'},
+  {slug:'rwanda',name:'Rwanda',iso:'RW'},
+  {slug:'burundi',name:'Burundi',iso:'BI'},
+  {slug:'cameroon',name:'Cameroon',iso:'CM'},
+  {slug:'ivory-coast',name:'Ivory Coast',iso:'CI'},
+  {slug:'senegal',name:'Senegal',iso:'SN'},
+  {slug:'madagascar',name:'Madagascar',iso:'MG'},
+  {slug:'mozambique',name:'Mozambique',iso:'MZ'},
+  {slug:'zimbabwe',name:'Zimbabwe',iso:'ZW'},
+  {slug:'zambia',name:'Zambia',iso:'ZM'},
+  {slug:'botswana',name:'Botswana',iso:'BW'},
+  {slug:'namibia',name:'Namibia',iso:'NA'},
+  {slug:'malawi',name:'Malawi',iso:'MW'},
+  {slug:'lesotho',name:'Lesotho',iso:'LS'},
+  {slug:'eswatini',name:'Eswatini',iso:'SZ'},
+  {slug:'tunisia',name:'Tunisia',iso:'TN'},
+  {slug:'morocco',name:'Morocco',iso:'MA'},
+  {slug:'egypt',name:'Egypt',iso:'EG'},
+  {slug:'mauritius',name:'Mauritius',iso:'MU'},
+  {slug:'seychelles',name:'Seychelles',iso:'SC'},
+  // Oceania
+  {slug:'australia',name:'Australia',iso:'AU'},
+  {slug:'new-zealand',name:'New Zealand',iso:'NZ'},
+  {slug:'fiji',name:'Fiji',iso:'FJ'},
+  {slug:'papua-new-guinea',name:'Papua New Guinea',iso:'PG'},
 ];
 
 // Remove duplicates by slug
@@ -238,30 +336,64 @@ UNIQUE_COUNTRIES.forEach(c => { slugToCountry[c.slug] = c; });
 
 const tooltip = document.getElementById('tooltip');
 
+// Convert ISO alpha-2 to twemoji SVG URL — same method as the homepage,
+// works on Windows where emoji flag rendering is broken in most browsers.
+function flagUrl(iso) {
+  const base = 0x1F1E6 - 65; // 'A' is char code 65, regional indicator A is 0x1F1E6
+  const cp1 = (iso.charCodeAt(0) + base).toString(16);
+  const cp2 = (iso.charCodeAt(1) + base).toString(16);
+  return `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${cp1}-${cp2}.svg`;
+}
+
+function flagImg(iso, size=20) {
+  return `<img src="${flagUrl(iso)}" width="${size}" height="${Math.round(size*0.75)}" style="border-radius:2px;vertical-align:middle;flex-shrink:0;" onerror="this.style.display='none'" alt="${iso}">`;
+}
+
 // Build the country grid
 const grid = document.getElementById('country-grid');
 UNIQUE_COUNTRIES.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
   const el = document.createElement('a');
   el.className = 'country-card';
   el.href = `/metas/${c.slug}`;
-  el.innerHTML = `<span class="flag">${c.flag}</span><span class="name">${c.name}</span>`;
+  el.innerHTML = `${flagImg(c.iso, 22)}<span class="name">${c.name}</span>`;
   el.addEventListener('click', e => { e.preventDefault(); navigateTo(c.slug); });
   grid.appendChild(el);
 });
 
-// D3 world map
+// D3 world map with drag + zoom
 const svg = d3.select('#world-map');
+const mapGroup = svg.append('g').attr('id', 'map-g');
 const projection = d3.geoNaturalEarth1()
   .scale(155)
   .translate([500, 265]);
 const path = d3.geoPath().projection(projection);
 
+// Zoom behaviour
+const zoom = d3.zoom()
+  .scaleExtent([1, 8])
+  .on('zoom', (event) => {
+    mapGroup.attr('transform', event.transform);
+    tooltip.style.display = 'none';
+  });
+svg.call(zoom)
+   .on('dblclick.zoom', null); // disable double-click zoom so single click still works
+
+// Zoom control buttons
+document.getElementById('zoom-in').addEventListener('click', () => {
+  svg.transition().duration(300).call(zoom.scaleBy, 1.5);
+});
+document.getElementById('zoom-out').addEventListener('click', () => {
+  svg.transition().duration(300).call(zoom.scaleBy, 1/1.5);
+});
+document.getElementById('zoom-reset').addEventListener('click', () => {
+  svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+});
+
 fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
   .then(r => r.json())
   .then(world => {
     const countries = topojson.feature(world, world.objects.countries);
-    // Map numeric ID -> ISO alpha-2 using a lookup table
-    svg.selectAll('.country-path')
+    mapGroup.selectAll('.country-path')
       .data(countries.features)
       .enter().append('path')
       .attr('class', d => {
@@ -275,8 +407,8 @@ fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
         if (!c) return;
         tooltip.style.display = 'block';
         tooltip.style.left = (event.clientX + 14) + 'px';
-        tooltip.style.top  = (event.clientY - 40) + 'px';
-        document.getElementById('tt-flag').textContent = c.flag;
+        tooltip.style.top  = (event.clientY - 44) + 'px';
+        document.getElementById('tt-flag').innerHTML = flagImg(c.iso, 20);
         document.getElementById('tt-name').textContent = c.name;
         document.getElementById('tt-hint').innerHTML = GEOGUESSR_COUNTRIES.has(iso)
           ? '<span class="tt-hint">Click for GeoGuessr guide →</span>'
@@ -350,10 +482,10 @@ async function showCountry(c) {
   document.getElementById('map-view').style.display = 'none';
   const cv = document.getElementById('country-view');
   cv.style.display = 'block';
-  document.getElementById('cv-flag').textContent = c.flag;
+  document.getElementById('cv-flag').innerHTML = flagImg(c.iso, 72);
   document.getElementById('cv-name').textContent = c.name;
   document.getElementById('cv-sub').textContent = 'GeoGuessr Country Meta Guide';
-  document.getElementById('cv-body').innerHTML = `<div class="loading-pulse"><div class="spinner"></div><div>Generating ${c.name} guide with AI...</div></div>`;
+  document.getElementById('cv-body').innerHTML = `<div class="loading-pulse"><div class="spinner"></div><div>Loading ${c.name} guide...</div></div>`;
   window.scrollTo(0,0);
 
   try {
