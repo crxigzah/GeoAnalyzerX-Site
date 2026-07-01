@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script>
+// GitHub Pages 404 redirect trick — redirect /metas/country to /metas?c=country
+// so the metas page can pick it up via query param
+var path = window.location.pathname;
+var metaMatch = path.match(/^\/metas\/(.+)$/);
+if (metaMatch) {
+  window.location.replace('/metas?c=' + encodeURIComponent(metaMatch[1]));
+} else if (path.startsWith('/metas')) {
+  window.location.replace('/metas');
+} else {
+  window.location.replace('/');
+}
+</script>
+</head>
+<body></body>
+</html>
