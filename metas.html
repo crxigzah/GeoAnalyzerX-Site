@@ -115,7 +115,6 @@ nav { position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.92);backdrop-fi
     <button id="zoom-out" style="background:var(--card);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">−</button>
   </div>
 
-  <div class="country-grid" id="country-grid"></div>
 </div>
 
 <div id="country-view">
@@ -318,15 +317,7 @@ function flagImg(iso, size=20) {
 }
 
 // Build the country grid
-const grid = document.getElementById('country-grid');
-UNIQUE_COUNTRIES.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
-  const el = document.createElement('a');
-  el.className = 'country-card';
-  el.href = `/metas/${c.slug}`;
-  el.innerHTML = `${flagImg(c.iso, 22)}<span class="name">${c.name}</span>`;
-  el.addEventListener('click', e => { e.preventDefault(); navigateTo(c.slug); });
-  grid.appendChild(el);
-});
+// Country grid removed — navigate via map only
 
 // D3 world map with drag + zoom
 const svg = d3.select('#world-map');
@@ -454,10 +445,10 @@ fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
       mapGroup.append('circle')
         .attr('cx', projected[0])
         .attr('cy', projected[1])
-        .attr('r', 1.2)
+        .attr('r', 0.8)
         .attr('fill', '#a78bfa')
         .attr('stroke', '#7c3aed')
-        .attr('stroke-width', 0.4)
+        .attr('stroke-width', 0.3)
         .style('cursor', 'pointer')
         .on('mousemove', (event) => {
           tooltip.style.display = 'block';
@@ -559,6 +550,10 @@ function renderGuide(c, data) {
   if (data.blocks && data.blocks.length) {
     const html = data.blocks.map(block => {
       switch(block.type) {
+        case 'divider':
+          return `<hr style="border:none;border-top:1px solid var(--border);margin:24px 0;">`;
+        case 'spacer':
+          return `<div style="height:${block.data.height||32}px;"></div>`;
         case 'heading':
           const anchor = (block.data.text||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
           return `<h2 id="${anchor}" style="font-size:22px;font-weight:800;margin:36px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--border);">${block.data.text||''}</h2>`;

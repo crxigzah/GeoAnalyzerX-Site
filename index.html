@@ -692,6 +692,33 @@ html { scroll-behavior: smooth; }
     </div>
   </div>
 
+  <!-- Country Metas -->
+  <div class="section" id="metas-section" style="text-align:center;">
+    <div class="section-label" style="text-align:center;">Country Metas</div>
+    <h2 style="font-size:30px;font-weight:800;margin-bottom:12px;">Learn Every Country</h2>
+    <p style="color:var(--muted);margin-bottom:36px;max-width:520px;margin-left:auto;margin-right:auto;">In-depth visual guides for every GeoGuessr country — dead giveaways, road meta, regional breakdowns, and more.</p>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;max-width:860px;margin:0 auto 32px;">
+      <div style="padding:28px 28px 12px;">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+          <span style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:#00c9a7;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">🗺️ 114 Countries</span>
+          <span style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#a78bfa;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">📸 Visual Clue Guides</span>
+          <span style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:#00c9a7;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">🔑 Dead Giveaways</span>
+          <span style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#a78bfa;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">🛣️ Road Meta</span>
+          <span style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:#00c9a7;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">🌍 Regional Breakdowns</span>
+        </div>
+      </div>
+      <div style="position:relative;overflow:hidden;height:260px;margin:20px 0 0;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,var(--card) 100%);z-index:1;pointer-events:none;"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 28px;opacity:0.5;pointer-events:none;">
+          ${['🇦🇺 Australia','🇧🇷 Brazil','🇺🇸 United States','🇯🇵 Japan','🇮🇳 India','🇿🇦 South Africa','🇫🇷 France','🇦🇷 Argentina','🇳🇴 Norway','🇹🇭 Thailand','🇵🇹 Portugal','🇳🇿 New Zealand','🇲🇽 Mexico','🇰🇷 South Korea','🇹🇷 Turkey','🇨🇴 Colombia','🇸🇪 Sweden','🇫🇮 Finland','🇵🇱 Poland','🇮🇩 Indonesia','🇨🇱 Chile','🇺🇦 Ukraine','🇨🇦 Canada','🇷🇺 Russia','🇩🇪 Germany','🇬🇧 United Kingdom','🇮🇹 Italy','🇪🇸 Spain','🇰🇪 Kenya','🇵🇪 Peru','🇪🇬 Egypt','🇳🇬 Nigeria'].map(c => `<span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">${c}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    <a href="/metas" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:15px;padding:14px 32px;">
+      🗺️ Explore Country Metas
+    </a>
+  </div>
+
   <!-- Pricing -->
   <div class="section" id="pricing">
     <div class="section-label" style="text-align:center;">Pricing</div>

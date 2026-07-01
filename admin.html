@@ -297,9 +297,13 @@
             <span class="ge-add-icon">🔗</span>
             <span class="ge-add-name">Links List</span>
           </button>
-          <button onclick="addBlock('nav')" class="ge-add-btn">
-            <span class="ge-add-icon">📋</span>
-            <span class="ge-add-name">Nav Buttons</span>
+          <button onclick="addBlock('divider')" class="ge-add-btn">
+            <span class="ge-add-icon">—</span>
+            <span class="ge-add-name">Divider</span>
+          </button>
+          <button onclick="addBlock('spacer')" class="ge-add-btn">
+            <span class="ge-add-icon">↕</span>
+            <span class="ge-add-name">Spacer</span>
           </button>
         </div>
       </div>
@@ -1027,7 +1031,7 @@ function renderBlock(block) {
   el.className = 'block-card';
   el.dataset.blockId = block.id;
 
-  const labels = {heading:'H', text:'¶', image:'🖼', tip:'💡', warning:'⚠️', 'two-col':'⬛⬛', 'img-text':'🖼¶', links:'🔗', nav:'📋'};
+  const labels = {heading:'H', text:'¶', image:'🖼', tip:'💡', warning:'⚠️', 'two-col':'⬛⬛', 'img-text':'🖼¶', links:'🔗', nav:'📋', divider:'—', spacer:'↕'};
   let inner = '';
 
   switch(block.type) {
@@ -1124,8 +1128,18 @@ function renderBlock(block) {
         </div>
         <button onclick="addLinkItem(${block.id})" style="margin-top:10px;background:var(--bg2);border:1px dashed var(--border);color:var(--muted);padding:6px 16px;border-radius:7px;cursor:pointer;font-size:12px;width:100%;">+ Add Link</button>`;
       break;
+    case 'divider':
+      inner = `<div style="border-top:1px solid #2a2a4a;margin:4px 0;"></div>`;
+      break;
+    case 'spacer':
+      const spH = block.data.height || 32;
+      inner = `<div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:11px;color:#444466;">Space height:</span>
+        ${[16,32,48,64].map(h => `<button onclick="syncBlock(${block.id},'height',${h})" style="padding:3px 10px;border-radius:5px;border:1px solid ${spH===h?'#7c3aed':'#151525'};background:${spH===h?'rgba(124,58,237,0.15)':'#080814'};color:${spH===h?'#a78bfa':'#444466'};cursor:pointer;font-size:11px;">${h}px</button>`).join('')}
+      </div>
+      <div style="height:${spH}px;border:1px dashed #151525;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#222244;font-size:11px;margin-top:8px;">${spH}px gap</div>`;
+      break;
     case 'nav':
-      const navBtns = block.data.buttons || [''];
       inner = `<div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">🔗 Navigation Buttons — type each button label</div>
         <div id="nav-btns-${block.id}" style="display:flex;flex-direction:column;gap:8px;">
@@ -1373,6 +1387,12 @@ function updatePreview() {
         break;
       case 'warning':
         html += `<div class="prev-warn"><div class="prev-warn-label">⚠️ Easy to Confuse With</div><div class="prev-p" style="margin:0">${escapeHtml(b.data.text||'')}</div></div>`;
+        break;
+      case 'divider':
+        html += `<hr style="border:none;border-top:1px solid #1e1e38;margin:20px 0;">`;
+        break;
+      case 'spacer':
+        html += `<div style="height:${b.data.height||32}px;"></div>`;
         break;
       case 'img-text':
         const itW = b.data.imgWidth || '40';
