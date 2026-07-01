@@ -202,47 +202,62 @@
   </div>
 </div>
 
-<!-- Guide Editor — full screen, block-based like PlonkIt -->
-<div id="guide-editor" style="display:none;position:fixed;inset:0;background:#080810;z-index:600;overflow-y:auto;">
-  <div style="max-width:900px;margin:0 auto;padding:32px 24px 80px;">
+<!-- Guide Editor — split-pane with live preview -->
+<div id="guide-editor" style="display:none;position:fixed;inset:0;background:#080810;z-index:600;flex-direction:column;">
 
-    <!-- Editor header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;position:sticky;top:0;background:#080810;padding:16px 0;z-index:10;border-bottom:1px solid var(--border);">
-      <div style="display:flex;align-items:center;gap:16px;">
-        <button onclick="closeGuideEditor()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">← Back</button>
-        <span id="editor-title" style="font-size:16px;font-weight:700;color:var(--text)">Guide Editor</span>
+  <!-- Top bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#0d0d18;border-bottom:1px solid var(--border);flex-shrink:0;z-index:10;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button onclick="closeGuideEditor()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;">← Back</button>
+      <span id="editor-title" style="font-size:15px;font-weight:700;color:var(--text)">Guide Editor</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:3px;">
+        <button id="pane-both-btn" onclick="setPaneMode('both')" style="padding:5px 12px;border-radius:6px;border:none;font-size:12px;cursor:pointer;background:#00c9a7;color:#080810;font-weight:600;">Both</button>
+        <button id="pane-edit-btn" onclick="setPaneMode('edit')" style="padding:5px 12px;border-radius:6px;border:none;font-size:12px;cursor:pointer;background:transparent;color:var(--muted);">Edit</button>
+        <button id="pane-preview-btn" onclick="setPaneMode('preview')" style="padding:5px 12px;border-radius:6px;border:none;font-size:12px;cursor:pointer;background:transparent;color:var(--muted);">Preview</button>
       </div>
-      <div style="display:flex;gap:10px;">
-        <button onclick="previewGuide()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;">Preview</button>
-        <button onclick="saveGuide()" style="background:#00c9a7;border:none;color:#080810;font-weight:700;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;">Save Guide</button>
+      <button onclick="saveGuide()" style="background:#00c9a7;border:none;color:#080810;font-weight:700;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;">Save Guide</button>
+    </div>
+  </div>
+
+  <!-- Split panes -->
+  <div id="editor-panes" style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- LEFT: Editor -->
+    <div id="editor-left" style="flex:1;overflow-y:auto;padding:24px;border-right:1px solid var(--border);">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;">Country Name</label>
+          <input id="ge-country" placeholder="e.g. Australia" oninput="updatePreview()" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;">ISO Code</label>
+          <input id="ge-iso" placeholder="AU" maxlength="2" oninput="updatePreview()" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;text-transform:uppercase;">
+        </div>
+      </div>
+
+      <div id="block-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+
+      <div style="border:2px dashed var(--border);border-radius:10px;padding:16px;text-align:center;">
+        <div style="color:var(--muted);font-size:12px;margin-bottom:10px;">Add block</div>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+          <button onclick="addBlock('heading')" class="add-block-btn">H Heading</button>
+          <button onclick="addBlock('text')" class="add-block-btn">¶ Text</button>
+          <button onclick="addBlock('image')" class="add-block-btn">🖼 Image</button>
+          <button onclick="addBlock('two-col')" class="add-block-btn">⬛⬛ Two Column</button>
+          <button onclick="addBlock('tip')" class="add-block-btn">💡 Tip</button>
+          <button onclick="addBlock('warning')" class="add-block-btn">⚠️ Confuse</button>
+        </div>
       </div>
     </div>
 
-    <!-- Country info -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
-      <div>
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Country Name</label>
-        <input id="ge-country" placeholder="e.g. Australia" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:15px;">
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">ISO Code (2 letters)</label>
-        <input id="ge-iso" placeholder="AU" maxlength="2" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:15px;text-transform:uppercase;">
-      </div>
-    </div>
-
-    <!-- Block list -->
-    <div id="block-list" style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px;"></div>
-
-    <!-- Add block buttons -->
-    <div style="border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;">
-      <div style="color:var(--muted);font-size:13px;margin-bottom:14px;">Add a new block</div>
-      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-        <button onclick="addBlock('heading')" class="add-block-btn">📌 Heading</button>
-        <button onclick="addBlock('text')" class="add-block-btn">📝 Text</button>
-        <button onclick="addBlock('image')" class="add-block-btn">🖼️ Image</button>
-        <button onclick="addBlock('tip')" class="add-block-btn">💡 Tip</button>
-        <button onclick="addBlock('warning')" class="add-block-btn">⚠️ Warning</button>
-        <button onclick="addBlock('two-col')" class="add-block-btn">⬛⬛ Two Column</button>
+    <!-- RIGHT: Live Preview -->
+    <div id="editor-right" style="flex:1;overflow-y:auto;background:#0a0a16;">
+      <div style="padding:32px 40px;">
+        <div id="guide-preview" style="max-width:720px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+          <div style="color:var(--muted);text-align:center;padding:60px 0;font-size:14px;">Preview will appear here as you type</div>
+        </div>
       </div>
     </div>
   </div>
@@ -250,45 +265,50 @@
 
 <style>
 .add-block-btn {
-  background:var(--card);border:1px solid var(--border);color:var(--text);
-  padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;
-  transition:border-color .2s,color .2s;
+  background:var(--card);border:1px solid var(--border);color:var(--muted);
+  padding:6px 14px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;
+  transition:border-color .15s,color .15s;
 }
 .add-block-btn:hover { border-color:#00c9a7;color:#00c9a7; }
 .block-card {
-  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;
-  position:relative;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;position:relative;
 }
 .block-card:hover { border-color:#2a2a4a; }
 .block-toolbar {
-  display:flex;gap:6px;align-items:center;margin-bottom:12px;
+  display:flex;gap:4px;align-items:center;margin-bottom:8px;
 }
-.block-tag {
-  font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.5px;background:var(--bg2);padding:3px 8px;border-radius:4px;
-}
-.block-move { background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px; }
+.block-tag { font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;background:var(--bg2);padding:2px 7px;border-radius:4px; }
+.block-move { background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 5px; }
 .block-move:hover { color:var(--text); }
-.block-delete { background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;margin-left:auto; }
+.block-delete { background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 5px;margin-left:auto; }
 .block-delete:hover { color:#ff6b6b; }
-.block-input {
-  width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;
-  padding:10px 12px;color:var(--text);font-size:14px;line-height:1.6;resize:vertical;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+.be { /* block editable */
+  width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:7px;
+  padding:9px 11px;color:var(--text);font-size:13px;line-height:1.65;
+  outline:none;resize:vertical;font-family:inherit;min-height:36px;
+  white-space:pre-wrap;word-break:break-word;
 }
-.block-input:focus { outline:none;border-color:#00c9a7; }
-.block-input-title {
-  width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);
-  color:var(--text);font-size:18px;font-weight:700;padding:6px 0;margin-bottom:10px;
+.be:focus { border-color:#00c9a7; }
+.be-heading { font-size:16px;font-weight:700;min-height:28px;resize:none; }
+.img-drop-zone {
+  border:2px dashed var(--border);border-radius:8px;padding:24px;text-align:center;
+  cursor:pointer;transition:border-color .2s,background .2s;background:var(--bg2);
+  position:relative;
 }
-.block-input-title:focus { outline:none;border-bottom-color:#00c9a7; }
-.img-upload-zone {
-  border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;
-  cursor:pointer;transition:border-color .2s;
-}
-.img-upload-zone:hover { border-color:#00c9a7; }
-.img-preview { max-width:100%;border-radius:8px;margin-top:10px;display:none; }
-.two-col-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.img-drop-zone:hover,.img-drop-zone.drag-over { border-color:#00c9a7;background:rgba(0,201,167,0.05); }
+.img-drop-zone img { max-width:100%;border-radius:6px;display:block;margin:0 auto; }
+/* Preview styles */
+.prev-h2 { font-size:20px;font-weight:800;color:#e0e0f0;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid #1e1e38; }
+.prev-p { color:#c0c0d8;line-height:1.8;font-size:14px;margin-bottom:14px;white-space:pre-wrap; }
+.prev-img { width:100%;border-radius:10px;margin:14px 0 4px;display:block; }
+.prev-cap { text-align:center;font-size:12px;color:#5a5a7a;margin-bottom:14px; }
+.prev-tip { background:rgba(0,201,167,0.08);border-left:3px solid #00c9a7;border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0; }
+.prev-tip-label { font-size:11px;font-weight:700;color:#00c9a7;margin-bottom:4px;text-transform:uppercase; }
+.prev-warn { background:rgba(255,107,107,0.08);border-left:3px solid #ff6b6b;border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0; }
+.prev-warn-label { font-size:11px;font-weight:700;color:#ff6b6b;margin-bottom:4px;text-transform:uppercase; }
+.prev-2col { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0; }
+.prev-2col-cell { background:#10101e;border:1px solid #1e1e38;border-radius:8px;padding:14px; }
 </style>
 
 <div class="toast" id="toast"></div>
@@ -771,6 +791,21 @@ function loadGuides() {
     });
 }
 
+// ── Pane mode ─────────────────────────────────────────────
+function setPaneMode(mode) {
+  const left = document.getElementById('editor-left');
+  const right = document.getElementById('editor-right');
+  document.querySelectorAll('#guide-editor [id$="-btn"]').forEach(b => {
+    b.style.background = 'transparent'; b.style.color = 'var(--muted)'; b.style.fontWeight = '';
+  });
+  const active = document.getElementById('pane-' + mode + '-btn');
+  if (active) { active.style.background = '#00c9a7'; active.style.color = '#080810'; active.style.fontWeight = '600'; }
+  if (mode === 'both') { left.style.display = ''; right.style.display = ''; }
+  else if (mode === 'edit') { left.style.display = ''; right.style.display = 'none'; }
+  else { left.style.display = 'none'; right.style.display = ''; }
+}
+
+// ── Editor open/close ─────────────────────────────────────
 function openGuideEditor(iso, country) {
   editorBlocks = [];
   blockIdCounter = 0;
@@ -778,8 +813,11 @@ function openGuideEditor(iso, country) {
   document.getElementById('ge-iso').value = iso || '';
   document.getElementById('editor-title').textContent = country ? `Editing: ${country}` : 'New Guide';
   document.getElementById('block-list').innerHTML = '';
-  document.getElementById('guide-editor').style.display = 'block';
+  document.getElementById('guide-preview').innerHTML = '<div style="color:var(--muted);text-align:center;padding:60px 0;font-size:14px;">Preview will appear here as you type</div>';
+  const el = document.getElementById('guide-editor');
+  el.style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  setPaneMode('both');
 }
 
 function closeGuideEditor() {
@@ -801,51 +839,101 @@ async function editGuide(iso, country) {
   } catch(e) {}
 }
 
+// ── Block management ──────────────────────────────────────
 function addBlock(type, data={}) {
   const id = ++blockIdCounter;
   const block = { id, type, data: {...data} };
   editorBlocks.push(block);
   renderBlock(block);
+  updatePreview();
 }
 
 function renderBlock(block) {
   const el = document.createElement('div');
   el.className = 'block-card';
   el.dataset.blockId = block.id;
-  const labels = {heading:'📌 Heading', text:'📝 Text', image:'🖼️ Image', tip:'💡 Tip', warning:'⚠️ Warning', 'two-col':'⬛⬛ Two Column'};
+
+  const labels = {heading:'H', text:'¶', image:'🖼', tip:'💡', warning:'⚠️', 'two-col':'⬛⬛'};
   let inner = '';
+
   switch(block.type) {
     case 'heading':
-      inner = `<input class="block-input block-input-title" placeholder="Section heading..." value="${escapeHtml(block.data.text||'')}" oninput="updateBlockData(${block.id},'text',this.value)">`;
+      inner = `<textarea class="be be-heading" rows="1" placeholder="Section heading..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>`;
       break;
     case 'text':
-      inner = `<textarea class="block-input" rows="6" placeholder="Write your guide content here — explain what to look for, describe specific visual clues, regional differences, anything you know about this country in GeoGuessr." oninput="updateBlockData(${block.id},'text',this.value)">${escapeHtml(block.data.text||'')}</textarea>`;
+      inner = `<textarea class="be" rows="6" placeholder="Write your guide content here. Describe what to look for, specific visual clues, regional differences, tips — anything you know about this country in GeoGuessr." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>`;
       break;
     case 'image':
-      inner = `<div class="img-upload-zone" onclick="document.getElementById('img-input-${block.id}').click()"><input type="file" id="img-input-${block.id}" accept="image/*" style="display:none" onchange="handleImageUpload(${block.id},this)">${block.data.src ? `<img src="${block.data.src}" style="max-width:100%;border-radius:8px;margin-bottom:10px;display:block;">` : '<div style="color:var(--muted);font-size:28px;margin-bottom:8px">🖼️</div><div style="color:var(--muted);font-size:14px">Click to upload image</div>'}</div><input class="block-input" placeholder="Caption (optional)..." style="margin-top:10px;" value="${escapeHtml(block.data.caption||'')}" oninput="updateBlockData(${block.id},'caption',this.value)">`;
+      inner = `
+        <div class="img-drop-zone" id="dropzone-${block.id}"
+          onclick="document.getElementById('file-${block.id}').click()"
+          ondragover="e=>e.preventDefault()"
+          ondrop="handleDrop(${block.id},event)">
+          <input type="file" id="file-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this)">
+          ${block.data.src
+            ? `<img src="${block.data.src}" style="max-width:100%;border-radius:6px;">`
+            : `<div style="color:var(--muted)">
+                <div style="font-size:28px;margin-bottom:6px">🖼️</div>
+                <div style="font-size:13px">Click to upload · Drag & drop · <strong>Paste (Ctrl+V)</strong></div>
+               </div>`}
+        </div>
+        <textarea class="be" rows="1" placeholder="Caption (optional)..." style="margin-top:8px;" oninput="syncBlock(${block.id},'caption',this.value);autoResize(this)">${escapeHtml(block.data.caption||'')}</textarea>`;
       break;
     case 'tip':
-      inner = `<div style="background:rgba(0,201,167,0.07);border-left:3px solid #00c9a7;border-radius:0 8px 8px 0;padding:12px 14px"><div style="font-size:12px;color:#00c9a7;font-weight:700;margin-bottom:6px">💡 TIP</div><textarea class="block-input" rows="3" placeholder="A specific tip or giveaway clue..." oninput="updateBlockData(${block.id},'text',this.value)" style="background:transparent;border:1px solid rgba(0,201,167,0.2);padding:8px;">${escapeHtml(block.data.text||'')}</textarea></div>`;
+      inner = `<div style="background:rgba(0,201,167,0.07);border-left:3px solid #00c9a7;border-radius:0 7px 7px 0;padding:10px 12px">
+        <div style="font-size:10px;color:#00c9a7;font-weight:700;margin-bottom:6px;text-transform:uppercase">💡 Tip</div>
+        <textarea class="be" rows="3" placeholder="A specific tip or giveaway clue..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(0,201,167,0.2)">${escapeHtml(block.data.text||'')}</textarea>
+      </div>`;
       break;
     case 'warning':
-      inner = `<div style="background:rgba(255,107,107,0.07);border-left:3px solid #ff6b6b;border-radius:0 8px 8px 0;padding:12px 14px"><div style="font-size:12px;color:#ff6b6b;font-weight:700;margin-bottom:6px">⚠️ EASY TO CONFUSE WITH</div><textarea class="block-input" rows="3" placeholder="What country this is confused with and the key visual difference..." oninput="updateBlockData(${block.id},'text',this.value)" style="background:transparent;border:1px solid rgba(255,107,107,0.2);padding:8px;">${escapeHtml(block.data.text||'')}</textarea></div>`;
+      inner = `<div style="background:rgba(255,107,107,0.07);border-left:3px solid #ff6b6b;border-radius:0 7px 7px 0;padding:10px 12px">
+        <div style="font-size:10px;color:#ff6b6b;font-weight:700;margin-bottom:6px;text-transform:uppercase">⚠️ Easy to Confuse With</div>
+        <textarea class="be" rows="3" placeholder="What country this looks like and the key visual difference..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(255,107,107,0.2)">${escapeHtml(block.data.text||'')}</textarea>
+      </div>`;
       break;
     case 'two-col':
-      inner = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Left column</div><textarea class="block-input" rows="7" placeholder="Left column content..." oninput="updateBlockData(${block.id},'left',this.value)">${escapeHtml(block.data.left||'')}</textarea></div><div><div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Right column</div><textarea class="block-input" rows="7" placeholder="Right column content..." oninput="updateBlockData(${block.id},'right',this.value)">${escapeHtml(block.data.right||'')}</textarea></div></div>`;
+      inner = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Left</div>
+          <textarea class="be" rows="5" placeholder="Left column..." oninput="syncBlock(${block.id},'left',this.value);autoResize(this)">${escapeHtml(block.data.left||'')}</textarea>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Right</div>
+          <textarea class="be" rows="5" placeholder="Right column..." oninput="syncBlock(${block.id},'right',this.value);autoResize(this)">${escapeHtml(block.data.right||'')}</textarea>
+        </div>
+      </div>`;
       break;
   }
-  el.innerHTML = `<div class="block-toolbar"><span class="block-tag">${labels[block.type]||block.type}</span><button class="block-move" onclick="moveBlock(${block.id},-1)">↑</button><button class="block-move" onclick="moveBlock(${block.id},1)">↓</button><button class="block-delete" onclick="deleteBlock(${block.id})">✕</button></div><div class="block-inner">${inner}</div>`;
+
+  el.innerHTML = `
+    <div class="block-toolbar">
+      <span class="block-tag">${labels[block.type]||block.type}</span>
+      <button class="block-move" onclick="moveBlock(${block.id},-1)">↑</button>
+      <button class="block-move" onclick="moveBlock(${block.id},1)">↓</button>
+      <button class="block-delete" onclick="deleteBlock(${block.id})">✕</button>
+    </div>
+    ${inner}`;
+
   document.getElementById('block-list').appendChild(el);
+
+  // Auto-resize textareas after render
+  el.querySelectorAll('textarea').forEach(ta => autoResize(ta));
 }
 
-function updateBlockData(id, key, value) {
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.max(ta.scrollHeight, 60) + 'px';
+}
+
+function syncBlock(id, key, value) {
   const b = editorBlocks.find(b => b.id === id);
-  if (b) b.data[key] = value;
+  if (b) { b.data[key] = value; updatePreview(); }
 }
 
 function deleteBlock(id) {
   editorBlocks = editorBlocks.filter(b => b.id !== id);
   document.querySelector(`[data-block-id="${id}"]`)?.remove();
+  updatePreview();
 }
 
 function moveBlock(id, dir) {
@@ -857,29 +945,100 @@ function moveBlock(id, dir) {
   const list = document.getElementById('block-list');
   list.innerHTML = '';
   editorBlocks.forEach(b => renderBlock(b));
+  updatePreview();
 }
 
-function handleImageUpload(blockId, input) {
-  const file = input.files[0];
-  if (!file) return;
+// ── Image handling — file, drag & drop, paste ─────────────
+function handleFileSelect(blockId, input) {
+  if (!input.files[0]) return;
+  loadImageFile(blockId, input.files[0]);
+}
+
+function handleDrop(blockId, e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadImageFile(blockId, file);
+}
+
+// Global paste listener — pastes image into the most recently active image block
+let lastImageBlockId = null;
+document.addEventListener('paste', (e) => {
+  const items = Array.from(e.clipboardData.items || []);
+  const imgItem = items.find(i => i.type.startsWith('image/'));
+  if (!imgItem) return;
+  e.preventDefault();
+  // Find the image block whose dropzone is focused/hovered, or the last one
+  const targetId = lastImageBlockId || editorBlocks.filter(b=>b.type==='image').slice(-1)[0]?.id;
+  if (!targetId) return;
+  loadImageFile(targetId, imgItem.getAsFile());
+});
+
+function loadImageFile(blockId, file) {
   const reader = new FileReader();
   reader.onload = e => {
     const b = editorBlocks.find(x => x.id === blockId);
     if (!b) return;
     b.data.src = e.target.result;
+    lastImageBlockId = blockId;
+    // Re-render just this block
     const list = document.getElementById('block-list');
     list.innerHTML = '';
     editorBlocks.forEach(x => renderBlock(x));
+    updatePreview();
   };
   reader.readAsDataURL(file);
 }
 
-function previewGuide() {
-  const country = document.getElementById('ge-country').value.trim();
-  if (!country) { toast('Add country name first', true); return; }
-  window.open(`/metas/${country.toLowerCase().replace(/\s+/g,'-')}`, '_blank');
+// Track which image block the user is hovering so paste goes to the right one
+document.addEventListener('mouseover', e => {
+  const zone = e.target.closest('.img-drop-zone');
+  if (zone) {
+    const card = zone.closest('[data-block-id]');
+    if (card) lastImageBlockId = parseInt(card.dataset.blockId);
+  }
+});
+
+// ── Live preview ──────────────────────────────────────────
+function updatePreview() {
+  const preview = document.getElementById('guide-preview');
+  if (!preview) return;
+  if (!editorBlocks.length) {
+    preview.innerHTML = '<div style="color:var(--muted);text-align:center;padding:60px 0;font-size:14px;">Add blocks on the left to see preview</div>';
+    return;
+  }
+  const country = document.getElementById('ge-country').value || 'Country';
+  const iso = document.getElementById('ge-iso').value.toUpperCase();
+  let html = `<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #1e1e38;">
+    <div style="font-size:28px;font-weight:800;color:#e0e0f0;">${escapeHtml(country)}</div>
+    <div style="font-size:13px;color:#5a5a7a;margin-top:2px;">GeoGuessr Country Meta Guide</div>
+  </div>`;
+  editorBlocks.forEach(b => {
+    switch(b.type) {
+      case 'heading':
+        html += `<div class="prev-h2">${escapeHtml(b.data.text||'')}</div>`;
+        break;
+      case 'text':
+        if (b.data.text) html += `<div class="prev-p">${escapeHtml(b.data.text)}</div>`;
+        break;
+      case 'image':
+        if (b.data.src) html += `<img class="prev-img" src="${b.data.src}">`;
+        if (b.data.caption) html += `<div class="prev-cap">${escapeHtml(b.data.caption)}</div>`;
+        break;
+      case 'tip':
+        html += `<div class="prev-tip"><div class="prev-tip-label">💡 Tip</div><div class="prev-p" style="margin:0">${escapeHtml(b.data.text||'')}</div></div>`;
+        break;
+      case 'warning':
+        html += `<div class="prev-warn"><div class="prev-warn-label">⚠️ Easy to Confuse With</div><div class="prev-p" style="margin:0">${escapeHtml(b.data.text||'')}</div></div>`;
+        break;
+      case 'two-col':
+        html += `<div class="prev-2col"><div class="prev-2col-cell prev-p" style="margin:0">${escapeHtml(b.data.left||'')}</div><div class="prev-2col-cell prev-p" style="margin:0">${escapeHtml(b.data.right||'')}</div></div>`;
+        break;
+    }
+  });
+  preview.innerHTML = html;
 }
 
+// ── Save ──────────────────────────────────────────────────
 async function saveGuide() {
   const country = document.getElementById('ge-country').value.trim();
   const iso = document.getElementById('ge-iso').value.trim().toUpperCase();
@@ -900,7 +1059,6 @@ async function saveGuide() {
     toast('Save failed: ' + e.message, true);
   }
 }
-
 function formatDateTime(str) {
   if (!str || str === 'None') return '—';
   try {
