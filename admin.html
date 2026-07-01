@@ -969,11 +969,17 @@ function openGuideEditor(iso, country) {
   el.style.display = 'flex';
   document.body.style.overflow = 'hidden';
   setPaneMode('both');
+  // Pause inactivity logout while the editor is open — typing in the editor
+  // doesn't trigger the global mouse/keyboard listeners so the timer would
+  // fire even when the user is actively writing a guide.
+  clearTimeout(inactivityTimer);
 }
 
 function closeGuideEditor() {
   document.getElementById('guide-editor').style.display = 'none';
   document.body.style.overflow = '';
+  // Resume the inactivity timer when back on the admin dashboard
+  resetInactivityTimer();
 }
 
 async function deleteGuide(iso, country) {
