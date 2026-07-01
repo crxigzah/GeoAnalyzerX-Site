@@ -247,7 +247,8 @@
           <button onclick="addBlock('image')" class="add-block-btn">🖼 Image</button>
           <button onclick="addBlock('two-col')" class="add-block-btn">⬛⬛ Two Column</button>
           <button onclick="addBlock('img-text')" class="add-block-btn">🖼️¶ Image + Text</button>
-          <button onclick="addBlock('nav')" class="add-block-btn">🔗 Nav Buttons</button>
+          <button onclick="addBlock('links')" class="add-block-btn">🔗 Links List</button>
+          <button onclick="addBlock('nav')" class="add-block-btn">📋 Nav Buttons</button>
           <button onclick="addBlock('tip')" class="add-block-btn">💡 Tip</button>
           <button onclick="addBlock('warning')" class="add-block-btn">⚠️ Confuse</button>
         </div>
@@ -855,7 +856,7 @@ function renderBlock(block) {
   el.className = 'block-card';
   el.dataset.blockId = block.id;
 
-  const labels = {heading:'H', text:'¶', image:'🖼', tip:'💡', warning:'⚠️', 'two-col':'⬛⬛', 'img-text':'🖼¶', nav:'🔗'};
+  const labels = {heading:'H', text:'¶', image:'🖼', tip:'💡', warning:'⚠️', 'two-col':'⬛⬛', 'img-text':'🖼¶', links:'🔗', nav:'📋'};
   let inner = '';
 
   switch(block.type) {
@@ -926,6 +927,32 @@ function renderBlock(block) {
           <textarea class="be" rows="8" placeholder="Text to the right of the image..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>
         </div>`;
       break;
+    case 'links':
+      const linkItems = block.data.items || [{}];
+      inner = `
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">🔗 Links / Resources</div>
+        <div id="links-list-${block.id}" style="display:flex;flex-direction:column;gap:10px;">
+          ${linkItems.map((item, i) => `
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:6px;">
+                <div>
+                  <div style="font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;">Title</div>
+                  <textarea class="be" rows="1" placeholder="e.g. Definitive Australia Guide" oninput="updateLinkItem(${block.id},${i},'label',this.value);autoResize(this)">${escapeHtml(item.label||'')}</textarea>
+                </div>
+                <div>
+                  <div style="font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;">URL (optional)</div>
+                  <textarea class="be" rows="1" placeholder="https://..." oninput="updateLinkItem(${block.id},${i},'url',this.value);autoResize(this)">${escapeHtml(item.url||'')}</textarea>
+                </div>
+                <button onclick="removeLinkItem(${block.id},${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px 8px;margin-top:16px;" title="Remove">✕</button>
+              </div>
+              <div>
+                <div style="font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;">Description (optional)</div>
+                <textarea class="be" rows="2" placeholder="Short description of this resource..." oninput="updateLinkItem(${block.id},${i},'desc',this.value);autoResize(this)">${escapeHtml(item.desc||'')}</textarea>
+              </div>
+            </div>`).join('')}
+        </div>
+        <button onclick="addLinkItem(${block.id})" style="margin-top:10px;background:var(--bg2);border:1px dashed var(--border);color:var(--muted);padding:6px 16px;border-radius:7px;cursor:pointer;font-size:12px;width:100%;">+ Add Link</button>`;
+      break;
     case 'nav':
       const navBtns = block.data.buttons || [''];
       inner = `<div>
@@ -966,6 +993,36 @@ function autoResize(ta) {
 function syncBlock(id, key, value) {
   const b = editorBlocks.find(b => b.id === id);
   if (b) { b.data[key] = value; updatePreview(); }
+}
+
+function updateLinkItem(blockId, index, key, value) {
+  const b = editorBlocks.find(b => b.id === blockId);
+  if (!b) return;
+  if (!b.data.items) b.data.items = [{}];
+  if (!b.data.items[index]) b.data.items[index] = {};
+  b.data.items[index][key] = value;
+  updatePreview();
+}
+
+function addLinkItem(blockId) {
+  const b = editorBlocks.find(b => b.id === blockId);
+  if (!b) return;
+  if (!b.data.items) b.data.items = [];
+  b.data.items.push({});
+  const list = document.getElementById('block-list');
+  list.innerHTML = '';
+  editorBlocks.forEach(x => renderBlock(x));
+  updatePreview();
+}
+
+function removeLinkItem(blockId, index) {
+  const b = editorBlocks.find(b => b.id === blockId);
+  if (!b || !b.data.items) return;
+  b.data.items.splice(index, 1);
+  const list = document.getElementById('block-list');
+  list.innerHTML = '';
+  editorBlocks.forEach(x => renderBlock(x));
+  updatePreview();
 }
 
 function updateNavBtn(blockId, index, value) {
@@ -1137,7 +1194,22 @@ function updatePreview() {
         break;
         html += `<div class="prev-2col"><div class="prev-2col-cell prev-p" style="margin:0">${escapeHtml(b.data.left||'')}</div><div class="prev-2col-cell prev-p" style="margin:0">${escapeHtml(b.data.right||'')}</div></div>`;
         break;
-      case 'nav':
+      case 'links':
+        const litems = (b.data.items || []).filter(x => x.label);
+        if (litems.length) {
+          html += `<ul style="padding-left:0;list-style:none;margin:12px 0;">
+            ${litems.map(item => `
+              <li style="display:flex;gap:8px;align-items:baseline;margin-bottom:10px;font-size:14px;color:#c0c0d8;">
+                <span style="color:#00c9a7;flex-shrink:0;">•</span>
+                <span>
+                  <strong style="color:#e0e0f0;">${escapeHtml(item.label)}</strong>
+                  ${item.url ? ` <span style="color:#7c3aed;font-size:12px;">(link)</span>` : ''}
+                  ${item.desc ? ` — ${escapeHtml(item.desc)}` : ''}
+                </span>
+              </li>`).join('')}
+          </ul>`;
+        }
+        break;
         const navBtnsPreview = (b.data.buttons || []).filter(x => x.trim());
         if (navBtnsPreview.length) {
           html += `<div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 24px;">
