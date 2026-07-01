@@ -92,7 +92,9 @@ nav { position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.92);backdrop-fi
     <span>GeoAnalyzerX</span>
   </a>
   <div class="nav-right">
-    <a href="/" class="back-btn">← Back to home</a>
+    <a href="/" class="back-btn" title="Home">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </a>
   </div>
 </nav>
 
@@ -452,10 +454,10 @@ fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
       mapGroup.append('circle')
         .attr('cx', projected[0])
         .attr('cy', projected[1])
-        .attr('r', 1.8)
+        .attr('r', 1.2)
         .attr('fill', '#a78bfa')
         .attr('stroke', '#7c3aed')
-        .attr('stroke-width', 0.5)
+        .attr('stroke-width', 0.4)
         .style('cursor', 'pointer')
         .on('mousemove', (event) => {
           tooltip.style.display = 'block';
