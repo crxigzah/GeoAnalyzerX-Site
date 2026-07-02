@@ -1143,7 +1143,8 @@ function renderBlock(block) {
       </div>
       <div style="height:${spH}px;border:1px dashed #151525;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#222244;font-size:11px;margin-top:8px;">${spH}px gap</div>`;
       break;
-    case 'nav':
+    case 'nav': {
+      const navBtns = block.data.buttons || [''];
       inner = `<div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">🔗 Navigation Buttons — type each button label</div>
         <div id="nav-btns-${block.id}" style="display:flex;flex-direction:column;gap:8px;">
@@ -1157,6 +1158,7 @@ function renderBlock(block) {
         <div style="margin-top:10px;font-size:11px;color:var(--muted);background:rgba(0,201,167,0.06);border:1px solid rgba(0,201,167,0.15);border-radius:6px;padding:8px 12px;">💡 <strong style="color:#00c9a7">To link a button:</strong> type the button label exactly the same as a Heading block in your guide. e.g. Button label "Road Meta" → scrolls to a Heading that says "Road Meta".</div>
       </div>`;
       break;
+    }
   }
 
   el.innerHTML = `
