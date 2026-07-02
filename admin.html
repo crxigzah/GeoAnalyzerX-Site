@@ -405,6 +405,13 @@
 }
 .block-card:hover { border-color:#1e1e38; }
 .block-card.block-focused { border-color:#7c3aed; }
+.block-card.drag-over { border-color:#7c3aed; border-style:dashed; background:#0f0f20; }
+.drag-handle {
+  cursor:grab;color:#333355;font-size:16px;padding:2px 6px;
+  border-radius:5px;transition:color .1s;user-select:none;
+}
+.drag-handle:hover { color:#7c3aed; }
+.drag-handle:active { cursor:grabbing; }
 .block-toolbar {
   display:flex;gap:3px;align-items:center;margin-bottom:10px;
 }
@@ -927,6 +934,7 @@ function filterChatLogs() { filterLogs(); }
 let allGuides = [];
 let editorBlocks = [];
 let blockIdCounter = 0;
+let dragSrcId = null;
 
 function loadGuides() {
   fetch(`${API}/admin/country_metas`, {headers: adminHeaders()})
@@ -1162,6 +1170,7 @@ function renderBlock(block) {
 
   el.innerHTML = `
     <div class="block-toolbar">
+      <span class="drag-handle" title="Drag to reorder">⠿</span>
       <span class="block-tag">${labels[block.type]||block.type}</span>
       <button class="block-move" onclick="moveBlock(${block.id},-1)">↑</button>
       <button class="block-move" onclick="moveBlock(${block.id},1)">↓</button>
@@ -1169,9 +1178,38 @@ function renderBlock(block) {
     </div>
     ${inner}`;
 
-  document.getElementById('block-list').appendChild(el);
+  // Drag and drop
+  el.setAttribute('draggable', 'true');
+  el.addEventListener('dragstart', e => {
+    dragSrcId = block.id;
+    el.style.opacity = '0.4';
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  el.addEventListener('dragend', () => {
+    el.style.opacity = '';
+    document.querySelectorAll('.block-card').forEach(c => c.classList.remove('drag-over'));
+  });
+  el.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.block-card').forEach(c => c.classList.remove('drag-over'));
+    if (dragSrcId !== block.id) el.classList.add('drag-over');
+  });
+  el.addEventListener('drop', e => {
+    e.preventDefault();
+    if (dragSrcId === block.id) return;
+    const srcIdx = editorBlocks.findIndex(b => b.id === dragSrcId);
+    const dstIdx = editorBlocks.findIndex(b => b.id === block.id);
+    if (srcIdx < 0 || dstIdx < 0) return;
+    const [moved] = editorBlocks.splice(srcIdx, 1);
+    editorBlocks.splice(dstIdx, 0, moved);
+    const list = document.getElementById('block-list');
+    list.innerHTML = '';
+    editorBlocks.forEach(b => renderBlock(b));
+    updatePreview();
+  });
 
-  // Auto-resize textareas after render
+  document.getElementById('block-list').appendChild(el);
   el.querySelectorAll('textarea').forEach(ta => autoResize(ta));
 }
 
