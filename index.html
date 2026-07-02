@@ -524,6 +524,52 @@ html { scroll-behavior: smooth; }
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head>
 <body>
+
+<!-- Password Gate — site is under construction -->
+<div id="gate" style="position:fixed;inset:0;background:#080810;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+  <div style="background:#10101e;border:1px solid #1e1e38;border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.6);">
+    <div style="font-size:36px;margin-bottom:16px;">🔒</div>
+    <h1 style="font-size:22px;font-weight:800;margin-bottom:6px;background:linear-gradient(135deg,#00c9a7,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">GeoAnalyzerX</h1>
+    <p style="color:#5a5a7a;font-size:14px;margin-bottom:32px;font-family:-apple-system,sans-serif;">Site under construction — come back soon</p>
+    <input id="gate-pw" type="password" placeholder="Enter password..." autocomplete="off"
+      style="width:100%;background:#080810;border:1px solid #1e1e38;border-radius:10px;padding:13px 16px;color:#e0e0f0;font-size:15px;font-family:-apple-system,sans-serif;outline:none;margin-bottom:12px;text-align:center;"
+      onkeydown="if(event.key==='Enter')checkGate()"
+      onfocus="this.style.borderColor='#00c9a7'" onblur="this.style.borderColor='#1e1e38'">
+    <button onclick="checkGate()"
+      style="width:100%;background:linear-gradient(135deg,#00c9a7,#009a82);border:none;color:#080810;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;font-size:15px;font-family:-apple-system,sans-serif;transition:opacity .2s;"
+      onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Enter Site</button>
+    <div id="gate-err" style="color:#ff6b6b;font-size:13px;margin-top:12px;display:none;font-family:-apple-system,sans-serif;">Incorrect password</div>
+  </div>
+</div>
+
+<script>
+// Password gate — uses SHA-256 so the password isn't stored in plain text
+const GATE_HASH = 'cc12430df9dc449d2fe127de7b9d5d6485016ea0f6f971eab7d02e142c0c8a81';
+
+async function checkGate() {
+  const pw = document.getElementById('gate-pw').value;
+  const err = document.getElementById('gate-err');
+  if (!pw) return;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if (hash === GATE_HASH) {
+    sessionStorage.setItem('gax_unlocked','1');
+    document.getElementById('gate').style.display = 'none';
+  } else {
+    err.style.display = 'block';
+    document.getElementById('gate-pw').style.borderColor = '#ff6b6b';
+    setTimeout(() => {
+      err.style.display = 'none';
+      document.getElementById('gate-pw').style.borderColor = '#1e1e38';
+    }, 2000);
+  }
+}
+
+// Stay unlocked for the session
+if (sessionStorage.getItem('gax_unlocked') === '1') {
+  document.getElementById('gate').style.display = 'none';
+}
+</script>
 <div class="aurora-lines"></div>
 
 <nav>
@@ -697,53 +743,12 @@ html { scroll-behavior: smooth; }
     <div class="section-label" style="text-align:center;">Country Metas</div>
     <h2 style="font-size:30px;font-weight:800;margin-bottom:12px;">Learn Every Country</h2>
     <p style="color:var(--muted);margin-bottom:36px;max-width:520px;margin-left:auto;margin-right:auto;">In-depth visual guides for every GeoGuessr country — dead giveaways, road meta, regional breakdowns, and more.</p>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;max-width:860px;margin:0 auto 32px;">
-      <div style="padding:28px 28px 12px;">
-        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
-          <span style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:#00c9a7;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">🗺️ 114 Countries</span>
-          <span style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#a78bfa;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">📸 Visual Clue Guides</span>
-          <span style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:#00c9a7;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">🔑 Dead Giveaways</span>
-          <span style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#a78bfa;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">🛣️ Road Meta</span>
-          <span style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:#00c9a7;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;">🌍 Regional Breakdowns</span>
-        </div>
-      </div>
-      <div style="position:relative;overflow:hidden;height:260px;margin:20px 0 0;">
-        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,var(--card) 100%);z-index:1;pointer-events:none;"></div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 28px;opacity:0.5;pointer-events:none;">
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇦🇺 Australia</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇧🇷 Brazil</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇺🇸 United States</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇯🇵 Japan</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇮🇳 India</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇿🇦 South Africa</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇫🇷 France</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇦🇷 Argentina</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇳🇴 Norway</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇹🇭 Thailand</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇵🇹 Portugal</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇳🇿 New Zealand</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇲🇽 Mexico</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇰🇷 South Korea</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇹🇷 Turkey</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇨🇴 Colombia</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇸🇪 Sweden</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇫🇮 Finland</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇵🇱 Poland</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇮🇩 Indonesia</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇨🇱 Chile</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇺🇦 Ukraine</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇨🇦 Canada</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇷🇺 Russia</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇩🇪 Germany</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇬🇧 United Kingdom</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇮🇹 Italy</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇪🇸 Spain</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇰🇪 Kenya</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇵🇪 Peru</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇪🇬 Egypt</span>
-          <span style="background:#14142a;border:1px solid #1e1e38;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#c0c0d8;white-space:nowrap;">🇳🇬 Nigeria</span>
-        </div>
-      </div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:36px;">
+      <span style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:#00c9a7;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🗺️ 114 Countries</span>
+      <span style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#a78bfa;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">📸 Visual Clue Guides</span>
+      <span style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:#00c9a7;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🔑 Dead Giveaways</span>
+      <span style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#a78bfa;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🛣️ Road Meta</span>
+      <span style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:#00c9a7;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🌍 Regional Breakdowns</span>
     </div>
     <a href="/metas" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:15px;padding:14px 32px;">
       🗺️ Explore Country Metas
