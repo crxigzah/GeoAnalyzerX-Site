@@ -254,8 +254,8 @@ nav {
 }
 
 /* Policies dropdown */
-.nav-dropdown-wrap { position:relative; }
-.nav-dropdown-wrap > a { cursor:pointer; }
+.nav-dropdown-wrap { position:relative;display:flex;align-items:center;height:100%; }
+.nav-dropdown-wrap > a { cursor:pointer;display:flex;align-items:center;gap:3px; }
 .nav-dropdown-menu {
   display:none;position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);
   background:var(--card);border:1px solid var(--border);border-radius:12px;min-width:200px;
@@ -583,8 +583,11 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     <a href="#pricing" onclick="goHome();setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),100);return false;">Pricing</a>
     <a href="#download" onclick="goHome();setTimeout(()=>document.getElementById('download')?.scrollIntoView({behavior:'smooth'}),100);return false;">Download</a>
     <a href="#rules" onclick="goHome();setTimeout(()=>document.getElementById('rules')?.scrollIntoView({behavior:'smooth'}),100);return false;">Rules</a>
-    <div class="nav-dropdown-wrap">
-      <a>Tools ▾</a>
+    <div class="nav-dropdown-wrap" style="display:flex;align-items:center;">
+      <a style="display:flex;align-items:center;gap:4px;">
+        Tools
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </a>
       <div class="nav-dropdown-menu">
         <a href="/region-map.html">🗺️ Region Map</a>
       </div>

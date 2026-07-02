@@ -152,7 +152,7 @@
   .map-stage svg{ width:100%; height:100%; display:block; cursor:grab; }
   .map-stage svg:active{ cursor:grabbing; }
 
-  .graticule path{ stroke: var(--line-soft); stroke-width:.5; fill:none; }
+  .graticule{ stroke: var(--line-soft); stroke-width:.5; fill:none; }
   .sphere{ fill:#0c1219; stroke: var(--line); stroke-width:1; }
 
   .country{
@@ -235,6 +235,32 @@
     flex-direction:column;
     min-height:0;
   }
+  .panel-toggle-btn{
+    display:none;
+    position:absolute;
+    right:16px;
+    top:16px;
+    z-index:6;
+    background: var(--panel-2);
+    border:1px solid var(--line);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size:11px;
+    letter-spacing:.06em;
+    padding:8px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    align-items:center;
+    gap:6px;
+  }
+  .panel-toggle-btn .badge{
+    background: var(--amber);
+    color:#0a0a14;
+    font-weight:700;
+    border-radius:10px;
+    padding:1px 6px;
+    font-size:10px;
+  }
   .panel-section{
     padding:16px 16px 14px;
     border-bottom:1px solid var(--line);
@@ -315,13 +341,28 @@
 
   @media (max-width: 820px){
     main{ grid-template-columns: 1fr; }
-    aside{ display:none; }
+    aside{
+      position:fixed;
+      right:0; top:0; bottom:0;
+      width:280px;
+      max-width:85vw;
+      transform: translateX(100%);
+      transition: transform .25s ease;
+      z-index:20;
+      box-shadow: -12px 0 32px rgba(0,0,0,.5);
+    }
+    aside.open{ transform: translateX(0); }
+    .panel-toggle-btn{ display:flex; }
     .brand .sub{ display:none; }
   }
 </style>
 </head>
 <body>
+<div class="scrim" id="scrim" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:15;"></div>
 <div class="app">
+  <button class="panel-toggle-btn" id="panelToggle">
+    Selected <span class="badge" id="panelToggleBadge">0</span>
+  </button>
 
   <header>
     <div class="brand">
@@ -357,7 +398,7 @@
       </div>
     </div>
 
-    <aside>
+    <aside id="sidePanel">
       <div class="panel-section">
         <h2>Selected (<span id="selCount">0</span>)</h2>
         <div id="selectedList"><div class="selected-empty">Click a highlighted country on the map to label it here.</div></div>
@@ -424,6 +465,38 @@ const ALIASES = {
 
 document.getElementById('countBadge').textContent = GEOGUESSR_COUNTRIES.length;
 
+// ISO 3166-1 alpha-3 codes, used to fetch each country's province/state
+// boundaries from geoBoundaries (open, CC-BY licensed) on click.
+const ISO3 = {
+  "Albania":"ALB","Andorra":"AND","Argentina":"ARG","Australia":"AUS","Austria":"AUT",
+  "Bangladesh":"BGD","Belgium":"BEL","Bhutan":"BTN","Bolivia":"BOL","Botswana":"BWA",
+  "Brazil":"BRA","Bulgaria":"BGR","Cambodia":"KHM","Canada":"CAN","Chile":"CHL",
+  "Colombia":"COL","Costa Rica":"CRI","Croatia":"HRV","Cyprus":"CYP","Czechia":"CZE",
+  "Denmark":"DNK","Dominican Republic":"DOM","Ecuador":"ECU","Estonia":"EST",
+  "Eswatini":"SWZ","Finland":"FIN","France":"FRA","Georgia":"GEO","Germany":"DEU",
+  "Ghana":"GHA","Greece":"GRC","Greenland":"GRL","Guatemala":"GTM","Hungary":"HUN",
+  "Iceland":"ISL","India":"IND","Indonesia":"IDN","Ireland":"IRL","Israel":"ISR",
+  "Italy":"ITA","Japan":"JPN","Jordan":"JOR","Kazakhstan":"KAZ","Kenya":"KEN",
+  "Kyrgyzstan":"KGZ","Laos":"LAO","Latvia":"LVA","Lebanon":"LBN","Lesotho":"LSO",
+  "Liechtenstein":"LIE","Lithuania":"LTU","Luxembourg":"LUX","Madagascar":"MDG",
+  "Malaysia":"MYS","Malta":"MLT","Mexico":"MEX","Monaco":"MCO","Mongolia":"MNG",
+  "Montenegro":"MNE","Namibia":"NAM","Nepal":"NPL","Netherlands":"NLD",
+  "New Zealand":"NZL","Nigeria":"NGA","North Macedonia":"MKD","Norway":"NOR",
+  "Oman":"OMN","Pakistan":"PAK","Palestine":"PSE","Panama":"PAN","Peru":"PER",
+  "Philippines":"PHL","Poland":"POL","Portugal":"PRT","Qatar":"QAT","Romania":"ROU",
+  "Russia":"RUS","Rwanda":"RWA","San Marino":"SMR","Sao Tome and Principe":"STP",
+  "Senegal":"SEN","Serbia":"SRB","Singapore":"SGP","Slovakia":"SVK","Slovenia":"SVN",
+  "South Africa":"ZAF","South Korea":"KOR","Spain":"ESP","Sri Lanka":"LKA",
+  "Sweden":"SWE","Switzerland":"CHE","Taiwan":"TWN","Thailand":"THA","Tunisia":"TUN",
+  "Turkey":"TUR","Uganda":"UGA","Ukraine":"UKR","United Arab Emirates":"ARE",
+  "United Kingdom":"GBR","United States of America":"USA","Uruguay":"URY",
+  "Vietnam":"VNM","Bermuda":"BMU","Curaçao":"CUW","Faroe Islands":"FRO","Guam":"GUM",
+  "Isle of Man":"IMN","Jersey":"JEY","Northern Mariana Islands":"MNP",
+  "American Samoa":"ASM","Puerto Rico":"PRI","United States Virgin Islands":"VIR",
+  "Christmas Island":"CXR","Réunion":"REU"
+};
+const subregionCache = new Map(); // iso3 -> GeoJSON features (or null if unavailable)
+
 function normalize(name){ return (name||'').trim().toLowerCase(); }
 
 const coveredSet = new Set();
@@ -438,7 +511,6 @@ const path = d3.geoPath(projection);
 
 const g = svg.append('g');
 g.append('path').attr('class','sphere').attr('d', path({type:'Sphere'}));
-g.append('path').attr('class','graticule').attr('d', path(d3.geoGraticule10()));
 const countryLayer = g.append('g').attr('class','country-layer');
 const labelLayer = g.append('g').attr('class','label-layer');
 
@@ -456,6 +528,7 @@ const selected = new Map(); // id -> {name, centroid}
 function renderSelectedPanel(){
   const list = document.getElementById('selectedList');
   document.getElementById('selCount').textContent = selected.size;
+  document.getElementById('panelToggleBadge').textContent = selected.size;
   if(selected.size === 0){
     list.innerHTML = '<div class="selected-empty">Click a highlighted country on the map to label it here.</div>';
     return;
@@ -487,6 +560,7 @@ function toggleCountry(id, name, centroid, forceRemove){
       .attr('transform', `translate(${centroid[0]},${centroid[1]})`);
     gLabel.append('circle').attr('r', 2.5);
     gLabel.append('text').attr('x', 6).attr('y', 3).text(name);
+    if (typeof openPanel === 'function') openPanel();
   }
   renderSelectedPanel();
 }
@@ -505,6 +579,23 @@ function buildRegionList(){
   });
 }
 buildRegionList();
+
+// mobile side-panel drawer
+const sidePanel = document.getElementById('sidePanel');
+const scrim = document.getElementById('scrim');
+const panelToggle = document.getElementById('panelToggle');
+function openPanel(){
+  sidePanel.classList.add('open');
+  scrim.style.display = 'block';
+}
+function closePanel(){
+  sidePanel.classList.remove('open');
+  scrim.style.display = 'none';
+}
+panelToggle.addEventListener('click', () => {
+  sidePanel.classList.contains('open') ? closePanel() : openPanel();
+});
+scrim.addEventListener('click', closePanel);
 
 let flyIndex = {}; // normalized name -> {id, centroid, bounds}
 
