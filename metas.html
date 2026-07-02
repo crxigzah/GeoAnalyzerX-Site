@@ -34,7 +34,7 @@ nav { position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.92);backdrop-fi
 .legend-item { display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted); }
 .legend-dot { width:14px;height:14px;border-radius:3px; }
 
-#world-map { width:100%;max-width:1100px;margin:0 auto;display:block;padding:0 16px; }
+#world-map { width:100%;max-width:100%;margin:0 auto;display:block;padding:0 16px; }
 
 .country-path { cursor:pointer;transition:opacity .15s; }
 .country-path:hover { opacity:0.75; }
@@ -53,7 +53,7 @@ nav { position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.92);backdrop-fi
 .map-tooltip .tt-nope { color:var(--muted);font-size:11px;font-weight:400;margin-top:2px; }
 
 /* Country grid (below map) */
-.country-grid { max-width:1100px;margin:24px auto 64px;padding:0 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px; }
+.country-grid { max-width:100%;margin:24px auto 64px;padding:0 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px; }
 .country-card { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text); }
 .country-card:hover { border-color:var(--teal);background:rgba(0,201,167,0.06);transform:translateY(-1px); }
 .country-card .flag { font-size:20px;line-height:1; }
@@ -108,7 +108,7 @@ nav { position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.92);backdrop-fi
     <div class="legend-item"><div class="legend-dot" style="background:#1e1e38"></div>No Street View coverage</div>
   </div>
 
-  <svg id="world-map" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="cursor:grab;"></svg>
+  <svg id="world-map" viewBox="0 0 1000 520" style="width:100%;cursor:grab;" xmlns="http://www.w3.org/2000/svg"></svg>
   <div style="display:flex;justify-content:center;gap:8px;margin:8px 0 0;">
     <button id="zoom-in" style="background:var(--card);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">+</button>
     <button id="zoom-reset" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:0 12px;height:32px;border-radius:8px;cursor:pointer;font-size:12px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">Reset</button>
@@ -323,8 +323,8 @@ function flagImg(iso, size=20) {
 const svg = d3.select('#world-map');
 const mapGroup = svg.append('g').attr('id', 'map-g');
 const projection = d3.geoNaturalEarth1()
-  .scale(155)
-  .translate([500, 265]);
+  .scale(200)
+  .translate([500, 280]);
 const path = d3.geoPath().projection(projection);
 
 // Zoom behaviour
