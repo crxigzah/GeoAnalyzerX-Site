@@ -477,20 +477,17 @@ const API = 'https://geoanalyzerx.onrender.com';
 let adminKey = '';
 let adminToken = '';
 let allUsers = [];
-let inactivityTimer = null;
+let inactivityTimer = null; // kept for reference but no longer used
 let pollInterval = null;
 let lastEventTime = null;
-const INACTIVITY_MS = 5 * 60 * 1000;
 
 // ── Auth helpers ──────────────────────────────────────────
 function adminHeaders(extra) {
   return Object.assign({'Content-Type':'application/json','X-Admin-Key':adminKey,'X-Admin-Token':adminToken}, extra || {});
 }
 
-function resetInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => doLogout('Logged out due to 5 minutes of inactivity.'), INACTIVITY_MS);
-}
+// Inactivity logout removed — too disruptive when writing guides
+function resetInactivityTimer() { /* no-op */ }
 
 function doLogout(msg) {
   adminKey = ''; adminToken = '';
@@ -506,9 +503,11 @@ function doLogout(msg) {
   }
 }
 
-['click','keydown','mousemove','scroll'].forEach(evt =>
-  document.addEventListener(evt, () => { if (adminToken) resetInactivityTimer(); }, { passive: true })
-);
+// Keep Render awake while the admin panel is open — ping every 10 minutes
+// so the server doesn't cold-start mid-save or mid-image-upload
+setInterval(() => {
+  if (adminToken) fetch(`${API}/health`).catch(() => {});
+}, 10 * 60 * 1000);
 
 // ── Session restore on refresh ────────────────────────────
 window.addEventListener('load', () => {
