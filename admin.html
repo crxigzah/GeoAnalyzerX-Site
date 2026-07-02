@@ -1167,47 +1167,15 @@ function renderBlock(block) {
       break;
     }
   }
-
   el.innerHTML = `
     <div class="block-toolbar">
-      <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <span class="drag-handle" title="Drag to reorder" onmousedown="startDrag(event,${block.id})">⠿</span>
       <span class="block-tag">${labels[block.type]||block.type}</span>
       <button class="block-move" onclick="moveBlock(${block.id},-1)">↑</button>
       <button class="block-move" onclick="moveBlock(${block.id},1)">↓</button>
       <button class="block-delete" onclick="deleteBlock(${block.id})">✕</button>
     </div>
     ${inner}`;
-
-  // Drag and drop
-  el.setAttribute('draggable', 'true');
-  el.addEventListener('dragstart', e => {
-    dragSrcId = block.id;
-    el.style.opacity = '0.4';
-    e.dataTransfer.effectAllowed = 'move';
-  });
-  el.addEventListener('dragend', () => {
-    el.style.opacity = '';
-    document.querySelectorAll('.block-card').forEach(c => c.classList.remove('drag-over'));
-  });
-  el.addEventListener('dragover', e => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    document.querySelectorAll('.block-card').forEach(c => c.classList.remove('drag-over'));
-    if (dragSrcId !== block.id) el.classList.add('drag-over');
-  });
-  el.addEventListener('drop', e => {
-    e.preventDefault();
-    if (dragSrcId === block.id) return;
-    const srcIdx = editorBlocks.findIndex(b => b.id === dragSrcId);
-    const dstIdx = editorBlocks.findIndex(b => b.id === block.id);
-    if (srcIdx < 0 || dstIdx < 0) return;
-    const [moved] = editorBlocks.splice(srcIdx, 1);
-    editorBlocks.splice(dstIdx, 0, moved);
-    const list = document.getElementById('block-list');
-    list.innerHTML = '';
-    editorBlocks.forEach(b => renderBlock(b));
-    updatePreview();
-  });
 
   document.getElementById('block-list').appendChild(el);
   el.querySelectorAll('textarea').forEach(ta => autoResize(ta));
@@ -1216,6 +1184,71 @@ function renderBlock(block) {
 function autoResize(ta) {
   ta.style.height = 'auto';
   ta.style.height = Math.max(ta.scrollHeight, 60) + 'px';
+}
+
+// ── Mouse-based block drag sorting ────────────────────────
+let dragState = null;
+let autoScrollInterval = null;
+
+function startDrag(e, blockId) {
+  e.preventDefault();
+  e.stopPropagation();
+  const card = document.querySelector(`[data-block-id="${blockId}"]`);
+  if (!card) return;
+
+  card.style.opacity = '0.35';
+  card.style.outline = '2px dashed #7c3aed';
+  dragState = { blockId, card };
+
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+}
+
+function onDragMove(e) {
+  if (!dragState) return;
+
+  // Auto-scroll editor pane when near top/bottom edges
+  const pane = document.getElementById('editor-left');
+  const paneRect = pane.getBoundingClientRect();
+  clearInterval(autoScrollInterval);
+  if (e.clientY < paneRect.top + 60) {
+    autoScrollInterval = setInterval(() => { pane.scrollTop -= 8; }, 16);
+  } else if (e.clientY > paneRect.bottom - 60) {
+    autoScrollInterval = setInterval(() => { pane.scrollTop += 8; }, 16);
+  }
+
+  // Highlight drop target
+  document.querySelectorAll('.block-card').forEach(c => c.classList.remove('drag-over'));
+  const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.block-card');
+  if (target && target !== dragState.card) target.classList.add('drag-over');
+}
+
+function onDragEnd(e) {
+  if (!dragState) return;
+  clearInterval(autoScrollInterval);
+
+  const { card, blockId } = dragState;
+  card.style.opacity = '';
+  card.style.outline = '';
+
+  const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.block-card');
+  document.querySelectorAll('.block-card').forEach(c => c.classList.remove('drag-over'));
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+  dragState = null;
+
+  if (target && target.dataset.blockId && target.dataset.blockId !== String(blockId)) {
+    const srcIdx = editorBlocks.findIndex(b => b.id === blockId);
+    const dstIdx = editorBlocks.findIndex(b => b.id === parseInt(target.dataset.blockId));
+    if (srcIdx >= 0 && dstIdx >= 0) {
+      const [moved] = editorBlocks.splice(srcIdx, 1);
+      editorBlocks.splice(dstIdx, 0, moved);
+      const list = document.getElementById('block-list');
+      list.innerHTML = '';
+      editorBlocks.forEach(b => renderBlock(b));
+      updatePreview();
+    }
+  }
 }
 
 function syncBlock(id, key, value) {
