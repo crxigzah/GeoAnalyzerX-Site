@@ -21,8 +21,8 @@
     --muted-2: #454570;
     --covered: #00c9a7;
     --covered-hover: #1fe3c4;
-    --covered-fill: rgba(0,201,167,0.5);
-    --covered-fill-hover: rgba(31,227,196,0.75);
+    --covered-fill: rgba(0,201,167,0.82);
+    --covered-fill-hover: rgba(31,227,196,0.95);
     --uncovered-fill: #14141f;
     --uncovered-stroke: #1e1e35;
     --amber: #7c3aed;
@@ -227,6 +227,46 @@
     pointer-events:none;
   }
 
+  /* breadcrumb / back-to-world control */
+  .breadcrumb{
+    position:absolute; left:16px; top:16px;
+    display:flex; align-items:center; gap:10px;
+    z-index:4;
+  }
+  .breadcrumb span{
+    font-size:11px; color: var(--muted); letter-spacing:.06em;
+  }
+  .breadcrumb span b{ color: var(--covered-hover); }
+
+  .loading-overlay{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(8,8,16,0.55);
+    z-index:8;
+  }
+  .loading-text{
+    background: var(--panel-2);
+    border:1px solid var(--line);
+    padding:10px 18px;
+    border-radius:6px;
+    font-size:12px;
+    letter-spacing:.06em;
+    color: var(--text);
+  }
+
+  .subdivision{
+    stroke: #0d2b28;
+    stroke-width: .7;
+    fill: var(--covered-fill);
+    cursor:pointer;
+    transition: fill .12s ease;
+  }
+  .subdivision:hover{ fill: var(--covered-fill-hover); }
+  .subdivision.selected{
+    fill: var(--amber-fill) !important;
+    stroke: #3a2a0d;
+  }
+
   /* ---------- side panel ---------- */
   aside{
     background: var(--panel);
@@ -386,6 +426,13 @@
   <main>
     <div class="map-stage" id="mapStage">
       <div class="hud" id="hud">LAT — · LON —</div>
+      <div class="breadcrumb" id="breadcrumb" style="display:none;">
+        <button class="btn" id="backToWorldBtn">← World Map</button>
+        <span id="breadcrumbLabel"></span>
+      </div>
+      <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="loading-text" id="loadingText">Loading regions…</div>
+      </div>
       <svg id="map" viewBox="0 0 960 520"></svg>
       <div class="zoom-controls">
         <button id="zoomIn">+</button>
@@ -401,17 +448,17 @@
     <aside id="sidePanel">
       <div class="panel-section">
         <h2>Selected (<span id="selCount">0</span>)</h2>
-        <div id="selectedList"><div class="selected-empty">Click a highlighted country on the map to label it here.</div></div>
+        <div id="selectedList"><div class="selected-empty">Click a covered country to open its regions, then click a region to label it here.</div></div>
       </div>
       <div class="panel-section" style="border-bottom:none; padding-bottom:6px;">
-        <h2>All Covered Regions</h2>
+        <h2>All Covered Countries</h2>
       </div>
       <div class="region-list" id="regionList"></div>
     </aside>
   </main>
 
   <footer>
-    <span>GeoAnalyzerX · Region Map — data reflects community-tracked GeoGuessr coverage, not an official source</span>
+    <span>GeoAnalyzerX · Region Map — country list is community-tracked, not an official source. Subdivision boundaries: <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (CC BY 4.0)</span>
     <a href="/">← Back to GeoAnalyzerX</a>
   </footer>
 
@@ -508,6 +555,7 @@ const width = 960, height = 520;
 const svg = d3.select('#map').attr('viewBox', `0 0 ${width} ${height}`);
 const projection = d3.geoNaturalEarth1().scale(165).translate([width/2, height/2 + 10]);
 const path = d3.geoPath(projection);
+let activeProjection = projection;
 
 const g = svg.append('g');
 g.append('path').attr('class','sphere').attr('d', path({type:'Sphere'}));
@@ -530,7 +578,7 @@ function renderSelectedPanel(){
   document.getElementById('selCount').textContent = selected.size;
   document.getElementById('panelToggleBadge').textContent = selected.size;
   if(selected.size === 0){
-    list.innerHTML = '<div class="selected-empty">Click a highlighted country on the map to label it here.</div>';
+    list.innerHTML = '<div class="selected-empty">Click a covered country to open its regions, then click a region to label it here.</div>';
     return;
   }
   list.innerHTML = '';
@@ -574,7 +622,7 @@ function buildRegionList(){
     chip.className = 'region-chip';
     chip.dataset.name = normalize(name);
     chip.innerHTML = `<span class="dot"></span><span>${name}</span>`;
-    chip.onclick = () => flyToCountry(name);
+    chip.onclick = () => drillIntoCountry(name);
     listEl.appendChild(chip);
   });
 }
@@ -597,28 +645,13 @@ panelToggle.addEventListener('click', () => {
 });
 scrim.addEventListener('click', closePanel);
 
-let flyIndex = {}; // normalized name -> {id, centroid, bounds}
-
-function flyToCountry(name){
-  const entry = flyIndex[normalize(name)];
-  if(!entry) return;
-  const [[x0,y0],[x1,y1]] = entry.bounds;
-  const dx = x1 - x0, dy = y1 - y0;
-  const x = (x0 + x1) / 2, y = (y0 + y1) / 2;
-  const scale = Math.max(1, Math.min(10, 0.85 / Math.max(dx / width, dy / height)));
-  const translate = [width/2 - scale*x, height/2 - scale*y];
-  svg.transition().duration(500).call(
-    zoom.transform,
-    d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
-  );
-  toggleCountry(entry.id, name, entry.centroid, selected.has(String(entry.id)));
-}
+let flyIndex = {}; // normalized name -> {id, centroid, bounds} — used as fallback when a country has no subdivision data
 
 // mouse coordinate HUD
 svg.on('mousemove', (event) => {
   const [mx, my] = d3.pointer(event, svg.node());
   const t = d3.zoomTransform(svg.node());
-  const inv = projection.invert(t.invert([mx, my]));
+  const inv = activeProjection.invert(t.invert([mx, my]));
   if(inv){
     const [lon, lat] = inv;
     document.getElementById('hud').textContent =
@@ -626,45 +659,207 @@ svg.on('mousemove', (event) => {
   }
 });
 
-Promise.all([
-  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'),
-  d3.tsv('https://cdn.jsdelivr.net/gh/mbostock/world-country-names@master/world-country-names.tsv').catch(() => [])
-]).then(async ([world, names]) => {
-  const nameById = new Map(names.map(d => [d.id, d.name]));
+/* Embedded ISO 3166-1 numeric ID -> country name table.
+   This matches the IDs used by the world-atlas TopoJSON country shapes.
+   Embedded directly (rather than fetched from a third party) so the map
+   never breaks due to an external file being slow, rate-limited, or moved. */
+const COUNTRY_ID_NAME = {
+  "4":"Afghanistan","8":"Albania","12":"Algeria","24":"Angola","10":"Antarctica","32":"Argentina",
+  "51":"Armenia","36":"Australia","40":"Austria","31":"Azerbaijan","44":"Bahamas","50":"Bangladesh",
+  "112":"Belarus","56":"Belgium","84":"Belize","204":"Benin","64":"Bhutan","68":"Bolivia",
+  "70":"Bosnia and Herz.","72":"Botswana","76":"Brazil","96":"Brunei","100":"Bulgaria","854":"Burkina Faso",
+  "108":"Burundi","116":"Cambodia","120":"Cameroon","124":"Canada","140":"Central African Rep.","148":"Chad",
+  "152":"Chile","156":"China","170":"Colombia","178":"Congo","180":"Dem. Rep. Congo","188":"Costa Rica",
+  "384":"Ivory Coast","191":"Croatia","192":"Cuba","196":"Cyprus","203":"Czechia","208":"Denmark",
+  "262":"Djibouti","214":"Dominican Republic","218":"Ecuador","818":"Egypt","222":"El Salvador",
+  "226":"Equatorial Guinea","232":"Eritrea","233":"Estonia","748":"Eswatini","231":"Ethiopia","242":"Fiji",
+  "246":"Finland","250":"France","266":"Gabon","270":"Gambia","268":"Georgia","276":"Germany","288":"Ghana",
+  "300":"Greece","304":"Greenland","320":"Guatemala","324":"Guinea","624":"Guinea-Bissau","328":"Guyana",
+  "332":"Haiti","340":"Honduras","348":"Hungary","352":"Iceland","356":"India","360":"Indonesia","364":"Iran",
+  "368":"Iraq","372":"Ireland","376":"Israel","380":"Italy","388":"Jamaica","392":"Japan","400":"Jordan",
+  "398":"Kazakhstan","404":"Kenya","408":"North Korea","410":"South Korea","414":"Kuwait","417":"Kyrgyzstan",
+  "418":"Laos","428":"Latvia","422":"Lebanon","426":"Lesotho","430":"Liberia","434":"Libya",
+  "438":"Liechtenstein","440":"Lithuania","442":"Luxembourg","450":"Madagascar","454":"Malawi",
+  "458":"Malaysia","466":"Mali","470":"Malta","478":"Mauritania","480":"Mauritius","484":"Mexico",
+  "498":"Moldova","496":"Mongolia","499":"Montenegro","504":"Morocco","508":"Mozambique","104":"Myanmar",
+  "516":"Namibia","524":"Nepal","528":"Netherlands","540":"New Caledonia","554":"New Zealand","558":"Nicaragua",
+  "562":"Niger","566":"Nigeria","578":"Norway","512":"Oman","586":"Pakistan","591":"Panama",
+  "598":"Papua New Guinea","600":"Paraguay","604":"Peru","608":"Philippines","616":"Poland","620":"Portugal",
+  "630":"Puerto Rico","634":"Qatar","642":"Romania","643":"Russia","646":"Rwanda","682":"Saudi Arabia",
+  "686":"Senegal","688":"Serbia","694":"Sierra Leone","702":"Singapore","703":"Slovakia","705":"Slovenia",
+  "90":"Solomon Islands","706":"Somalia","710":"South Africa","728":"South Sudan","724":"Spain",
+  "144":"Sri Lanka","729":"Sudan","740":"Suriname","752":"Sweden","756":"Switzerland","760":"Syria",
+  "158":"Taiwan","762":"Tajikistan","834":"Tanzania","764":"Thailand","626":"East Timor","768":"Togo",
+  "780":"Trinidad and Tobago","788":"Tunisia","792":"Turkey","795":"Turkmenistan","800":"Uganda",
+  "804":"Ukraine","784":"United Arab Emirates","826":"United Kingdom","840":"United States of America",
+  "858":"Uruguay","860":"Uzbekistan","548":"Vanuatu","862":"Venezuela","704":"Vietnam","732":"W. Sahara",
+  "887":"Yemen","894":"Zambia","716":"Zimbabwe","20":"Andorra","48":"Bahrain","132":"Cabo Verde",
+  "174":"Comoros","212":"Dominica","678":"Sao Tome and Principe","674":"San Marino",
+  "690":"Seychelles","662":"Saint Lucia","584":"Marshall Islands","583":"Micronesia","520":"Nauru",
+  "570":"Niue","585":"Palau","882":"Samoa","798":"Tuvalu","533":"Aruba",
+  "658":"Saint Kitts and Nevis","670":"Saint Vincent and the Grenadines",
+  "60":"Bermuda","136":"Cayman Islands","260":"French Southern and Antarctic Lands","292":"Gibraltar",
+  "833":"Isle of Man","832":"Jersey","831":"Guernsey","663":"Saint Martin",
+  "666":"Saint Pierre and Miquelon","162":"Christmas Island","166":"Cocos Islands",
+  "234":"Faroe Islands","254":"French Guiana","258":"French Polynesia","312":"Guadeloupe","316":"Guam",
+  "474":"Martinique","175":"Mayotte","580":"Northern Mariana Islands","581":"United States Minor Outlying Islands",
+  "638":"Reunion","652":"Saint Barthelemy","654":"Saint Helena","796":"Turks and Caicos Islands",
+  "850":"United States Virgin Islands","16":"American Samoa","531":"Curacao",
+  "999":"N. Cyprus"
+};
 
-  const featureCollection = topojson.feature(world, world.objects.countries);
+const nameById = new Map(
+  Object.entries(COUNTRY_ID_NAME).map(([id, name]) => [String(id), name])
+);
+let worldFeatureCollection = null;
 
-  const unmatched = [];
+function worldCountryClass(d){
+  const nm = nameById.get(String(d.id)) || (d.properties && d.properties.name) || '';
+  return coveredSet.has(normalize(nm)) ? 'country covered' : 'country';
+}
+function worldCountryName(d){
+  return nameById.get(String(d.id)) || (d.properties && d.properties.name) || '';
+}
+
+function renderWorldMap(){
+  countryLayer.selectAll('*').remove();
+  labelLayer.selectAll('*').remove();
 
   countryLayer.selectAll('path')
-    .data(featureCollection.features)
+    .data(worldFeatureCollection.features)
     .join('path')
-    .attr('class', d => {
-      const nm = nameById.get(d.id) || (d.properties && d.properties.name) || '';
-      const covered = coveredSet.has(normalize(nm));
-      return 'country' + (covered ? ' covered' : '');
-    })
+    .attr('class', worldCountryClass)
     .attr('data-id', d => d.id)
     .attr('d', path)
     .on('click', (event, d) => {
-      const nm = nameById.get(d.id) || (d.properties && d.properties.name) || '';
+      const nm = worldCountryName(d);
       if(!coveredSet.has(normalize(nm))) return;
-      const centroid = path.centroid(d);
-      toggleCountry(d.id, nm, centroid);
+      drillIntoCountry(nm);
     });
 
-  // build fly-to index + check for unmatched list entries
+  document.querySelectorAll('.region-chip').forEach(c => c.classList.remove('active'));
+}
+
+function renderWorldView(){
+  document.getElementById('breadcrumb').style.display = 'none';
+  selected.clear();
+  renderSelectedPanel();
+  svg.call(zoom.transform, d3.zoomIdentity);
+  activeProjection = projection;
+  renderWorldMap();
+}
+document.getElementById('backToWorldBtn').onclick = renderWorldView;
+
+function showLoading(text){
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingOverlay').style.display = 'flex';
+}
+function hideLoading(){
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function subdivisionName(props, i){
+  return (props && (props.shapeName || props.shapeGroup)) || `Region ${i+1}`;
+}
+
+function renderCountryView(countryName, geojson){
+  hideLoading();
+  selected.clear();
+  renderSelectedPanel();
+
+  const features = (geojson.features || []).filter(f => f.geometry);
+  if(!features.length){
+    showFallback(countryName, 'No region boundaries were returned for this country.');
+    return;
+  }
+
+  const localProjection = d3.geoMercator().fitExtent([[30,60],[width-30,height-30]], geojson);
+  const localPath = d3.geoPath(localProjection);
+  activeProjection = localProjection;
+
+  svg.call(zoom.transform, d3.zoomIdentity);
+  countryLayer.selectAll('*').remove();
+  labelLayer.selectAll('*').remove();
+
+  countryLayer.selectAll('path')
+    .data(features)
+    .join('path')
+    .attr('class', 'subdivision')
+    .attr('data-id', (d, i) => 'sub-' + i)
+    .attr('d', localPath)
+    .on('click', function(event, d){
+      const i = [...this.parentNode.children].indexOf(this);
+      const nm = subdivisionName(d.properties, i);
+      const centroid = localPath.centroid(d);
+      toggleCountry('sub-' + i, nm, centroid);
+    });
+
+  document.getElementById('breadcrumb').style.display = 'flex';
+  document.getElementById('breadcrumbLabel').innerHTML =
+    `Viewing regions of <b>${countryName}</b>`;
+
+  document.querySelectorAll('.region-chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.name === normalize(countryName))
+  );
+}
+
+function showFallback(countryName, message){
+  hideLoading();
+  const entry = flyIndex[normalize(countryName)];
+  document.getElementById('breadcrumb').style.display = 'flex';
+  document.getElementById('breadcrumbLabel').innerHTML =
+    `<b>${countryName}</b> — ${message} Showing country outline instead.`;
+  if(entry){
+    toggleCountry(entry.id, countryName, entry.centroid, selected.has(String(entry.id)));
+  }
+}
+
+function drillIntoCountry(name){
+  const iso3 = ISO3[name];
+  if(!iso3){
+    showFallback(name, 'No subdivision data source is mapped for this country.');
+    return;
+  }
+  if(subregionCache.has(iso3)){
+    const cached = subregionCache.get(iso3);
+    if(cached === null){
+      showFallback(name, 'No subdivisions are available for this country.');
+    } else {
+      renderCountryView(name, cached);
+    }
+    return;
+  }
+
+  showLoading(`Loading ${name} regions…`);
+  const url = `https://raw.githubusercontent.com/wmgeolab/geoBoundaries/main/releaseData/gbOpen/${iso3}/ADM1/geoBoundaries-${iso3}-ADM1_simplified.geojson`;
+
+  fetch(url)
+    .then(res => { if(!res.ok) throw new Error('not found'); return res.json(); })
+    .then(geojson => {
+      subregionCache.set(iso3, geojson);
+      renderCountryView(name, geojson);
+    })
+    .catch(() => {
+      subregionCache.set(iso3, null);
+      showFallback(name, 'No subdivisions are available for this country.');
+    });
+}
+
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
+  worldFeatureCollection = topojson.feature(world, world.objects.countries);
+  renderWorldMap();
+
+  // build fly-to index for fallback highlighting + unmatched-name check
   const matchedNames = new Set();
-  featureCollection.features.forEach(d => {
-    const nm = nameById.get(d.id) || (d.properties && d.properties.name) || '';
+  const unmatched = [];
+  worldFeatureCollection.features.forEach(d => {
+    const nm = worldCountryName(d);
     if(coveredSet.has(normalize(nm))){
       matchedNames.add(normalize(nm));
       flyIndex[normalize(nm)] = { id: d.id, centroid: path.centroid(d), bounds: path.bounds(d) };
-      // also index under the "canonical" list name if this was matched via alias
     }
   });
-
-  // map alias matches back to canonical list names for the sidebar fly-to
+  console.log('[Region Map] matched', matchedNames.size, 'covered shapes on the map.');
   GEOGUESSR_COUNTRIES.forEach(canonical => {
     const variants = ALIASES[canonical] || [canonical];
     for(const v of variants){
@@ -675,25 +870,23 @@ Promise.all([
     }
     if(!flyIndex[normalize(canonical)]) unmatched.push(canonical);
   });
-
   if(unmatched.length){
     console.warn('[Region Map] No shape found at this map resolution for:', unmatched);
   }
+});
 
-  // search filter
-  document.getElementById('searchInput').addEventListener('input', (e) => {
-    const q = normalize(e.target.value);
-    document.querySelectorAll('.region-chip').forEach(chip => {
-      chip.classList.toggle('hidden', q.length > 0 && !chip.dataset.name.includes(q));
-    });
+// search filter
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const q = normalize(e.target.value);
+  document.querySelectorAll('.region-chip').forEach(chip => {
+    chip.classList.toggle('hidden', q.length > 0 && !chip.dataset.name.includes(q));
   });
-
-  document.getElementById('searchInput').addEventListener('keydown', (e) => {
-    if(e.key === 'Enter'){
-      const visible = [...document.querySelectorAll('.region-chip:not(.hidden)')];
-      if(visible.length) visible[0].click();
-    }
-  });
+});
+document.getElementById('searchInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    const visible = [...document.querySelectorAll('.region-chip:not(.hidden)')];
+    if(visible.length) visible[0].click();
+  }
 });
 </script>
 </body>
