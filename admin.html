@@ -301,6 +301,10 @@
             <span class="ge-add-icon">📋</span>
             <span class="ge-add-name">Nav Buttons</span>
           </button>
+          <button onclick="addBlock('region-tabs')" class="ge-add-btn">
+            <span class="ge-add-icon">🗺️</span>
+            <span class="ge-add-name">Region Tabs</span>
+          </button>
           <button onclick="addBlock('divider')" class="ge-add-btn">
             <span class="ge-add-icon">—</span>
             <span class="ge-add-name">Divider</span>
@@ -1042,7 +1046,7 @@ function renderBlock(block) {
   el.className = 'block-card';
   el.dataset.blockId = block.id;
 
-  const labels = {heading:'H', text:'¶', image:'🖼', tip:'💡', warning:'⚠️', 'two-col':'⬛⬛', 'img-text':'🖼¶', links:'🔗', nav:'📋', divider:'—', spacer:'↕'};
+  const labels = {heading:'H', text:'¶', image:'🖼', tip:'💡', warning:'⚠️', 'two-col':'⬛⬛', 'img-text':'🖼¶', links:'🔗', nav:'📋', 'region-tabs':'🗺️', divider:'—', spacer:'↕'};
   let inner = '';
 
   switch(block.type) {
@@ -1150,6 +1154,22 @@ function renderBlock(block) {
       </div>
       <div style="height:${spH}px;border:1px dashed #151525;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#222244;font-size:11px;margin-top:8px;">${spH}px gap</div>`;
       break;
+    case 'region-tabs': {
+      const rtBtns = block.data.buttons || [''];
+      inner = `<div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">🗺️ Region Tabs — type each region name</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${rtBtns.map((btn, i) => `
+            <div style="display:flex;gap:8px;align-items:center;">
+              <textarea class="be" rows="1" placeholder="e.g. New South Wales" style="flex:1;" oninput="updateRegionTab(${block.id},${i},this.value);autoResize(this)">${escapeHtml(btn)}</textarea>
+              <button onclick="removeRegionTab(${block.id},${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px 8px;">✕</button>
+            </div>`).join('')}
+        </div>
+        <button onclick="addRegionTab(${block.id})" style="margin-top:10px;background:var(--bg2);border:1px dashed var(--border);color:var(--muted);padding:6px 16px;border-radius:7px;cursor:pointer;font-size:12px;width:100%;">+ Add Region</button>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);background:rgba(0,201,167,0.06);border:1px solid rgba(0,201,167,0.15);border-radius:6px;padding:8px 12px;">💡 Each region name must match a <strong style="color:#00c9a7">Heading block</strong> below it. Renders as styled tabs in the guide.</div>
+      </div>`;
+      break;
+    }
     case 'nav': {
       const navBtns = block.data.buttons || [''];
       inner = `<div>
@@ -1283,6 +1303,35 @@ function removeLinkItem(blockId, index) {
   const b = editorBlocks.find(b => b.id === blockId);
   if (!b || !b.data.items) return;
   b.data.items.splice(index, 1);
+  const list = document.getElementById('block-list');
+  list.innerHTML = '';
+  editorBlocks.forEach(x => renderBlock(x));
+  updatePreview();
+}
+
+function updateRegionTab(blockId, index, value) {
+  const b = editorBlocks.find(b => b.id === blockId);
+  if (!b) return;
+  if (!b.data.buttons) b.data.buttons = [];
+  b.data.buttons[index] = value;
+  updatePreview();
+}
+function addRegionTab(blockId) {
+  const b = editorBlocks.find(b => b.id === blockId);
+  if (!b) return;
+  if (!b.data.buttons) b.data.buttons = [];
+  b.data.buttons.push('');
+  const list = document.getElementById('block-list');
+  const scrollPos = document.getElementById('editor-left')?.scrollTop || 0;
+  list.innerHTML = '';
+  editorBlocks.forEach(x => renderBlock(x));
+  if (document.getElementById('editor-left')) document.getElementById('editor-left').scrollTop = scrollPos;
+  updatePreview();
+}
+function removeRegionTab(blockId, index) {
+  const b = editorBlocks.find(b => b.id === blockId);
+  if (!b || !b.data.buttons) return;
+  b.data.buttons.splice(index, 1);
   const list = document.getElementById('block-list');
   list.innerHTML = '';
   editorBlocks.forEach(x => renderBlock(x));
@@ -1504,7 +1553,15 @@ function updatePreview() {
           </ul>`;
         }
         break;
-      case 'nav':
+      case 'region-tabs':
+        const rtPreview = (b.data.buttons || []).filter(x => x && x.trim());
+        if (rtPreview.length) {
+          html += `<div style="display:flex;flex-wrap:wrap;gap:8px;margin:20px 0;padding:16px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:12px;">
+            <span style="font-size:11px;color:#7c3aed;font-weight:700;text-transform:uppercase;letter-spacing:.5px;width:100%;margin-bottom:6px;">Regions</span>
+            ${rtPreview.map(label => `<div style="background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">${escapeHtml(label)}</div>`).join('')}
+          </div>`;
+        }
+        break;
         const navBtnsPreview = (b.data.buttons || []).filter(x => x && x.trim());
         if (navBtnsPreview.length) {
           html += `<div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 24px;">
