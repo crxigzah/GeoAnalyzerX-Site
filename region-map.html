@@ -767,13 +767,15 @@ function renderCountryView(countryName, geojson){
   selected.clear();
   renderSelectedPanel();
 
-  const features = (geojson.features || []).filter(f => f.geometry);
+  const features = (geojson.features || [])
+    .filter(f => f.geometry)
+    .filter(f => !/antarc/i.test((f.properties && f.properties.shapeName) || ''));
   if(!features.length){
     showFallback(countryName, 'No region boundaries were returned for this country.');
     return;
   }
 
-  const localProjection = d3.geoMercator().fitExtent([[30,60],[width-30,height-30]], geojson);
+  const localProjection = d3.geoNaturalEarth1().fitExtent([[30,60],[width-30,height-30]], geojson);
   const localPath = d3.geoPath(localProjection);
   activeProjection = localProjection;
 
