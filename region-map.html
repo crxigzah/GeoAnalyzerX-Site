@@ -768,6 +768,23 @@ function subdivisionName(props, i){
 // *inverse* of the shape — i.e. the whole world except the region — which
 // looks like a giant solid blob. This normalizes every ring to the correct
 // right-hand-rule winding (outer rings CCW, holes CW) before we touch it.
+function rawCoordExtent(geometry){
+  let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+  function walk(node){
+    if(typeof node[0] === 'number'){
+      const lon = node[0], lat = node[1];
+      if(lon < minLon) minLon = lon;
+      if(lon > maxLon) maxLon = lon;
+      if(lat < minLat) minLat = lat;
+      if(lat > maxLat) maxLat = lat;
+    } else {
+      for(const child of node) walk(child);
+    }
+  }
+  if(geometry && geometry.coordinates) walk(geometry.coordinates);
+  return [minLon, minLat, maxLon, maxLat];
+}
+
 function ringSignedArea(ring){
   let sum = 0;
   for(let i = 0; i < ring.length - 1; i++){
@@ -804,15 +821,21 @@ function renderCountryView(countryName, geojson){
 
   features.forEach(f => rewindGeometry(f.geometry));
 
-  // Defensive sanity filter: drop any feature whose bounding box is
-  // implausibly huge for a single country's subdivision (corrupted or
-  // globe-spanning geometry), rather than trusting the source data blindly.
+  // Defensive sanity filter: drop any feature that falls well outside this
+  // country's real-world extent (known from the reliable world map data).
+  // We scan raw coordinate values directly rather than using d3's bounds
+  // calculation, since that can be fooled by ring-winding artifacts in
+  // simplified source data — a raw scan can't be tricked that way.
+  const trusted = flyIndex[normalize(countryName)] && flyIndex[normalize(countryName)].geoBounds;
+  const PAD = 12; // degrees of slack for offshore territories/islands
   features = features.filter(f => {
-    const b = d3.geoBounds(f);
-    const lonSpan = Math.abs(b[1][0] - b[0][0]);
-    const latSpan = Math.abs(b[1][1] - b[0][1]);
-    const ok = lonSpan < 170 && latSpan < 150;
-    if(!ok) console.warn('[Region Map] dropping implausible region geometry:', f.properties && f.properties.shapeName);
+    const [minLon, minLat, maxLon, maxLat] = rawCoordExtent(f.geometry);
+    if(!isFinite(minLon)) return false;
+    if(!trusted) return true; // no reference available, keep as-is
+    const [[tLon0, tLat0], [tLon1, tLat1]] = trusted;
+    const ok = minLon >= tLon0 - PAD && maxLon <= tLon1 + PAD &&
+               minLat >= tLat0 - PAD && maxLat <= tLat1 + PAD;
+    if(!ok) console.warn('[Region Map] dropping out-of-bounds region geometry:', f.properties && f.properties.shapeName);
     return ok;
   });
 
@@ -905,7 +928,7 @@ d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(w
     const nm = worldCountryName(d);
     if(coveredSet.has(normalize(nm))){
       matchedNames.add(normalize(nm));
-      flyIndex[normalize(nm)] = { id: d.id, centroid: path.centroid(d), bounds: path.bounds(d) };
+      flyIndex[normalize(nm)] = { id: d.id, centroid: path.centroid(d), bounds: path.bounds(d), geoBounds: d3.geoBounds(d) };
     }
   });
   console.log('[Region Map] matched', matchedNames.size, 'covered shapes on the map.');
