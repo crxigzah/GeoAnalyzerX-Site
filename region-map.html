@@ -149,8 +149,7 @@
       radial-gradient(ellipse at 50% 40%, #0d131a 0%, var(--bg) 70%);
     overflow:hidden;
   }
-  .map-stage svg{ width:100%; height:100%; display:block; cursor:grab; }
-  .map-stage svg:active{ cursor:grabbing; }
+  .map-stage svg{ width:100%; height:100%; display:block; }
 
   .graticule{ stroke: var(--line-soft); stroke-width:.5; fill:none; }
   .sphere{ fill:#0c1219; stroke: var(--line); stroke-width:1; }
@@ -258,13 +257,6 @@
     stroke: #0d2b28;
     stroke-width: .7;
     fill: var(--covered-fill);
-    cursor:pointer;
-    transition: fill .12s ease;
-  }
-  .subdivision:hover{ fill: var(--covered-fill-hover); }
-  .subdivision.selected{
-    fill: var(--amber-fill) !important;
-    stroke: #3a2a0d;
   }
 
   /* ---------- side panel ---------- */
@@ -401,7 +393,7 @@
 <div class="scrim" id="scrim" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:15;"></div>
 <div class="app">
   <button class="panel-toggle-btn" id="panelToggle">
-    Selected <span class="badge" id="panelToggleBadge">0</span>
+    Countries
   </button>
 
   <header>
@@ -446,12 +438,9 @@
     </div>
 
     <aside id="sidePanel">
-      <div class="panel-section">
-        <h2>Selected (<span id="selCount">0</span>)</h2>
-        <div id="selectedList"><div class="selected-empty">Click a covered country to open its regions, then click a region to label it here.</div></div>
-      </div>
       <div class="panel-section" style="border-bottom:none; padding-bottom:6px;">
         <h2>All Covered Countries</h2>
+        <div class="selected-empty" style="margin-top:-2px;margin-bottom:8px;">Click a country to see all its regions labeled on the map.</div>
       </div>
       <div class="region-list" id="regionList"></div>
     </aside>
@@ -564,8 +553,10 @@ const labelLayer = g.append('g').attr('class','label-layer');
 
 const zoom = d3.zoom()
   .scaleExtent([1, 12])
+  .filter((event) => !(event.type === 'mousedown' || event.type === 'touchstart'))
   .on('zoom', (event) => g.attr('transform', event.transform));
 svg.call(zoom);
+svg.style('cursor', 'default');
 
 document.getElementById('zoomIn').onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1.5);
 document.getElementById('zoomOut').onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1/1.5);
@@ -574,24 +565,8 @@ document.getElementById('resetBtn').onclick = () => svg.transition().duration(40
 const selected = new Map(); // id -> {name, centroid}
 
 function renderSelectedPanel(){
-  const list = document.getElementById('selectedList');
-  document.getElementById('selCount').textContent = selected.size;
-  document.getElementById('panelToggleBadge').textContent = selected.size;
-  if(selected.size === 0){
-    list.innerHTML = '<div class="selected-empty">Click a covered country to open its regions, then click a region to label it here.</div>';
-    return;
-  }
-  list.innerHTML = '';
-  selected.forEach((val, id) => {
-    const row = document.createElement('div');
-    row.className = 'selected-item';
-    row.innerHTML = `<span>${val.name}</span>`;
-    const btn = document.createElement('button');
-    btn.textContent = '✕';
-    btn.onclick = () => toggleCountry(id, val.name, val.centroid, true);
-    row.appendChild(btn);
-    list.appendChild(row);
-  });
+  const badge = document.getElementById('panelToggleBadge');
+  if(badge) badge.textContent = selected.size;
 }
 
 function toggleCountry(id, name, centroid, forceRemove){
@@ -832,8 +807,6 @@ function rewindGeometry(geom){
 
 function renderCountryView(countryName, geojson){
   hideLoading();
-  selected.clear();
-  renderSelectedPanel();
 
   let features = (geojson.features || [])
     .filter(f => f.geometry)
@@ -872,7 +845,7 @@ function renderCountryView(countryName, geojson){
   function fitAndPruneByRenderedArea(feats){
     let current = feats;
     for(let pass = 0; pass < 3; pass++){
-      const proj = d3.geoNaturalEarth1().fitExtent([[30,60],[width-30,height-30]], { type: 'FeatureCollection', features: current });
+      const proj = d3.geoMercator().fitExtent([[30,60],[width-30,height-30]], { type: 'FeatureCollection', features: current });
       const p = d3.geoPath(proj);
       const viewportArea = (width - 60) * (height - 90);
       const areas = current.map(f => Math.abs(p.area(f)));
@@ -888,7 +861,7 @@ function renderCountryView(countryName, geojson){
       bad.forEach(f => console.warn('[Region Map] dropping oversized-render region:', (f.properties && f.properties.shapeName) || '(unnamed)'));
       current = good;
     }
-    const proj = d3.geoNaturalEarth1().fitExtent([[30,60],[width-30,height-30]], { type: 'FeatureCollection', features: current });
+    const proj = d3.geoMercator().fitExtent([[30,60],[width-30,height-30]], { type: 'FeatureCollection', features: current });
     return { projection: proj, path: d3.geoPath(proj), features: current };
   }
 
@@ -912,13 +885,17 @@ function renderCountryView(countryName, geojson){
     .join('path')
     .attr('class', 'subdivision')
     .attr('data-id', (d, i) => 'sub-' + i)
-    .attr('d', localPath)
-    .on('click', function(event, d){
-      const i = [...this.parentNode.children].indexOf(this);
-      const nm = subdivisionName(d.properties, i);
-      const centroid = localPath.centroid(d);
-      toggleCountry('sub-' + i, nm, centroid);
-    });
+    .attr('d', localPath);
+
+  // Show every region's label immediately — no click/selection needed.
+  features.forEach((d, i) => {
+    const nm = subdivisionName(d.properties, i);
+    const centroid = localPath.centroid(d);
+    const gLabel = labelLayer.append('g').attr('data-id', 'sub-' + i)
+      .attr('transform', `translate(${centroid[0]},${centroid[1]})`);
+    gLabel.append('circle').attr('r', 2.5);
+    gLabel.append('text').attr('x', 6).attr('y', 3).text(nm);
+  });
 
   document.getElementById('breadcrumb').style.display = 'flex';
   document.getElementById('breadcrumbLabel').innerHTML =
