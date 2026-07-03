@@ -335,6 +335,29 @@
   .region-list::-webkit-scrollbar{ width:6px; }
   .region-list::-webkit-scrollbar-thumb{ background: var(--line); border-radius:3px; }
 
+  .region-toggle-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 8px;
+    border-radius:4px;
+    font-size:12px;
+    color: var(--text);
+    cursor:pointer;
+  }
+  .region-toggle-item:hover{ background: var(--panel-2); }
+  .region-toggle-item input[type=checkbox]{
+    accent-color: var(--covered);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .region-toggle-item.unchecked{ color: var(--muted-2); }
+
+  .subdivision.dimmed{
+    fill: var(--uncovered-fill);
+    stroke: var(--uncovered-stroke);
+  }
+
   .region-chip{
     display:flex;
     align-items:center;
@@ -438,11 +461,21 @@
     </div>
 
     <aside id="sidePanel">
-      <div class="panel-section" style="border-bottom:none; padding-bottom:6px;">
+      <div class="panel-section" id="countriesPanelHeader" style="border-bottom:none; padding-bottom:6px;">
         <h2>All Covered Countries</h2>
         <div class="selected-empty" style="margin-top:-2px;margin-bottom:8px;">Click a country to see all its regions labeled on the map.</div>
       </div>
       <div class="region-list" id="regionList"></div>
+
+      <div class="panel-section" id="countryRegionsPanelHeader" style="display:none;border-bottom:none;padding-bottom:6px;">
+        <h2 id="countryRegionsTitle">Regions</h2>
+        <div class="selected-empty" style="margin-top:-2px;margin-bottom:8px;">Uncheck a region to hide its highlight on the map.</div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn" id="selectAllRegionsBtn" style="flex:1;">Select All</button>
+          <button class="btn" id="selectNoneRegionsBtn" style="flex:1;">Select None</button>
+        </div>
+      </div>
+      <div class="region-list" id="countryRegionsList" style="display:none;"></div>
     </aside>
   </main>
 
@@ -603,6 +636,59 @@ function buildRegionList(){
 }
 buildRegionList();
 
+// ── Country-detail sidebar: per-region show/hide checkboxes ─
+function toggleRegionHighlight(id, visible){
+  countryLayer.select(`path[data-id="${id}"]`).classed('dimmed', !visible);
+  labelLayer.select(`g[data-id="${id}"]`).style('display', visible ? '' : 'none');
+}
+
+function buildCountryRegionsList(labelData){
+  const listEl = document.getElementById('countryRegionsList');
+  listEl.innerHTML = '';
+  labelData.forEach(l => {
+    const item = document.createElement('label');
+    item.className = 'region-toggle-item';
+    item.innerHTML = `<input type="checkbox" checked data-id="${l.id}"><span>${l.name}</span>`;
+    const checkbox = item.querySelector('input');
+    checkbox.addEventListener('change', () => {
+      item.classList.toggle('unchecked', !checkbox.checked);
+      toggleRegionHighlight(l.id, checkbox.checked);
+    });
+    listEl.appendChild(item);
+  });
+}
+
+function showCountryRegionsPanel(countryName, labelData){
+  document.getElementById('countriesPanelHeader').style.display = 'none';
+  document.getElementById('regionList').style.display = 'none';
+  document.getElementById('countryRegionsPanelHeader').style.display = '';
+  document.getElementById('countryRegionsList').style.display = '';
+  document.getElementById('countryRegionsTitle').textContent = countryName + ' Regions';
+  buildCountryRegionsList(labelData);
+}
+
+function showCountriesPanel(){
+  document.getElementById('countriesPanelHeader').style.display = '';
+  document.getElementById('regionList').style.display = '';
+  document.getElementById('countryRegionsPanelHeader').style.display = 'none';
+  document.getElementById('countryRegionsList').style.display = 'none';
+}
+
+document.getElementById('selectAllRegionsBtn').onclick = () => {
+  document.querySelectorAll('#countryRegionsList input[type=checkbox]').forEach(cb => {
+    cb.checked = true;
+    cb.closest('.region-toggle-item').classList.remove('unchecked');
+    toggleRegionHighlight(cb.dataset.id, true);
+  });
+};
+document.getElementById('selectNoneRegionsBtn').onclick = () => {
+  document.querySelectorAll('#countryRegionsList input[type=checkbox]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('.region-toggle-item').classList.add('unchecked');
+    toggleRegionHighlight(cb.dataset.id, false);
+  });
+};
+
 // mobile side-panel drawer
 const sidePanel = document.getElementById('sidePanel');
 const scrim = document.getElementById('scrim');
@@ -723,6 +809,7 @@ function renderWorldView(){
   svg.call(zoom.transform, d3.zoomIdentity);
   activeProjection = projection;
   renderWorldMap();
+  showCountriesPanel();
 }
 document.getElementById('backToWorldBtn').onclick = renderWorldView;
 
@@ -735,7 +822,12 @@ function hideLoading(){
 }
 
 function subdivisionName(props, i){
-  return (props && (props.shapeName || props.shapeGroup)) || `Region ${i+1}`;
+  const raw = (props && (props.shapeName || props.shapeGroup)) || `Region ${i+1}`;
+  // Strip the redundant "Prefecture" suffix (Japan) — every region in a
+  // country-detail view is obviously a subdivision of that country already,
+  // so the suffix adds nothing but length, which matters a lot for label
+  // decluttering on densely-divided countries.
+  return raw.replace(/\s+Prefecture\b/i, '').trim();
 }
 
 // Some simplified boundary files have polygons wound in the wrong
@@ -930,7 +1022,7 @@ function renderCountryView(countryName, geojson){
   // toward its true location. A thin leader line connects the label back
   // to its region if it had to move.
   const CHAR_W = 5.4, LABEL_H = 11; // approx. monospace metrics at 9px
-  const fontScale = features.length > 45 ? 0.72 : features.length > 30 ? 0.8 : features.length > 18 ? 0.9 : 1;
+  const fontScale = features.length > 45 ? 0.68 : features.length > 30 ? 0.78 : features.length > 18 ? 0.9 : 1;
 
   const labelData = features.map((d, i) => {
     const nm = subdivisionName(d.properties, i);
@@ -946,7 +1038,8 @@ function renderCountryView(countryName, geojson){
   // plenty of iterations) since a slightly-displaced-but-readable label
   // beats an overlapping one — this applies to every country, not just
   // especially dense ones, so all region maps stay legible.
-  for(let iter = 0; iter < 600; iter++){
+  const iterations = Math.min(1400, 500 + features.length * 12);
+  for(let iter = 0; iter < iterations; iter++){
     for(const a of labelData){
       a.x += (a.ox - a.x) * 0.008;
       a.y += (a.oy - a.y) * 0.008;
@@ -993,6 +1086,8 @@ function renderCountryView(countryName, geojson){
   document.querySelectorAll('.region-chip').forEach(c =>
     c.classList.toggle('active', c.dataset.name === normalize(countryName))
   );
+
+  showCountryRegionsPanel(countryName, labelData);
 }
 
 function showFallback(countryName, message){
@@ -1007,6 +1102,7 @@ function showFallback(countryName, message){
   if(entry){
     toggleCountry(entry.id, countryName, entry.centroid, selected.has(String(entry.id)));
   }
+  showCountriesPanel();
 }
 
 function drillIntoCountry(name){
