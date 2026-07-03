@@ -762,6 +762,37 @@ function subdivisionName(props, i){
   return (props && (props.shapeName || props.shapeGroup)) || `Region ${i+1}`;
 }
 
+// Some simplified boundary files have polygons wound in the wrong
+// direction (a known artifact of certain simplification pipelines on very
+// complex coastlines). A backwards-wound ring makes d3 render/measure the
+// *inverse* of the shape — i.e. the whole world except the region — which
+// looks like a giant solid blob. This normalizes every ring to the correct
+// right-hand-rule winding (outer rings CCW, holes CW) before we touch it.
+function ringSignedArea(ring){
+  let sum = 0;
+  for(let i = 0; i < ring.length - 1; i++){
+    sum += ring[i][0] * ring[i+1][1] - ring[i+1][0] * ring[i][1];
+  }
+  return sum / 2;
+}
+function rewindRing(ring, clockwise){
+  const isCW = ringSignedArea(ring) < 0;
+  if(isCW !== clockwise) ring.reverse();
+  return ring;
+}
+function rewindPolygonCoords(coords){
+  if(!coords.length) return coords;
+  coords[0] = rewindRing(coords[0], false);
+  for(let i = 1; i < coords.length; i++) coords[i] = rewindRing(coords[i], true);
+  return coords;
+}
+function rewindGeometry(geom){
+  if(!geom) return geom;
+  if(geom.type === 'Polygon') geom.coordinates = rewindPolygonCoords(geom.coordinates);
+  else if(geom.type === 'MultiPolygon') geom.coordinates = geom.coordinates.map(rewindPolygonCoords);
+  return geom;
+}
+
 function renderCountryView(countryName, geojson){
   hideLoading();
   selected.clear();
@@ -770,6 +801,8 @@ function renderCountryView(countryName, geojson){
   let features = (geojson.features || [])
     .filter(f => f.geometry)
     .filter(f => !/antarc/i.test((f.properties && f.properties.shapeName) || ''));
+
+  features.forEach(f => rewindGeometry(f.geometry));
 
   // Defensive sanity filter: drop any feature whose bounding box is
   // implausibly huge for a single country's subdivision (corrupted or
