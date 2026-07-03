@@ -815,11 +815,11 @@ function renderCountryView(countryName, geojson){
       const nm = (f.properties && f.properties.shapeName) || '';
       if(/antarc/i.test(nm)) return false;
       // Distant offshore territories included in some countries' ADM1 sets
-      // (e.g. US insular territories) sit thousands of km from the main
-      // landmass. Including them forces the map to zoom out so far that the
-      // country's actual mainland gets squeezed into a tiny corner, so they
-      // are excluded from this reference-map view.
-      if(/puerto rico|guam\b|american samoa|northern mariana|u\.?s\.? virgin islands|^virgin islands/i.test(nm)) return false;
+      // (e.g. US insular territories, and Hawaii for the USA) sit thousands
+      // of km from the main landmass. Including them forces the map to zoom
+      // out so far that the country's actual mainland gets squeezed into a
+      // tiny corner, so they are excluded from this reference-map view.
+      if(/puerto rico|guam\b|american samoa|northern mariana|u\.?s\.? virgin islands|^virgin islands|hawaii/i.test(nm)) return false;
       return true;
     });
 
@@ -930,7 +930,7 @@ function renderCountryView(countryName, geojson){
   // toward its true location. A thin leader line connects the label back
   // to its region if it had to move.
   const CHAR_W = 5.4, LABEL_H = 11; // approx. monospace metrics at 9px
-  const fontScale = features.length > 40 ? 0.8 : features.length > 22 ? 0.9 : 1;
+  const fontScale = features.length > 45 ? 0.72 : features.length > 30 ? 0.8 : features.length > 18 ? 0.9 : 1;
 
   const labelData = features.map((d, i) => {
     const nm = subdivisionName(d.properties, i);
@@ -940,23 +940,29 @@ function renderCountryView(countryName, geojson){
     return { id: 'sub-' + i, name: nm, ox, oy, x: ox, y: oy, w, h };
   });
 
-  for(let iter = 0; iter < 300; iter++){
+  // Force-based decluttering: a weak spring pulls each label back toward
+  // its true centroid, while overlapping labels repel each other. Tuned to
+  // favour spreading (weak spring, strong repulsion, generous margin,
+  // plenty of iterations) since a slightly-displaced-but-readable label
+  // beats an overlapping one — this applies to every country, not just
+  // especially dense ones, so all region maps stay legible.
+  for(let iter = 0; iter < 600; iter++){
     for(const a of labelData){
-      a.x += (a.ox - a.x) * 0.015;
-      a.y += (a.oy - a.y) * 0.015;
+      a.x += (a.ox - a.x) * 0.008;
+      a.y += (a.oy - a.y) * 0.008;
     }
     for(let i = 0; i < labelData.length; i++){
       for(let j = i + 1; j < labelData.length; j++){
         const a = labelData[i], b = labelData[j];
         const dx = b.x - a.x, dy = b.y - a.y;
-        const overlapX = (a.w + b.w) / 2 + 2 - Math.abs(dx);
-        const overlapY = (a.h + b.h) / 2 + 1 - Math.abs(dy);
+        const overlapX = (a.w + b.w) / 2 + 5 - Math.abs(dx);
+        const overlapY = (a.h + b.h) / 2 + 4 - Math.abs(dy);
         if(overlapX > 0 && overlapY > 0){
           if(overlapX < overlapY){
-            const push = overlapX / 2 * 1.1 * (dx < 0 ? -1 : 1) || 0.5;
+            const push = overlapX / 2 * 1.5 * (dx < 0 ? -1 : 1) || 0.7;
             a.x -= push; b.x += push;
           } else {
-            const push = overlapY / 2 * 1.1 * (dy < 0 ? -1 : 1) || 0.5;
+            const push = overlapY / 2 * 1.5 * (dy < 0 ? -1 : 1) || 0.7;
             a.y -= push; b.y += push;
           }
         }
@@ -1045,7 +1051,15 @@ d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(w
     const nm = worldCountryName(d);
     if(coveredSet.has(normalize(nm))){
       matchedNames.add(normalize(nm));
-      flyIndex[normalize(nm)] = { id: d.id, centroid: path.centroid(d), bounds: path.bounds(d), geoBounds: d3.geoBounds(d) };
+      const gb = d3.geoBounds(d);
+      // d3.geoBounds is unreliable for shapes that cross the antimeridian
+      // (e.g. Russia, Fiji) — it can return a bounding box that's wrapped
+      // the "long way around" (near-global width, or min > max longitude).
+      // Using that as a sanity-check reference would incorrectly reject
+      // almost every real subdivision, so such countries are simply not
+      // given a trusted reference at all (other filters still apply).
+      const crossesAntimeridian = gb && (gb[0][0] > gb[1][0] || (gb[1][0] - gb[0][0]) > 300);
+      flyIndex[normalize(nm)] = { id: d.id, centroid: path.centroid(d), bounds: path.bounds(d), geoBounds: crossesAntimeridian ? null : gb };
     }
   });
   console.log('[Region Map] matched', matchedNames.size, 'covered shapes on the map.');
