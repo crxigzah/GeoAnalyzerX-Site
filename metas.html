@@ -570,9 +570,13 @@ function renderGuide(c, data) {
           return `<div style="background:rgba(255,107,107,0.08);border-left:4px solid #ff6b6b;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;"><div style="font-size:12px;font-weight:700;color:#ff6b6b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">⚠️ Easy to Confuse With</div><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${block.data.text||''}</p></div>`;
         case 'img-text':
           const itWidth = block.data.imgWidth || '40';
+          const itMap = block.data.mapSrc && block.data.mapSrc !== '__uploading__' ? block.data.mapSrc : null;
           return `<div style="display:grid;grid-template-columns:${itWidth}% 1fr;gap:24px;align-items:center;margin:20px 0;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;padding:20px;overflow:hidden;">
             <div>
-              ${block.data.src ? `<img src="${block.data.src}" style="width:100%;border-radius:10px;display:block;">` : ''}
+              <div style="position:relative;">
+                ${block.data.src ? `<img src="${block.data.src}" style="width:100%;height:200px;object-fit:cover;object-position:center;border-radius:10px;display:block;">` : ''}
+                ${itMap ? `<div style="position:absolute;bottom:8px;right:8px;width:64px;height:64px;border-radius:6px;overflow:hidden;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));"><img src="${itMap}" style="width:100%;height:100%;object-fit:contain;"></div>` : ''}
+              </div>
               ${block.data.caption ? `<div style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;font-style:italic;">${block.data.caption}</div>` : ''}
             </div>
             <p style="color:#c0c0d8;line-height:1.85;font-size:15px;margin:0;white-space:pre-wrap;">${block.data.text||''}</p>
