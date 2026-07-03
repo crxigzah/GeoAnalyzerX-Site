@@ -1099,6 +1099,7 @@ function renderBlock(block) {
       break;
     case 'img-text':
       const imgW = block.data.imgWidth || '40';
+      const mapSrc = block.data.mapSrc;
       inner = `
         <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
           <span style="font-size:12px;color:var(--muted);">Image width:</span>
@@ -1106,12 +1107,23 @@ function renderBlock(block) {
         </div>
         <div style="display:grid;grid-template-columns:${imgW}% 1fr;gap:14px;align-items:start;">
           <div>
-            <div class="img-drop-zone" id="dropzone-${block.id}" onclick="document.getElementById('file-it-${block.id}').click()" ondrop="handleDrop(${block.id},event)" ondragover="event.preventDefault()">
-              <input type="file" id="file-it-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this)">
-              ${block.data.src === '__uploading__'
-                ? `<div style="padding:16px;color:#00c9a7;"><div style="width:22px;height:22px;border:2px solid #1e1e38;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 8px;"></div><div style="font-size:12px">Uploading...</div></div>`
-                : block.data.src ? `<img src="${block.data.src}" style="width:100%;height:200px;object-fit:cover;object-position:center;border-radius:6px;">` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
+            <div style="position:relative;">
+              <div class="img-drop-zone" id="dropzone-${block.id}" onclick="document.getElementById('file-it-${block.id}').click()" ondrop="handleDrop(${block.id},event)" ondragover="event.preventDefault()">
+                <input type="file" id="file-it-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this)">
+                ${block.data.src === '__uploading__'
+                  ? `<div style="padding:16px;color:#00c9a7;"><div style="width:22px;height:22px;border:2px solid #1e1e38;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 8px;"></div><div style="font-size:12px">Uploading...</div></div>`
+                  : block.data.src ? `<img src="${block.data.src}" style="width:100%;height:200px;object-fit:cover;object-position:center;border-radius:6px;">` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
+              </div>
+              <div class="map-badge-drop-zone" onclick="document.getElementById('file-map-${block.id}').click()" ondrop="handleDrop(${block.id},event,'mapSrc')" ondragover="event.preventDefault()"
+                style="position:absolute;bottom:8px;right:8px;width:64px;height:64px;border-radius:6px;overflow:hidden;cursor:pointer;background:#f4f1ea;border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;">
+                <input type="file" id="file-map-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this,'mapSrc')">
+                ${mapSrc === '__uploading__'
+                  ? `<div style="width:14px;height:14px;border:2px solid #ddd;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;"></div>`
+                  : mapSrc ? `<img src="${mapSrc}" style="width:100%;height:100%;object-fit:contain;">` : `<span style="font-size:18px;">🗺️</span>`}
+              </div>
+              ${mapSrc && mapSrc !== '__uploading__' ? `<button onclick="event.stopPropagation();syncBlock(${block.id},'mapSrc','')" title="Remove map badge" style="position:absolute;bottom:66px;right:6px;width:18px;height:18px;border-radius:50%;background:#1a1a2e;border:1px solid var(--border);color:var(--muted);font-size:11px;line-height:1;cursor:pointer;">✕</button>` : ''}
             </div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:center;">${mapSrc && mapSrc !== '__uploading__' ? 'Click 🗺️ badge to replace' : 'Click 🗺️ to add a mini-map badge'}</div>
             <textarea class="be" rows="1" placeholder="Caption..." style="margin-top:6px;font-size:11px;" oninput="syncBlock(${block.id},'caption',this.value);autoResize(this)">${escapeHtml(block.data.caption||'')}</textarea>
           </div>
           <textarea class="be" rows="8" placeholder="Text to the right of the image..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>
@@ -1387,15 +1399,15 @@ function moveBlock(id, dir) {
 }
 
 // ── Image handling — file, drag & drop, paste ─────────────
-function handleFileSelect(blockId, input) {
+function handleFileSelect(blockId, input, field='src') {
   if (!input.files[0]) return;
-  loadImageFile(blockId, input.files[0]);
+  loadImageFile(blockId, input.files[0], field);
 }
 
-function handleDrop(blockId, e) {
+function handleDrop(blockId, e, field='src') {
   e.preventDefault();
   const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) loadImageFile(blockId, file);
+  if (file && file.type.startsWith('image/')) loadImageFile(blockId, file, field);
 }
 
 // Global paste listener — pastes image into the most recently active image block
@@ -1411,7 +1423,7 @@ document.addEventListener('paste', (e) => {
   loadImageFile(targetId, imgItem.getAsFile());
 });
 
-function loadImageFile(blockId, file) {
+function loadImageFile(blockId, file, field='src') {
   const reader = new FileReader();
   reader.onload = async e => {
     const b = editorBlocks.find(x => x.id === blockId);
@@ -1420,8 +1432,7 @@ function loadImageFile(blockId, file) {
     const scrollPos = pane ? pane.scrollTop : 0;
 
     // Show uploading state immediately
-    b.data.src = '__uploading__';
-    b.data._uploading = true;
+    b.data[field] = '__uploading__';
     const list = document.getElementById('block-list');
     list.innerHTML = '';
     editorBlocks.forEach(x => renderBlock(x));
@@ -1435,7 +1446,7 @@ function loadImageFile(blockId, file) {
         if (attempt > 1) {
           const card = document.querySelector(`[data-block-id="${blockId}"]`);
           if (card) {
-            const zone = card.querySelector('.img-drop-zone');
+            const zone = card.querySelector(field==='mapSrc' ? '.map-badge-drop-zone' : '.img-drop-zone');
             if (zone) zone.querySelector('div')?.childNodes[2] && (zone.querySelector('div').lastChild.textContent = `Waking server... attempt ${attempt}/3`);
           }
         }
@@ -1450,8 +1461,7 @@ function loadImageFile(blockId, file) {
         clearTimeout(timeout);
         const data = await res.json();
         if (data.url) {
-          b.data.src = data.url;
-          b.data._uploading = false;
+          b.data[field] = data.url;
           uploaded = true;
           toast('Image uploaded ✓');
           break;
@@ -1460,8 +1470,7 @@ function loadImageFile(blockId, file) {
         }
       } catch(err) {
         if (attempt === 3) {
-          b.data.src = '';
-          b.data._uploading = false;
+          b.data[field] = '';
           toast('Image upload failed after 3 attempts — check connection', true);
         }
         // Wait 2s before retrying
@@ -1528,8 +1537,13 @@ function updatePreview() {
         break;
       case 'img-text':
         const itW = b.data.imgWidth || '40';
+        const itMapSrc = b.data.mapSrc && b.data.mapSrc !== '__uploading__' ? b.data.mapSrc : null;
         html += `<div style="display:grid;grid-template-columns:${itW}% 1fr;gap:18px;align-items:start;margin:14px 0;">
-          <div>${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:200px;object-fit:cover;object-position:center;border-radius:8px;display:block;">` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
+          <div>
+            <div style="position:relative;">
+              ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:200px;object-fit:cover;object-position:center;border-radius:8px;display:block;">` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
+              ${itMapSrc ? `<div style="position:absolute;bottom:8px;right:8px;width:64px;height:64px;border-radius:6px;overflow:hidden;background:#f4f1ea;border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 8px rgba(0,0,0,0.4);"><img src="${itMapSrc}" style="width:100%;height:100%;object-fit:contain;"></div>` : ''}
+            </div>
           ${b.data.caption ? `<div style="text-align:center;font-size:11px;color:#5a5a7a;margin-top:4px;">${escapeHtml(b.data.caption)}</div>` : ''}</div>
           <div class="prev-p" style="margin:0">${escapeHtml(b.data.text||'')}</div>
         </div>`;
