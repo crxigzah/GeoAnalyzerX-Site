@@ -844,9 +844,43 @@ function renderCountryView(countryName, geojson){
     return;
   }
 
-  const filteredCollection = { type: 'FeatureCollection', features };
-  const localProjection = d3.geoNaturalEarth1().fitExtent([[30,60],[width-30,height-30]], filteredCollection);
-  const localPath = d3.geoPath(localProjection);
+  // Final safety net: measure how each shape actually RENDERS after
+  // projection and drop anything absurdly oversized compared to the rest.
+  // This catches rendering-level issues (e.g. self-intersecting or
+  // inverted-fill geometry) that can slip past a raw-coordinate check,
+  // by judging the actual visual result rather than the source data.
+  function fitAndPruneByRenderedArea(feats){
+    let current = feats;
+    for(let pass = 0; pass < 3; pass++){
+      const proj = d3.geoNaturalEarth1().fitExtent([[30,60],[width-30,height-30]], { type: 'FeatureCollection', features: current });
+      const p = d3.geoPath(proj);
+      const viewportArea = (width - 60) * (height - 90);
+      const areas = current.map(f => Math.abs(p.area(f)));
+      const sorted = [...areas].sort((a,b) => a - b);
+      const median = sorted[Math.floor(sorted.length / 2)] || 1;
+      const good = [], bad = [];
+      current.forEach((f, i) => {
+        const a = areas[i];
+        const oversized = a > viewportArea * 0.55 || (current.length > 1 && a > median * 25 && a > viewportArea * 0.15);
+        (oversized ? bad : good).push(f);
+      });
+      if(!bad.length || !good.length) return { projection: proj, path: p, features: current };
+      bad.forEach(f => console.warn('[Region Map] dropping oversized-render region:', (f.properties && f.properties.shapeName) || '(unnamed)'));
+      current = good;
+    }
+    const proj = d3.geoNaturalEarth1().fitExtent([[30,60],[width-30,height-30]], { type: 'FeatureCollection', features: current });
+    return { projection: proj, path: d3.geoPath(proj), features: current };
+  }
+
+  const pruned = fitAndPruneByRenderedArea(features);
+  features = pruned.features;
+  const localProjection = pruned.projection;
+  const localPath = pruned.path;
+
+  if(!features.length){
+    showFallback(countryName, 'No usable region boundaries were returned for this country.');
+    return;
+  }
   activeProjection = localProjection;
 
   svg.call(zoom.transform, d3.zoomIdentity);
