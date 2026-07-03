@@ -689,6 +689,14 @@ function fmtToolbar(taId, blockId, key) {
   </div>`;
 }
 
+function attachToggle(block) {
+  const on = !!block.data.attachBelow;
+  return `<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:${on?'#00c9a7':'var(--muted)'};cursor:pointer;margin-bottom:8px;user-select:none;">
+    <input type="checkbox" ${on?'checked':''} onchange="syncBlock(${block.id},'attachBelow',this.checked)" style="accent-color:#00c9a7;cursor:pointer;">
+    🔗 Attach to block below (no gap)
+  </label>`;
+}
+
 function renderUsers(users) {
   const tbody = document.getElementById('users-tbody');
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">No users found</td></tr>'; return; }
@@ -1109,16 +1117,16 @@ function renderBlock(block) {
       inner = `<div style="background:rgba(0,201,167,0.07);border-left:3px solid #00c9a7;border-radius:0 7px 7px 0;padding:10px 12px">
         <div style="font-size:10px;color:#00c9a7;font-weight:700;margin-bottom:6px;text-transform:uppercase">💡 Tip</div>
         ${fmtToolbar('ta-tip-'+block.id, block.id, 'text')}<textarea id="ta-tip-${block.id}" class="be" rows="3" placeholder="A specific tip or giveaway clue..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(0,201,167,0.2)">${escapeHtml(block.data.text||'')}</textarea>
-      </div>`;
+      </div>${attachToggle(block)}`;
       break;
     case 'warning':
       inner = `<div style="background:rgba(255,107,107,0.07);border-left:3px solid #ff6b6b;border-radius:0 7px 7px 0;padding:10px 12px">
         <div style="font-size:10px;color:#ff6b6b;font-weight:700;margin-bottom:6px;text-transform:uppercase">⚠️ Easy to Confuse With</div>
         ${fmtToolbar('ta-warn-'+block.id, block.id, 'text')}<textarea id="ta-warn-${block.id}" class="be" rows="3" placeholder="What country this looks like and the key visual difference..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(255,107,107,0.2)">${escapeHtml(block.data.text||'')}</textarea>
-      </div>`;
+      </div>${attachToggle(block)}`;
       break;
     case 'two-col':
-      inner = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      inner = `${attachToggle(block)}<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Left</div>
           ${fmtToolbar('ta-left-'+block.id, block.id, 'left')}<textarea id="ta-left-${block.id}" class="be" rows="5" placeholder="Left column..." oninput="syncBlock(${block.id},'left',this.value);autoResize(this)">${escapeHtml(block.data.left||'')}</textarea>
@@ -1133,6 +1141,7 @@ function renderBlock(block) {
       const imgW = block.data.imgWidth || '55';
       const mapSrc = block.data.mapSrc;
       inner = `
+        ${attachToggle(block)}
         <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
           <span style="font-size:12px;color:var(--muted);">Image width:</span>
           ${['25','33','40','50','60','70','80','90','100'].map(w => `<button onclick="syncBlock(${block.id},'imgWidth','${w}')" style="padding:3px 10px;border-radius:5px;border:1px solid ${imgW===w?'#00c9a7':'var(--border)'};background:${imgW===w?'rgba(0,201,167,0.15)':'var(--bg2)'};color:${imgW===w?'#00c9a7':'var(--muted)'};cursor:pointer;font-size:12px;">${w}%</button>`).join('')}
@@ -1542,7 +1551,9 @@ function updatePreview() {
     <div style="font-size:28px;font-weight:800;color:#e0e0f0;">${escapeHtml(country)}</div>
     <div style="font-size:13px;color:#5a5a7a;margin-top:2px;">GeoGuessr Country Meta Guide</div>
   </div>`;
-  editorBlocks.forEach(b => {
+  editorBlocks.forEach((b, bIdx) => {
+    const prevAttach = bIdx > 0 && editorBlocks[bIdx-1].data && editorBlocks[bIdx-1].data.attachBelow;
+    const nextAttach = b.data && b.data.attachBelow && bIdx < editorBlocks.length - 1;
     switch(b.type) {
       case 'heading':
         html += `<div class="prev-h2">${escapeHtml(b.data.text||'')}</div>`;
@@ -1554,22 +1565,29 @@ function updatePreview() {
         if (b.data.src) html += `<img class="prev-img" src="${b.data.src}">`;
         if (b.data.caption) html += `<div class="prev-cap">${escapeHtml(b.data.caption)}</div>`;
         break;
-      case 'tip':
-        html += `<div class="prev-tip"><div class="prev-tip-label">💡 Tip</div><div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div></div>`;
+      case 'tip': {
+        const rTR = prevAttach ? '0' : '10px', rBR = nextAttach ? '0' : '10px';
+        const mt = prevAttach ? '0' : '14px', mb = nextAttach ? '0' : '14px';
+        html += `<div class="prev-tip" style="border-radius:0 ${rTR} ${rBR} 0;margin:${mt} 0 ${mb};"><div class="prev-tip-label">💡 Tip</div><div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div></div>`;
         break;
-      case 'warning':
-        html += `<div class="prev-warn"><div class="prev-warn-label">⚠️ Easy to Confuse With</div><div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div></div>`;
+      }
+      case 'warning': {
+        const rTR = prevAttach ? '0' : '10px', rBR = nextAttach ? '0' : '10px';
+        const mt = prevAttach ? '0' : '14px', mb = nextAttach ? '0' : '14px';
+        html += `<div class="prev-warn" style="border-radius:0 ${rTR} ${rBR} 0;margin:${mt} 0 ${mb};"><div class="prev-warn-label">⚠️ Easy to Confuse With</div><div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div></div>`;
         break;
+      }
       case 'divider':
         html += `<hr style="border:none;border-top:1px solid #1e1e38;margin:20px 0;">`;
         break;
       case 'spacer':
         html += `<div style="height:${b.data.height||32}px;"></div>`;
         break;
-      case 'img-text':
+      case 'img-text': {
         const itW = b.data.imgWidth || '55';
         const itMapSrc = b.data.mapSrc && b.data.mapSrc !== '__uploading__' ? b.data.mapSrc : null;
-        html += `<div style="display:grid;grid-template-columns:${itW==='100'?'1fr':itW+'% 1fr'};gap:18px;align-items:start;margin:14px 0;">
+        const mt = prevAttach ? '0' : '14px', mb = nextAttach ? '0' : '14px';
+        html += `<div style="display:grid;grid-template-columns:${itW==='100'?'1fr':itW+'% 1fr'};gap:18px;align-items:start;margin:${mt} 0 ${mb};">
           <div>
             <div style="position:relative;">
               ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:auto;display:block;border-radius:8px;">` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
@@ -1579,9 +1597,13 @@ function updatePreview() {
           <div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div>
         </div>`;
         break;
-      case 'two-col':
-        html += `<div class="prev-2col"><div class="prev-2col-cell prev-p" style="margin:0">${mdToHtml(b.data.left||'')}</div><div class="prev-2col-cell prev-p" style="margin:0">${mdToHtml(b.data.right||'')}</div></div>`;
+      }
+      case 'two-col': {
+        const r = (prevAttach || nextAttach) ? (prevAttach && nextAttach ? '0' : prevAttach ? '0 0 10px 10px' : '10px 10px 0 0') : '10px';
+        const mt = prevAttach ? '0' : '12px', mb = nextAttach ? '0' : '12px';
+        html += `<div class="prev-2col" style="margin:${mt} 0 ${mb};"><div class="prev-2col-cell prev-p" style="margin:0;border-radius:${r};">${mdToHtml(b.data.left||'')}</div><div class="prev-2col-cell prev-p" style="margin:0;border-radius:${r};">${mdToHtml(b.data.right||'')}</div></div>`;
         break;
+      }
       case 'links':
         const litems = (b.data.items || []).filter(x => x.label);
         if (litems.length) {

@@ -562,7 +562,9 @@ async function showCountry(c) {
 function renderGuide(c, data) {
   // Block-based manual guide
   if (data.blocks && data.blocks.length) {
-    const html = data.blocks.map(block => {
+    const html = data.blocks.map((block, blockIdx, blockArr) => {
+      const prevAttach = blockIdx > 0 && blockArr[blockIdx-1].data && blockArr[blockIdx-1].data.attachBelow;
+      const nextAttach = block.data && block.data.attachBelow && blockIdx < blockArr.length - 1;
       switch(block.type) {
         case 'divider':
           return `<hr style="border:none;border-top:1px solid var(--border);margin:24px 0;">`;
@@ -578,14 +580,22 @@ function renderGuide(c, data) {
           return `<p style="color:#c0c0d8;line-height:1.8;font-size:15px;margin-bottom:16px;white-space:pre-wrap;">${mdToHtml(block.data.text||'')}</p>`;
         case 'image':
           return `<div style="margin:20px 0;">${block.data.src ? `<img src="${block.data.src}" style="width:100%;border-radius:12px;display:block;">` : ''}${block.data.caption ? `<div style="text-align:center;font-size:13px;color:var(--muted);margin-top:8px;">${block.data.caption}</div>` : ''}</div>`;
-        case 'tip':
-          return `<div style="background:rgba(0,201,167,0.08);border-left:4px solid #00c9a7;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;"><div style="font-size:12px;font-weight:700;color:#00c9a7;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">💡 Tip</div><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${mdToHtml(block.data.text||'')}</p></div>`;
-        case 'warning':
-          return `<div style="background:rgba(255,107,107,0.08);border-left:4px solid #ff6b6b;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;"><div style="font-size:12px;font-weight:700;color:#ff6b6b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">⚠️ Easy to Confuse With</div><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${mdToHtml(block.data.text||'')}</p></div>`;
-        case 'img-text':
+        case 'tip': {
+          const rTR = prevAttach ? '0' : '12px', rBR = nextAttach ? '0' : '12px';
+          const mt = prevAttach ? '0' : '16px', mb = nextAttach ? '0' : '16px';
+          return `<div style="background:rgba(0,201,167,0.08);border-left:4px solid #00c9a7;border-radius:0 ${rTR} ${rBR} 0;padding:16px 20px;margin:${mt} 0 ${mb};"><div style="font-size:12px;font-weight:700;color:#00c9a7;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">💡 Tip</div><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${mdToHtml(block.data.text||'')}</p></div>`;
+        }
+        case 'warning': {
+          const rTR = prevAttach ? '0' : '12px', rBR = nextAttach ? '0' : '12px';
+          const mt = prevAttach ? '0' : '16px', mb = nextAttach ? '0' : '16px';
+          return `<div style="background:rgba(255,107,107,0.08);border-left:4px solid #ff6b6b;border-radius:0 ${rTR} ${rBR} 0;padding:16px 20px;margin:${mt} 0 ${mb};"><div style="font-size:12px;font-weight:700;color:#ff6b6b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">⚠️ Easy to Confuse With</div><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${mdToHtml(block.data.text||'')}</p></div>`;
+        }
+        case 'img-text': {
           const itWidth = block.data.imgWidth || '55';
           const itMap = block.data.mapSrc && block.data.mapSrc !== '__uploading__' ? block.data.mapSrc : null;
-          return `<div style="display:grid;grid-template-columns:${itWidth==='100'?'1fr':itWidth+'% 1fr'};gap:24px;align-items:center;margin:20px 0;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;padding:20px;overflow:hidden;">
+          const rT = prevAttach ? '0' : '14px', rB = nextAttach ? '0' : '14px';
+          const mt = prevAttach ? '0' : '20px', mb = nextAttach ? '0' : '20px';
+          return `<div style="display:grid;grid-template-columns:${itWidth==='100'?'1fr':itWidth+'% 1fr'};gap:24px;align-items:center;margin:${mt} 0 ${mb};background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:${rT} ${rT} ${rB} ${rB};padding:20px;overflow:hidden;">
             <div>
               <div style="position:relative;">
                 ${block.data.src ? `<img src="${block.data.src}" style="width:100%;height:auto;display:block;border-radius:10px;">` : ''}
@@ -595,8 +605,12 @@ function renderGuide(c, data) {
             </div>
             <p style="color:#c0c0d8;line-height:1.85;font-size:15px;margin:0;white-space:pre-wrap;">${mdToHtml(block.data.text||'')}</p>
           </div>`;
-        case 'two-col':
-          return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:16px 0;"><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;"><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${mdToHtml(block.data.left||'')}</p></div><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;"><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${mdToHtml(block.data.right||'')}</p></div></div>`;
+        }
+        case 'two-col': {
+          const rT = prevAttach ? '0' : '12px', rB = nextAttach ? '0' : '12px';
+          const mt = prevAttach ? '0' : '16px', mb = nextAttach ? '0' : '16px';
+          return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:${mt} 0 ${mb};"><div style="background:var(--card);border:1px solid var(--border);border-radius:${rT} ${rT} ${rB} ${rB};padding:18px;"><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${mdToHtml(block.data.left||'')}</p></div><div style="background:var(--card);border:1px solid var(--border);border-radius:${rT} ${rT} ${rB} ${rB};padding:18px;"><p style="color:#c0c0d8;line-height:1.7;font-size:15px;margin:0;white-space:pre-wrap;">${mdToHtml(block.data.right||'')}</p></div></div>`;
+        }
         case 'links':
           const litems = (block.data.items || []).filter(x => x.label);
           if (!litems.length) return '';
