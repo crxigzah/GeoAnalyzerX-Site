@@ -785,6 +785,26 @@ function rawCoordExtent(geometry){
   return [minLon, minLat, maxLon, maxLat];
 }
 
+function flipAllRings(geom){
+  if(!geom) return;
+  if(geom.type === 'Polygon') geom.coordinates.forEach(r => r.reverse());
+  else if(geom.type === 'MultiPolygon') geom.coordinates.forEach(poly => poly.forEach(r => r.reverse()));
+}
+// A correctly-wound single administrative region should cover a tiny sliver
+// of the globe's surface (a fraction of a steradian). If our shoelace-based
+// rewind still leaves a feature covering more than half the sphere, the
+// winding is still backwards (our convention assumption didn't match this
+// data) — so just flip every ring outright and re-measure. This is a
+// self-verifying fix: it doesn't rely on guessing the "correct" convention,
+// it directly checks the actual resulting area and corrects if wrong.
+function fixInvertedArea(feature){
+  let a = Math.abs(d3.geoArea(feature));
+  if(a > 2 * Math.PI){
+    flipAllRings(feature.geometry);
+    const a2 = Math.abs(d3.geoArea(feature));
+    console.warn('[Region Map] corrected inverted-fill region:', (feature.properties && feature.properties.shapeName) || '(unnamed)', '— area', a.toFixed(3), '→', a2.toFixed(3), 'sr');
+  }
+}
 function ringSignedArea(ring){
   let sum = 0;
   for(let i = 0; i < ring.length - 1; i++){
@@ -819,7 +839,7 @@ function renderCountryView(countryName, geojson){
     .filter(f => f.geometry)
     .filter(f => !/antarc/i.test((f.properties && f.properties.shapeName) || ''));
 
-  features.forEach(f => rewindGeometry(f.geometry));
+  features.forEach(f => { rewindGeometry(f.geometry); fixInvertedArea(f); });
 
   // Defensive sanity filter: drop any feature that falls well outside this
   // country's real-world extent (known from the reliable world map data).
