@@ -657,6 +657,38 @@ function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// Lightweight markdown-style formatting: **bold** and *italic*. escapeHtml
+// runs first so any HTML a user types is neutralized, then only our own
+// <strong>/<em> tags get added on top — safe either way.
+function mdToHtml(s) {
+  let h = escapeHtml(s || '');
+  h = h.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
+  return h;
+}
+
+function wrapSelection(taId, blockId, key, marker) {
+  const ta = document.getElementById(taId);
+  if (!ta) return;
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const val = ta.value;
+  const selected = val.slice(start, end) || 'text';
+  const newVal = val.slice(0, start) + marker + selected + marker + val.slice(end);
+  ta.value = newVal;
+  syncBlock(blockId, key, newVal);
+  autoResize(ta);
+  const newStart = start + marker.length;
+  ta.focus();
+  ta.setSelectionRange(newStart, newStart + selected.length);
+}
+
+function fmtToolbar(taId, blockId, key) {
+  return `<div style="display:flex;gap:4px;margin-bottom:4px;">
+    <button type="button" onmousedown="event.preventDefault()" onclick="wrapSelection('${taId}',${blockId},'${key}','**')" title="Bold (**text**)" style="width:22px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;font-size:11px;font-weight:800;">B</button>
+    <button type="button" onmousedown="event.preventDefault()" onclick="wrapSelection('${taId}',${blockId},'${key}','*')" title="Italic (*text*)" style="width:22px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;font-size:11px;font-style:italic;">i</button>
+  </div>`;
+}
+
 function renderUsers(users) {
   const tbody = document.getElementById('users-tbody');
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">No users found</td></tr>'; return; }
@@ -1054,7 +1086,7 @@ function renderBlock(block) {
       inner = `<textarea class="be be-heading" rows="1" placeholder="Section heading..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>`;
       break;
     case 'text':
-      inner = `<textarea class="be" rows="6" placeholder="Write your guide content here. Describe what to look for, specific visual clues, regional differences, tips — anything you know about this country in GeoGuessr." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>`;
+      inner = `${fmtToolbar('ta-text-'+block.id, block.id, 'text')}<textarea id="ta-text-${block.id}" class="be" rows="6" placeholder="Write your guide content here. Describe what to look for, specific visual clues, regional differences, tips — anything you know about this country in GeoGuessr." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>`;
       break;
     case 'image':
       const imgSrc = block.data.src;
@@ -1076,43 +1108,42 @@ function renderBlock(block) {
     case 'tip':
       inner = `<div style="background:rgba(0,201,167,0.07);border-left:3px solid #00c9a7;border-radius:0 7px 7px 0;padding:10px 12px">
         <div style="font-size:10px;color:#00c9a7;font-weight:700;margin-bottom:6px;text-transform:uppercase">💡 Tip</div>
-        <textarea class="be" rows="3" placeholder="A specific tip or giveaway clue..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(0,201,167,0.2)">${escapeHtml(block.data.text||'')}</textarea>
+        ${fmtToolbar('ta-tip-'+block.id, block.id, 'text')}<textarea id="ta-tip-${block.id}" class="be" rows="3" placeholder="A specific tip or giveaway clue..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(0,201,167,0.2)">${escapeHtml(block.data.text||'')}</textarea>
       </div>`;
       break;
     case 'warning':
       inner = `<div style="background:rgba(255,107,107,0.07);border-left:3px solid #ff6b6b;border-radius:0 7px 7px 0;padding:10px 12px">
         <div style="font-size:10px;color:#ff6b6b;font-weight:700;margin-bottom:6px;text-transform:uppercase">⚠️ Easy to Confuse With</div>
-        <textarea class="be" rows="3" placeholder="What country this looks like and the key visual difference..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(255,107,107,0.2)">${escapeHtml(block.data.text||'')}</textarea>
+        ${fmtToolbar('ta-warn-'+block.id, block.id, 'text')}<textarea id="ta-warn-${block.id}" class="be" rows="3" placeholder="What country this looks like and the key visual difference..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(255,107,107,0.2)">${escapeHtml(block.data.text||'')}</textarea>
       </div>`;
       break;
     case 'two-col':
       inner = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Left</div>
-          <textarea class="be" rows="5" placeholder="Left column..." oninput="syncBlock(${block.id},'left',this.value);autoResize(this)">${escapeHtml(block.data.left||'')}</textarea>
+          ${fmtToolbar('ta-left-'+block.id, block.id, 'left')}<textarea id="ta-left-${block.id}" class="be" rows="5" placeholder="Left column..." oninput="syncBlock(${block.id},'left',this.value);autoResize(this)">${escapeHtml(block.data.left||'')}</textarea>
         </div>
         <div>
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Right</div>
-          <textarea class="be" rows="5" placeholder="Right column..." oninput="syncBlock(${block.id},'right',this.value);autoResize(this)">${escapeHtml(block.data.right||'')}</textarea>
+          ${fmtToolbar('ta-right-'+block.id, block.id, 'right')}<textarea id="ta-right-${block.id}" class="be" rows="5" placeholder="Right column..." oninput="syncBlock(${block.id},'right',this.value);autoResize(this)">${escapeHtml(block.data.right||'')}</textarea>
         </div>
       </div>`;
       break;
     case 'img-text':
-      const imgW = block.data.imgWidth || '40';
+      const imgW = block.data.imgWidth || '55';
       const mapSrc = block.data.mapSrc;
       inner = `
         <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
           <span style="font-size:12px;color:var(--muted);">Image width:</span>
-          ${['25','33','40','50'].map(w => `<button onclick="syncBlock(${block.id},'imgWidth','${w}')" style="padding:3px 10px;border-radius:5px;border:1px solid ${imgW===w?'#00c9a7':'var(--border)'};background:${imgW===w?'rgba(0,201,167,0.15)':'var(--bg2)'};color:${imgW===w?'#00c9a7':'var(--muted)'};cursor:pointer;font-size:12px;">${w}%</button>`).join('')}
+          ${['25','33','40','50','60','70','80','90','100'].map(w => `<button onclick="syncBlock(${block.id},'imgWidth','${w}')" style="padding:3px 10px;border-radius:5px;border:1px solid ${imgW===w?'#00c9a7':'var(--border)'};background:${imgW===w?'rgba(0,201,167,0.15)':'var(--bg2)'};color:${imgW===w?'#00c9a7':'var(--muted)'};cursor:pointer;font-size:12px;">${w}%</button>`).join('')}
         </div>
-        <div style="display:grid;grid-template-columns:${imgW}% 1fr;gap:14px;align-items:start;">
-          <div>
+        <div style="display:grid;grid-template-columns:${imgW==='100'?'1fr':imgW+'% 1fr'};gap:14px;align-items:start;">          <div>
             <div style="position:relative;">
               <div class="img-drop-zone" id="dropzone-${block.id}" onclick="document.getElementById('file-it-${block.id}').click()" ondrop="handleDrop(${block.id},event)" ondragover="event.preventDefault()">
                 <input type="file" id="file-it-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this)">
                 ${block.data.src === '__uploading__'
                   ? `<div style="padding:16px;color:#00c9a7;"><div style="width:22px;height:22px;border:2px solid #1e1e38;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 8px;"></div><div style="font-size:12px">Uploading...</div></div>`
-                  : block.data.src ? `<div style="position:relative;width:100%;height:380px;border-radius:6px;overflow:hidden;background:#0a0a14;"><img src="${block.data.src}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(18px) brightness(0.5);transform:scale(1.15);"><img src="${block.data.src}" style="position:relative;width:100%;height:100%;object-fit:contain;"></div>` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
+                  : block.data.src ? `<img src="${block.data.src}" style="width:100%;height:auto;display:block;border-radius:6px;">` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
               </div>
               <div class="map-badge-drop-zone" onclick="document.getElementById('file-map-${block.id}').click()" ondrop="handleDrop(${block.id},event,'mapSrc')" ondragover="event.preventDefault()"
                 style="position:absolute;bottom:14px;right:14px;width:110px;height:110px;border-radius:6px;overflow:hidden;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));">
@@ -1126,7 +1157,7 @@ function renderBlock(block) {
             <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:center;">${mapSrc && mapSrc !== '__uploading__' ? 'Click 🗺️ badge to replace' : 'Click 🗺️ to add a mini-map badge'}</div>
             <textarea class="be" rows="1" placeholder="Caption..." style="margin-top:6px;font-size:11px;" oninput="syncBlock(${block.id},'caption',this.value);autoResize(this)">${escapeHtml(block.data.caption||'')}</textarea>
           </div>
-          <textarea class="be" rows="8" placeholder="Text to the right of the image..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>
+          <div>${fmtToolbar('ta-it-'+block.id, block.id, 'text')}<textarea id="ta-it-${block.id}" class="be" rows="8" placeholder="Text to the right of the image..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea></div>
         </div>`;
       break;
     case 'links':
@@ -1517,17 +1548,17 @@ function updatePreview() {
         html += `<div class="prev-h2">${escapeHtml(b.data.text||'')}</div>`;
         break;
       case 'text':
-        if (b.data.text) html += `<div class="prev-p">${escapeHtml(b.data.text)}</div>`;
+        if (b.data.text) html += `<div class="prev-p">${mdToHtml(b.data.text)}</div>`;
         break;
       case 'image':
         if (b.data.src) html += `<img class="prev-img" src="${b.data.src}">`;
         if (b.data.caption) html += `<div class="prev-cap">${escapeHtml(b.data.caption)}</div>`;
         break;
       case 'tip':
-        html += `<div class="prev-tip"><div class="prev-tip-label">💡 Tip</div><div class="prev-p" style="margin:0">${escapeHtml(b.data.text||'')}</div></div>`;
+        html += `<div class="prev-tip"><div class="prev-tip-label">💡 Tip</div><div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div></div>`;
         break;
       case 'warning':
-        html += `<div class="prev-warn"><div class="prev-warn-label">⚠️ Easy to Confuse With</div><div class="prev-p" style="margin:0">${escapeHtml(b.data.text||'')}</div></div>`;
+        html += `<div class="prev-warn"><div class="prev-warn-label">⚠️ Easy to Confuse With</div><div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div></div>`;
         break;
       case 'divider':
         html += `<hr style="border:none;border-top:1px solid #1e1e38;margin:20px 0;">`;
@@ -1536,20 +1567,20 @@ function updatePreview() {
         html += `<div style="height:${b.data.height||32}px;"></div>`;
         break;
       case 'img-text':
-        const itW = b.data.imgWidth || '40';
+        const itW = b.data.imgWidth || '55';
         const itMapSrc = b.data.mapSrc && b.data.mapSrc !== '__uploading__' ? b.data.mapSrc : null;
-        html += `<div style="display:grid;grid-template-columns:${itW}% 1fr;gap:18px;align-items:start;margin:14px 0;">
+        html += `<div style="display:grid;grid-template-columns:${itW==='100'?'1fr':itW+'% 1fr'};gap:18px;align-items:start;margin:14px 0;">
           <div>
             <div style="position:relative;">
-              ${b.data.src ? `<div style="position:relative;width:100%;height:380px;border-radius:8px;overflow:hidden;background:#0a0a14;"><img src="${b.data.src}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(18px) brightness(0.5);transform:scale(1.15);"><img src="${b.data.src}" style="position:relative;width:100%;height:100%;object-fit:contain;"></div>` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
+              ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:auto;display:block;border-radius:8px;">` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
               ${itMapSrc ? `<div style="position:absolute;bottom:14px;right:14px;width:110px;height:110px;border-radius:6px;overflow:hidden;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));"><img src="${itMapSrc}" style="width:100%;height:100%;object-fit:contain;"></div>` : ''}
             </div>
           ${b.data.caption ? `<div style="text-align:center;font-size:11px;color:#5a5a7a;margin-top:4px;">${escapeHtml(b.data.caption)}</div>` : ''}</div>
-          <div class="prev-p" style="margin:0">${escapeHtml(b.data.text||'')}</div>
+          <div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div>
         </div>`;
         break;
       case 'two-col':
-        html += `<div class="prev-2col"><div class="prev-2col-cell prev-p" style="margin:0">${escapeHtml(b.data.left||'')}</div><div class="prev-2col-cell prev-p" style="margin:0">${escapeHtml(b.data.right||'')}</div></div>`;
+        html += `<div class="prev-2col"><div class="prev-2col-cell prev-p" style="margin:0">${mdToHtml(b.data.left||'')}</div><div class="prev-2col-cell prev-p" style="margin:0">${mdToHtml(b.data.right||'')}</div></div>`;
         break;
       case 'links':
         const litems = (b.data.items || []).filter(x => x.label);
