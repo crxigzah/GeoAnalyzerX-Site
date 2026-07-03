@@ -596,7 +596,7 @@ function renderGuide(c, data) {
           const itMapSize = block.data.mapBadgeSize || '110';
           const rT = prevAttach ? '0' : '14px', rB = nextAttach ? '0' : '14px';
           const mt = prevAttach ? '0' : '20px', mb = nextAttach ? '0' : '20px';
-          return `<div style="display:grid;grid-template-columns:${itWidth==='100'?'1fr':itWidth+'% 1fr'};gap:24px;align-items:center;margin:${mt} 0 ${mb};background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:${rT} ${rT} ${rB} ${rB};padding:20px;overflow:hidden;">
+          return `<div style="display:grid;grid-template-columns:${itWidth==='100'?'1fr':itWidth+'% 1fr'};gap:24px;align-items:start;margin:${mt} 0 ${mb};background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:${rT} ${rT} ${rB} ${rB};padding:20px;overflow:hidden;">
             <div>
               <div style="position:relative;">
                 ${block.data.src ? `<img src="${block.data.src}" style="width:100%;height:auto;display:block;border-radius:10px;">` : ''}
@@ -643,7 +643,7 @@ function renderGuide(c, data) {
           if (!navBtns.length) return '';
           const btns = navBtns.map((label, i) => {
             const a = label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-            return `<button onclick="document.getElementById('${a}')?.scrollIntoView({behavior:'smooth'})" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#c0c0d8;padding:10px 22px;border-radius:30px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;letter-spacing:.3px;backdrop-filter:blur(4px);" onmouseover="this.style.background='rgba(0,201,167,0.15)';this.style.borderColor='rgba(0,201,167,0.4)';this.style.color='#00c9a7'" onmouseout="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='#c0c0d8'">${label}</button>`;
+            return `<button onclick="document.getElementById('${a}')?.scrollIntoView({behavior:'smooth'})" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#c0c0d8;padding:13px 28px;border-radius:30px;cursor:pointer;font-size:15px;font-weight:700;transition:all .2s;letter-spacing:.3px;backdrop-filter:blur(4px);" onmouseover="this.style.background='rgba(0,201,167,0.15)';this.style.borderColor='rgba(0,201,167,0.4)';this.style.color='#00c9a7'" onmouseout="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='#c0c0d8'">${label}</button>`;
           }).join('');
           return `<div style="display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 32px;">${btns}</div>`;
         default:
