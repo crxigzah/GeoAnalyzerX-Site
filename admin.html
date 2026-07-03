@@ -1140,11 +1140,16 @@ function renderBlock(block) {
     case 'img-text':
       const imgW = block.data.imgWidth || '55';
       const mapSrc = block.data.mapSrc;
+      const mapBadgeSize = block.data.mapBadgeSize || '110';
       inner = `
         ${attachToggle(block)}
         <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
           <span style="font-size:12px;color:var(--muted);">Image width:</span>
           ${['25','33','40','50','60','70','80','90','100'].map(w => `<button onclick="syncBlock(${block.id},'imgWidth','${w}')" style="padding:3px 10px;border-radius:5px;border:1px solid ${imgW===w?'#00c9a7':'var(--border)'};background:${imgW===w?'rgba(0,201,167,0.15)':'var(--bg2)'};color:${imgW===w?'#00c9a7':'var(--muted)'};cursor:pointer;font-size:12px;">${w}%</button>`).join('')}
+        </div>
+        <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:12px;color:var(--muted);">Map badge size:</span>
+          ${['60','80','100','110','130','150','180'].map(s => `<button onclick="syncBlock(${block.id},'mapBadgeSize','${s}')" style="padding:3px 10px;border-radius:5px;border:1px solid ${mapBadgeSize===s?'#00c9a7':'var(--border)'};background:${mapBadgeSize===s?'rgba(0,201,167,0.15)':'var(--bg2)'};color:${mapBadgeSize===s?'#00c9a7':'var(--muted)'};cursor:pointer;font-size:12px;">${s}px</button>`).join('')}
         </div>
         <div style="display:grid;grid-template-columns:${imgW==='100'?'1fr':imgW+'% 1fr'};gap:14px;align-items:start;">          <div>
             <div style="position:relative;">
@@ -1155,13 +1160,13 @@ function renderBlock(block) {
                   : block.data.src ? `<img src="${block.data.src}" style="width:100%;height:auto;display:block;border-radius:6px;">` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
               </div>
               <div class="map-badge-drop-zone" onclick="document.getElementById('file-map-${block.id}').click()" ondrop="handleDrop(${block.id},event,'mapSrc')" ondragover="event.preventDefault()"
-                style="position:absolute;bottom:14px;right:14px;width:110px;height:110px;border-radius:6px;overflow:hidden;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));">
+                style="position:absolute;bottom:14px;right:14px;width:${mapBadgeSize}px;height:${mapBadgeSize}px;border-radius:6px;overflow:hidden;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));">
                 <input type="file" id="file-map-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this,'mapSrc')">
                 ${mapSrc === '__uploading__'
                   ? `<div style="width:14px;height:14px;border:2px solid #ddd;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;"></div>`
                   : mapSrc ? `<img src="${mapSrc}" style="width:100%;height:100%;object-fit:contain;">` : `<span style="font-size:18px;">🗺️</span>`}
               </div>
-              ${mapSrc && mapSrc !== '__uploading__' ? `<button onclick="event.stopPropagation();syncBlock(${block.id},'mapSrc','')" title="Remove map badge" style="position:absolute;bottom:118px;right:12px;width:20px;height:20px;border-radius:50%;background:#1a1a2e;border:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1;cursor:pointer;">✕</button>` : ''}
+              ${mapSrc && mapSrc !== '__uploading__' ? `<button onclick="event.stopPropagation();syncBlock(${block.id},'mapSrc','')" title="Remove map badge" style="position:absolute;bottom:${parseInt(mapBadgeSize)+22}px;right:12px;width:20px;height:20px;border-radius:50%;background:#1a1a2e;border:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1;cursor:pointer;">✕</button>` : ''}
             </div>
             <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:center;">${mapSrc && mapSrc !== '__uploading__' ? 'Click 🗺️ badge to replace' : 'Click 🗺️ to add a mini-map badge'}</div>
             <textarea class="be" rows="1" placeholder="Caption..." style="margin-top:6px;font-size:11px;" oninput="syncBlock(${block.id},'caption',this.value);autoResize(this)">${escapeHtml(block.data.caption||'')}</textarea>
