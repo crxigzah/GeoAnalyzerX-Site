@@ -724,6 +724,7 @@ function renderUsers(users) {
           <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="setPhoneNumber(${u.id})">${u.phone_number ? '✎ Edit' : '+ Add'}</button>
           ${u.phone_number && !u.phone_verified ? `<button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resendPhoneVerification(${u.id})">📱 Resend</button>` : ''}
           ${u.phone_number ? `<button class="btn btn-sm" style="background:${u.phone_verified ? '#1a1a2e' : 'rgba(0,201,167,.15)'};border:1px solid ${u.phone_verified ? '#2a2a3e' : 'rgba(0,201,167,.3)'};color:${u.phone_verified ? '#8888aa' : '#00c9a7'};" onclick="setPhoneVerified(${u.id},${!u.phone_verified})">${u.phone_verified ? 'Mark Unverified' : '✓ Mark Verified'}</button>` : ''}
+          ${u.phone_number ? `<button class="btn btn-sm btn-danger" onclick="resetPhone(${u.id})">↺ Reset</button>` : ''}
         </div>
       </td>
       <td>${u.is_admin
@@ -858,6 +859,26 @@ function setPhoneVerified(userId, verified) {
       toast(`✓ ${username}'s phone marked ${verified ? 'verified' : 'unverified'}`);
       const u = allUsers.find(u => u.id === userId);
       if (u) u.phone_verified = verified;
+      renderUsers(allUsers.filter(u => {
+        const q = document.getElementById('user-search').value.toLowerCase();
+        return !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+      }));
+    } else { toast('Error: ' + (d.error || 'failed'), true); }
+  });
+}
+
+function resetPhone(userId) {
+  const username = usernameOf(userId);
+  if (!confirm(`Reset ${username}'s phone? This removes their number entirely and resets verification — they'll need to add and verify a new one next time they log in.`)) return;
+  fetch(`${API}/admin/reset_phone`, {
+    method: 'POST',
+    headers: adminHeaders(),
+    body: JSON.stringify({user_id: userId})
+  }).then(r => r.json()).then(d => {
+    if (d.success) {
+      toast(`✓ ${username}'s phone reset`);
+      const u = allUsers.find(u => u.id === userId);
+      if (u) { u.phone_number = null; u.phone_verified = false; }
       renderUsers(allUsers.filter(u => {
         const q = document.getElementById('user-search').value.toLowerCase();
         return !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
