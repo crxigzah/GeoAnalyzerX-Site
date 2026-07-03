@@ -1112,7 +1112,7 @@ function renderBlock(block) {
                 <input type="file" id="file-it-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this)">
                 ${block.data.src === '__uploading__'
                   ? `<div style="padding:16px;color:#00c9a7;"><div style="width:22px;height:22px;border:2px solid #1e1e38;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 8px;"></div><div style="font-size:12px">Uploading...</div></div>`
-                  : block.data.src ? `<img src="${block.data.src}" style="width:100%;height:200px;object-fit:cover;object-position:center;border-radius:6px;">` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
+                  : block.data.src ? `<img src="${block.data.src}" style="width:100%;height:200px;object-fit:contain;object-position:center;background:#0a0a14;border-radius:6px;">` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
               </div>
               <div class="map-badge-drop-zone" onclick="document.getElementById('file-map-${block.id}').click()" ondrop="handleDrop(${block.id},event,'mapSrc')" ondragover="event.preventDefault()"
                 style="position:absolute;bottom:8px;right:8px;width:64px;height:64px;border-radius:6px;overflow:hidden;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));">
@@ -1541,7 +1541,7 @@ function updatePreview() {
         html += `<div style="display:grid;grid-template-columns:${itW}% 1fr;gap:18px;align-items:start;margin:14px 0;">
           <div>
             <div style="position:relative;">
-              ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:200px;object-fit:cover;object-position:center;border-radius:8px;display:block;">` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
+              ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:200px;object-fit:contain;object-position:center;background:#0a0a14;border-radius:8px;display:block;">` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
               ${itMapSrc ? `<div style="position:absolute;bottom:8px;right:8px;width:64px;height:64px;border-radius:6px;overflow:hidden;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));"><img src="${itMapSrc}" style="width:100%;height:100%;object-fit:contain;"></div>` : ''}
             </div>
           ${b.data.caption ? `<div style="text-align:center;font-size:11px;color:#5a5a7a;margin-top:4px;">${escapeHtml(b.data.caption)}</div>` : ''}</div>
