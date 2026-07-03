@@ -347,8 +347,8 @@ function flagImg(iso, size=20) {
 const svg = d3.select('#world-map');
 const mapGroup = svg.append('g').attr('id', 'map-g');
 const projection = d3.geoNaturalEarth1()
-  .scale(200)
-  .translate([500, 280]);
+  .scale(165)
+  .translate([500, 270]);
 const path = d3.geoPath().projection(projection);
 
 // Zoom behaviour
