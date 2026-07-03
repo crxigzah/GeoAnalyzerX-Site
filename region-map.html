@@ -810,7 +810,18 @@ function renderCountryView(countryName, geojson){
 
   let features = (geojson.features || [])
     .filter(f => f.geometry)
-    .filter(f => !/antarc/i.test((f.properties && f.properties.shapeName) || ''));
+    .filter(f => {
+      const nm = (f.properties && f.properties.shapeName) || '';
+      if(/antarc/i.test(nm)) return false;
+      // Distant offshore territories included in some countries' ADM1 sets
+      // (e.g. US insular territories) sit thousands of km from the main
+      // landmass. Including them forces the map to zoom out so far that the
+      // country's actual mainland gets squeezed into a tiny corner, so they
+      // are excluded from this reference-map view.
+      if(/puerto rico|guam\b|american samoa|northern mariana|u\.?s\.? virgin islands|^virgin islands/i.test(nm)) return false;
+      if(normalize(nm) === normalize(countryName)) return false; // self-referential duplicate entry
+      return true;
+    });
 
   features.forEach(f => { rewindGeometry(f.geometry); fixInvertedArea(f); });
 
@@ -888,13 +899,61 @@ function renderCountryView(countryName, geojson){
     .attr('d', localPath);
 
   // Show every region's label immediately — no click/selection needed.
-  features.forEach((d, i) => {
+  // With densely-divided countries (e.g. Spain's 17 communities, Indonesia's
+  // 30+ provinces) labels placed at raw centroids overlap heavily, so we
+  // run a lightweight force-based decluttering pass: labels gently repel
+  // each other when they overlap, while a weak spring pulls each one back
+  // toward its true location. A thin leader line connects the label back
+  // to its region if it had to move.
+  const CHAR_W = 5.4, LABEL_H = 11; // approx. monospace metrics at 9px
+  const fontScale = features.length > 40 ? 0.8 : features.length > 22 ? 0.9 : 1;
+
+  const labelData = features.map((d, i) => {
     const nm = subdivisionName(d.properties, i);
-    const centroid = localPath.centroid(d);
-    const gLabel = labelLayer.append('g').attr('data-id', 'sub-' + i)
-      .attr('transform', `translate(${centroid[0]},${centroid[1]})`);
-    gLabel.append('circle').attr('r', 2.5);
-    gLabel.append('text').attr('x', 6).attr('y', 3).text(nm);
+    const [ox, oy] = localPath.centroid(d);
+    const w = nm.length * CHAR_W * fontScale + 10;
+    const h = LABEL_H * fontScale;
+    return { id: 'sub-' + i, name: nm, ox, oy, x: ox, y: oy, w, h };
+  });
+
+  for(let iter = 0; iter < 300; iter++){
+    for(const a of labelData){
+      a.x += (a.ox - a.x) * 0.015;
+      a.y += (a.oy - a.y) * 0.015;
+    }
+    for(let i = 0; i < labelData.length; i++){
+      for(let j = i + 1; j < labelData.length; j++){
+        const a = labelData[i], b = labelData[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const overlapX = (a.w + b.w) / 2 + 2 - Math.abs(dx);
+        const overlapY = (a.h + b.h) / 2 + 1 - Math.abs(dy);
+        if(overlapX > 0 && overlapY > 0){
+          if(overlapX < overlapY){
+            const push = overlapX / 2 * 1.1 * (dx < 0 ? -1 : 1) || 0.5;
+            a.x -= push; b.x += push;
+          } else {
+            const push = overlapY / 2 * 1.1 * (dy < 0 ? -1 : 1) || 0.5;
+            a.y -= push; b.y += push;
+          }
+        }
+      }
+    }
+  }
+
+  labelData.forEach(l => {
+    const gLabel = labelLayer.append('g').attr('data-id', l.id);
+    const moved = Math.hypot(l.x - l.ox, l.y - l.oy) > 6;
+    if(moved){
+      gLabel.append('line')
+        .attr('x1', l.ox).attr('y1', l.oy)
+        .attr('x2', l.x).attr('y2', l.y)
+        .attr('stroke', 'var(--muted-2)').attr('stroke-width', 0.6);
+    }
+    gLabel.append('circle').attr('cx', l.ox).attr('cy', l.oy).attr('r', 2.5);
+    gLabel.append('text')
+      .attr('x', l.x + 6).attr('y', l.y + 3)
+      .attr('font-size', 9 * fontScale)
+      .text(l.name);
   });
 
   document.getElementById('breadcrumb').style.display = 'flex';
