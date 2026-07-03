@@ -1112,16 +1112,16 @@ function renderBlock(block) {
                 <input type="file" id="file-it-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this)">
                 ${block.data.src === '__uploading__'
                   ? `<div style="padding:16px;color:#00c9a7;"><div style="width:22px;height:22px;border:2px solid #1e1e38;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 8px;"></div><div style="font-size:12px">Uploading...</div></div>`
-                  : block.data.src ? `<img src="${block.data.src}" style="width:100%;height:200px;object-fit:contain;object-position:center;background:#0a0a14;border-radius:6px;">` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
+                  : block.data.src ? `<div style="position:relative;width:100%;height:380px;border-radius:6px;overflow:hidden;background:#0a0a14;"><img src="${block.data.src}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(18px) brightness(0.5);transform:scale(1.15);"><img src="${block.data.src}" style="position:relative;width:100%;height:100%;object-fit:contain;"></div>` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
               </div>
               <div class="map-badge-drop-zone" onclick="document.getElementById('file-map-${block.id}').click()" ondrop="handleDrop(${block.id},event,'mapSrc')" ondragover="event.preventDefault()"
-                style="position:absolute;bottom:8px;right:8px;width:64px;height:64px;border-radius:6px;overflow:hidden;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));">
+                style="position:absolute;bottom:14px;right:14px;width:110px;height:110px;border-radius:6px;overflow:hidden;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));">
                 <input type="file" id="file-map-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this,'mapSrc')">
                 ${mapSrc === '__uploading__'
                   ? `<div style="width:14px;height:14px;border:2px solid #ddd;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;"></div>`
                   : mapSrc ? `<img src="${mapSrc}" style="width:100%;height:100%;object-fit:contain;">` : `<span style="font-size:18px;">🗺️</span>`}
               </div>
-              ${mapSrc && mapSrc !== '__uploading__' ? `<button onclick="event.stopPropagation();syncBlock(${block.id},'mapSrc','')" title="Remove map badge" style="position:absolute;bottom:66px;right:6px;width:18px;height:18px;border-radius:50%;background:#1a1a2e;border:1px solid var(--border);color:var(--muted);font-size:11px;line-height:1;cursor:pointer;">✕</button>` : ''}
+              ${mapSrc && mapSrc !== '__uploading__' ? `<button onclick="event.stopPropagation();syncBlock(${block.id},'mapSrc','')" title="Remove map badge" style="position:absolute;bottom:118px;right:12px;width:20px;height:20px;border-radius:50%;background:#1a1a2e;border:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1;cursor:pointer;">✕</button>` : ''}
             </div>
             <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:center;">${mapSrc && mapSrc !== '__uploading__' ? 'Click 🗺️ badge to replace' : 'Click 🗺️ to add a mini-map badge'}</div>
             <textarea class="be" rows="1" placeholder="Caption..." style="margin-top:6px;font-size:11px;" oninput="syncBlock(${block.id},'caption',this.value);autoResize(this)">${escapeHtml(block.data.caption||'')}</textarea>
@@ -1541,8 +1541,8 @@ function updatePreview() {
         html += `<div style="display:grid;grid-template-columns:${itW}% 1fr;gap:18px;align-items:start;margin:14px 0;">
           <div>
             <div style="position:relative;">
-              ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:200px;object-fit:contain;object-position:center;background:#0a0a14;border-radius:8px;display:block;">` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
-              ${itMapSrc ? `<div style="position:absolute;bottom:8px;right:8px;width:64px;height:64px;border-radius:6px;overflow:hidden;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));"><img src="${itMapSrc}" style="width:100%;height:100%;object-fit:contain;"></div>` : ''}
+              ${b.data.src ? `<div style="position:relative;width:100%;height:380px;border-radius:8px;overflow:hidden;background:#0a0a14;"><img src="${b.data.src}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(18px) brightness(0.5);transform:scale(1.15);"><img src="${b.data.src}" style="position:relative;width:100%;height:100%;object-fit:contain;"></div>` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
+              ${itMapSrc ? `<div style="position:absolute;bottom:14px;right:14px;width:110px;height:110px;border-radius:6px;overflow:hidden;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));"><img src="${itMapSrc}" style="width:100%;height:100%;object-fit:contain;"></div>` : ''}
             </div>
           ${b.data.caption ? `<div style="text-align:center;font-size:11px;color:#5a5a7a;margin-top:4px;">${escapeHtml(b.data.caption)}</div>` : ''}</div>
           <div class="prev-p" style="margin:0">${escapeHtml(b.data.text||'')}</div>
