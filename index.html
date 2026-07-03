@@ -1154,7 +1154,10 @@ async function checkAuth() {
   try {
     const res  = await fetch(API + '/auth/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) });
     const data = await res.json();
-    if (data.valid) showDashboard(data.user, token);
+    if (data.valid) {
+      localStorage.setItem('gax_user', JSON.stringify(data.user));
+      showDashboard(data.user, token);
+    }
     else localStorage.clear();
   } catch(e) {
     // API offline show cached user if available
@@ -1614,6 +1617,19 @@ function showAccountSettings() {
         <label style="color:#8888aa;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">EMAIL</label>
         <input type="email" value="${user.email||''}" disabled style="width:100%;box-sizing:border-box;background:#0d0d18;border:1px solid #1e1e35;color:#5a5a7a;padding:11px 14px;border-radius:10px;font-size:14px;cursor:not-allowed;"/>
       </div>
+
+      ${user.phone_number ? `
+      <!-- Phone Number (readonly) -->
+      <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #1e1e35;">
+        <label style="color:#8888aa;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">PHONE NUMBER</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="tel" value="${user.phone_number}" disabled style="flex:1;box-sizing:border-box;background:#0d0d18;border:1px solid #1e1e35;color:#5a5a7a;padding:11px 14px;border-radius:10px;font-size:14px;cursor:not-allowed;"/>
+          ${user.phone_verified
+            ? `<span style="background:rgba(0,201,167,0.12);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;white-space:nowrap;">✓ Verified</span>`
+            : `<span style="background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;white-space:nowrap;">✗ Unverified</span>`}
+        </div>
+      </div>
+      ` : ''}
 
       <!-- Change Password -->
       <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #1e1e35;">
