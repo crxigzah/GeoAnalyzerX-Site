@@ -831,7 +831,7 @@ function drillIntoCountry(name){
   }
 
   showLoading(`Loading ${name} regions…`);
-  const url = `https://raw.githubusercontent.com/wmgeolab/geoBoundaries/main/releaseData/gbOpen/${iso3}/ADM1/geoBoundaries-${iso3}-ADM1_simplified.geojson`;
+  const url = `https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/releaseData/gbOpen/${iso3}/ADM1/geoBoundaries-${iso3}-ADM1_simplified.geojson`;
 
   fetch(url)
     .then(res => { if(!res.ok) throw new Error('not found'); return res.json(); })
