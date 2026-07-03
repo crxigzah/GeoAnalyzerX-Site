@@ -143,8 +143,8 @@
       </div>
       <div style="overflow-x:auto">
         <table>
-          <thead><tr><th>Username</th><th>Email</th><th>Tier</th><th>Verified</th><th>Admin</th><th>Signed Up</th><th>Last Login</th><th>Actions</th></tr></thead>
-          <tbody id="users-tbody"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody>
+          <thead><tr><th>Username</th><th>Email</th><th>Tier</th><th>Verified</th><th>Phone</th><th>Admin</th><th>Signed Up</th><th>Last Login</th><th>Actions</th></tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="9" class="empty">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -699,7 +699,7 @@ function attachToggle(block) {
 
 function renderUsers(users) {
   const tbody = document.getElementById('users-tbody');
-  if (!users.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">No users found</td></tr>'; return; }
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">No users found</td></tr>'; return; }
   tbody.innerHTML = users.map(u => {
     const isBanned = u.banned_until && new Date(u.banned_until) > new Date();
     const isPermaBanned = isBanned && (new Date(u.banned_until) - new Date()) > 1000*60*60*24*365;
@@ -713,6 +713,19 @@ function renderUsers(users) {
       <td>${u.email_verified
             ? `<span class="badge badge-free">✓ Verified</span>`
             : `<span class="badge badge-banned">✗ Unverified</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resendVerification(${u.id})">✉ Resend</button>`}</td>
+      <td>
+        <div style="font-size:12px;color:#8888aa;margin-bottom:4px;">${u.phone_number ? escapeHtml(u.phone_number) : '<em>none set</em>'}</div>
+        ${u.phone_number
+          ? (u.phone_verified
+              ? `<span class="badge badge-free">✓ Verified</span>`
+              : `<span class="badge badge-banned">✗ Unverified</span>`)
+          : ''}
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+          <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="setPhoneNumber(${u.id})">${u.phone_number ? '✎ Edit' : '+ Add'}</button>
+          ${u.phone_number && !u.phone_verified ? `<button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="resendPhoneVerification(${u.id})">📱 Resend</button>` : ''}
+          ${u.phone_number ? `<button class="btn btn-sm" style="background:${u.phone_verified ? '#1a1a2e' : 'rgba(0,201,167,.15)'};border:1px solid ${u.phone_verified ? '#2a2a3e' : 'rgba(0,201,167,.3)'};color:${u.phone_verified ? '#8888aa' : '#00c9a7'};" onclick="setPhoneVerified(${u.id},${!u.phone_verified})">${u.phone_verified ? 'Mark Unverified' : '✓ Mark Verified'}</button>` : ''}
+        </div>
+      </td>
       <td>${u.is_admin
             ? `<span class="badge badge-pro">★ Admin</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;" onclick="setAdmin(${u.id},false)">Demote</button>`
             : `<button class="btn btn-sm btn-purple" onclick="setAdmin(${u.id},true)">Make Admin</button>`}</td>
@@ -818,6 +831,63 @@ function resendVerification(userId) {
     body: JSON.stringify({user_id: userId})
   }).then(r => r.json()).then(d => {
     toast(d.success ? `✓ Verification code resent to ${username}` : 'Error: ' + (d.error || 'failed'), !d.success);
+  });
+}
+
+function resendPhoneVerification(userId) {
+  const username = usernameOf(userId);
+  if (!confirm(`Resend SMS verification code to ${username}?`)) return;
+  fetch(`${API}/admin/resend_phone_verification`, {
+    method: 'POST',
+    headers: adminHeaders(),
+    body: JSON.stringify({user_id: userId})
+  }).then(r => r.json()).then(d => {
+    toast(d.success ? `✓ SMS code resent to ${username}` : 'Error: ' + (d.error || 'failed'), !d.success);
+  });
+}
+
+function setPhoneVerified(userId, verified) {
+  const username = usernameOf(userId);
+  if (!confirm(`Mark ${username}'s phone as ${verified ? 'verified' : 'unverified'}?`)) return;
+  fetch(`${API}/admin/set_phone_verified`, {
+    method: 'POST',
+    headers: adminHeaders(),
+    body: JSON.stringify({user_id: userId, verified})
+  }).then(r => r.json()).then(d => {
+    if (d.success) {
+      toast(`✓ ${username}'s phone marked ${verified ? 'verified' : 'unverified'}`);
+      const u = allUsers.find(u => u.id === userId);
+      if (u) u.phone_verified = verified;
+      renderUsers(allUsers.filter(u => {
+        const q = document.getElementById('user-search').value.toLowerCase();
+        return !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+      }));
+    } else { toast('Error: ' + (d.error || 'failed'), true); }
+  });
+}
+
+function setPhoneNumber(userId) {
+  const username = usernameOf(userId);
+  const u = allUsers.find(u => u.id === userId);
+  const current = (u && u.phone_number) || '';
+  const phone = prompt(`Phone number for ${username} (international format, e.g. +61412345678):`, current);
+  if (phone === null) return; // cancelled
+  const trimmed = phone.trim();
+  if (!trimmed) return;
+  const markVerified = confirm(`Mark this number as already verified? (OK = yes, Cancel = no — they'll need to verify via SMS)`);
+  fetch(`${API}/admin/set_phone_number`, {
+    method: 'POST',
+    headers: adminHeaders(),
+    body: JSON.stringify({user_id: userId, phone_number: trimmed, verified: markVerified})
+  }).then(r => r.json()).then(d => {
+    if (d.success) {
+      toast(`✓ Phone number set for ${username}`);
+      if (u) { u.phone_number = d.phone_number; u.phone_verified = d.phone_verified; }
+      renderUsers(allUsers.filter(u => {
+        const q = document.getElementById('user-search').value.toLowerCase();
+        return !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+      }));
+    } else { toast('Error: ' + (d.error || 'failed'), true); }
   });
 }
 
