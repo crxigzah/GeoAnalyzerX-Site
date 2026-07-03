@@ -547,7 +547,7 @@ const path = d3.geoPath(projection);
 let activeProjection = projection;
 
 const g = svg.append('g');
-g.append('path').attr('class','sphere').attr('d', path({type:'Sphere'}));
+g.append('path').attr('class','sphere').attr('id','sphereBg').attr('d', path({type:'Sphere'}));
 const countryLayer = g.append('g').attr('class','country-layer');
 const labelLayer = g.append('g').attr('class','label-layer');
 
@@ -697,6 +697,7 @@ function worldCountryName(d){
 }
 
 function renderWorldMap(){
+  document.getElementById('sphereBg').style.display = '';
   countryLayer.selectAll('*').remove();
   labelLayer.selectAll('*').remove();
 
@@ -819,11 +820,33 @@ function renderCountryView(countryName, geojson){
       // country's actual mainland gets squeezed into a tiny corner, so they
       // are excluded from this reference-map view.
       if(/puerto rico|guam\b|american samoa|northern mariana|u\.?s\.? virgin islands|^virgin islands/i.test(nm)) return false;
-      if(normalize(nm) === normalize(countryName)) return false; // self-referential duplicate entry
       return true;
     });
 
   features.forEach(f => { rewindGeometry(f.geometry); fixInvertedArea(f); });
+
+  // Some datasets include a stray "whole country" entry alongside the real
+  // subdivisions (e.g. a region literally named "United States" inside the
+  // USA's state list). We only drop a same-named entry when it's ALSO
+  // suspiciously large relative to the rest — some countries legitimately
+  // have a subdivision that shares the country's name (e.g. Mexico has a
+  // "México" state, Panama a "Panamá" province), and those are small, real
+  // regions that must not be filtered out just for sharing a name.
+  {
+    const areas = features.map(f => Math.abs(d3.geoArea(f)));
+    const totalArea = areas.reduce((s, a) => s + a, 0) || 1;
+    const cnN = normalize(countryName);
+    features = features.filter((f, i) => {
+      const nmN = normalize((f.properties && f.properties.shapeName) || '');
+      const sameName = nmN === cnN || cnN.startsWith(nmN) || nmN.startsWith(cnN);
+      const dominant = areas[i] / totalArea > 0.5;
+      if(sameName && dominant){
+        console.warn('[Region Map] dropping likely whole-country duplicate entry:', f.properties && f.properties.shapeName);
+        return false;
+      }
+      return true;
+    });
+  }
 
   // Defensive sanity filter: drop any feature that falls well outside this
   // country's real-world extent (known from the reliable world map data).
@@ -886,6 +909,7 @@ function renderCountryView(countryName, geojson){
     return;
   }
   activeProjection = localProjection;
+  document.getElementById('sphereBg').style.display = 'none';
 
   svg.call(zoom.transform, d3.zoomIdentity);
   countryLayer.selectAll('*').remove();
@@ -967,6 +991,9 @@ function renderCountryView(countryName, geojson){
 
 function showFallback(countryName, message){
   hideLoading();
+  document.getElementById('sphereBg').style.display = '';
+  renderWorldMap();
+  activeProjection = projection;
   const entry = flyIndex[normalize(countryName)];
   document.getElementById('breadcrumb').style.display = 'flex';
   document.getElementById('breadcrumbLabel').innerHTML =
