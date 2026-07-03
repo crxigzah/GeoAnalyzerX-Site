@@ -517,6 +517,129 @@ html { scroll-behavior: smooth; }
   transform: rotate(-10deg) scale(1.2);
   transition: transform .2s;
 }
+
+/* ── Mobile hamburger (hidden on desktop) ─────────────────── */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 210;
+}
+.nav-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  margin: 0 auto;
+  transition: transform .2s, opacity .2s;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.nav-scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 195;
+}
+.nav-scrim.open { display: block; }
+
+/* ── Mobile layout (≤820px) ───────────────────────────────── */
+@media (max-width: 820px) {
+  body.nav-open-lock { overflow: hidden; }
+
+  .nav-hamburger { display: flex; }
+
+  nav { padding: 12px 16px; }
+
+  .nav-links {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 300px; max-width: 85vw;
+    background: var(--card, #10101e);
+    border-left: 1px solid var(--border);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 72px 20px 24px;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+    z-index: 200;
+    box-shadow: -12px 0 40px rgba(0,0,0,0.5);
+  }
+  .nav-links.open { transform: translateX(0); display: flex; }
+
+  .nav-links a {
+    font-size: 16px;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--border);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .nav-links a:last-child { border-bottom: none; }
+
+  .nav-dropdown-wrap { height: auto; display: block; }
+  .nav-dropdown-wrap > a { padding: 14px 4px; border-bottom: 1px solid var(--border); justify-content: space-between; }
+  .nav-dropdown-menu {
+    position: static; transform: none; display: none;
+    box-shadow: none; border: none; background: var(--bg2);
+    margin: 0 0 4px; padding: 4px 0 4px 16px;
+  }
+  .nav-dropdown-wrap.open .nav-dropdown-menu { display: block; }
+  .nav-dropdown-menu a { font-size: 15px; padding: 12px 4px; border-bottom: none; }
+
+  .currency-picker { margin: 16px 0; align-self: flex-start; }
+  .currency-btn { padding: 8px 12px; font-size: 13px; }
+
+  #nav-auth-guest { flex-direction: column; gap: 10px; margin-top: 8px; }
+  #nav-auth-guest .btn { width: 100%; padding: 13px 20px; font-size: 15px; min-height: 46px; }
+  #nav-auth-user { align-self: stretch; }
+  #nav-auth-user > button { width: 100%; justify-content: center; padding: 12px 16px; }
+  #user-dropdown { position: static; box-shadow: none; margin-top: 8px; width: 100%; }
+  #user-dropdown a { padding: 13px 16px; font-size: 14px; }
+
+  .nav-discord { padding: 8px; }
+
+  /* Hero */
+  .hero { padding: 56px 20px 44px; }
+  .hero h1 { font-size: 32px; }
+  .hero p { font-size: 15px; }
+  .hero-btns .btn { width: 100%; max-width: 320px; padding: 14px 24px; font-size: 15px; min-height: 46px; }
+
+  /* Stats */
+  .stats { flex-wrap: wrap; }
+  .stat { flex: 1 1 45%; padding: 20px; border-right: none; border-bottom: 1px solid var(--border); }
+
+  /* Sections */
+  .section { padding: 50px 20px; }
+  .section h2 { font-size: 26px; }
+  .section > p { font-size: 14px; margin-bottom: 36px; }
+  .how-section, .rules-section, .download-section, .faq-section { padding: 50px 20px !important; }
+
+  /* Buttons generally more tappable on touch */
+  .btn { min-height: 40px; }
+  .price-card .btn { padding: 14px; font-size: 15px; min-height: 46px; }
+
+  /* Forms — 16px prevents iOS auto-zoom on focus */
+  .form-group input { font-size: 16px; padding: 12px 14px; }
+  .modal { padding: 28px 22px; }
+  .tab { padding: 12px 16px; font-size: 14px; }
+
+  /* Dashboard */
+  .dash-header { flex-direction: column; align-items: flex-start; }
+  .dash-welcome { font-size: 20px; }
+}
 </style>
   <link rel="icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -577,7 +700,10 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     <img src="data:image/png;base64,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" alt="GeoAnalyzerX"/>
     <span>GeoAnalyzerX</span>
   </div>
-  <div class="nav-links">
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
     <a href="#features" onclick="goHome();setTimeout(()=>document.getElementById('features')?.scrollIntoView({behavior:'smooth'}),100);return false;">Features</a>
     <a href="#faq" onclick="goHome();setTimeout(()=>document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}),100);return false;">FAQ</a>
     <a href="#pricing" onclick="goHome();setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),100);return false;">Pricing</a>
@@ -639,6 +765,7 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     </div>
   </div>
 </nav>
+<div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
 
 <div id="landing">
   <!-- Hero -->
@@ -1380,6 +1507,24 @@ function closeUserMenu() {
   const dd = document.getElementById('user-dropdown');
   if (dd) dd.style.display = 'none';
 }
+
+function toggleMobileNav() {
+  document.getElementById('nav-links').classList.toggle('open');
+  document.getElementById('nav-scrim').classList.toggle('open');
+  document.getElementById('nav-hamburger').classList.toggle('open');
+  document.body.classList.toggle('nav-open-lock');
+}
+
+function closeMobileNav() {
+  document.getElementById('nav-links').classList.remove('open');
+  document.getElementById('nav-scrim').classList.remove('open');
+  document.getElementById('nav-hamburger').classList.remove('open');
+  document.body.classList.remove('nav-open-lock');
+}
+
+document.getElementById('nav-links').addEventListener('click', (e) => {
+  if (e.target.tagName === 'A' && !e.target.closest('.nav-dropdown-wrap')) closeMobileNav();
+});
 
 document.addEventListener('click', e => {
   const menu = document.getElementById('nav-auth-user');
