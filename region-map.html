@@ -767,15 +767,29 @@ function renderCountryView(countryName, geojson){
   selected.clear();
   renderSelectedPanel();
 
-  const features = (geojson.features || [])
+  let features = (geojson.features || [])
     .filter(f => f.geometry)
     .filter(f => !/antarc/i.test((f.properties && f.properties.shapeName) || ''));
+
+  // Defensive sanity filter: drop any feature whose bounding box is
+  // implausibly huge for a single country's subdivision (corrupted or
+  // globe-spanning geometry), rather than trusting the source data blindly.
+  features = features.filter(f => {
+    const b = d3.geoBounds(f);
+    const lonSpan = Math.abs(b[1][0] - b[0][0]);
+    const latSpan = Math.abs(b[1][1] - b[0][1]);
+    const ok = lonSpan < 170 && latSpan < 150;
+    if(!ok) console.warn('[Region Map] dropping implausible region geometry:', f.properties && f.properties.shapeName);
+    return ok;
+  });
+
   if(!features.length){
-    showFallback(countryName, 'No region boundaries were returned for this country.');
+    showFallback(countryName, 'No usable region boundaries were returned for this country.');
     return;
   }
 
-  const localProjection = d3.geoNaturalEarth1().fitExtent([[30,60],[width-30,height-30]], geojson);
+  const filteredCollection = { type: 'FeatureCollection', features };
+  const localProjection = d3.geoNaturalEarth1().fitExtent([[30,60],[width-30,height-30]], filteredCollection);
   const localPath = d3.geoPath(localProjection);
   activeProjection = localProjection;
 
