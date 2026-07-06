@@ -1717,13 +1717,12 @@ function updatePreview() {
         const itW = b.data.imgWidth || '55';
         const itMapSrc = b.data.mapSrc && b.data.mapSrc !== '__uploading__' ? b.data.mapSrc : null;
         const itMapSz = b.data.mapBadgeSize || '110';
-        const itMapOff = -Math.round(parseInt(itMapSz) / 2);
         const mt = prevAttach ? '0' : '14px', mb = nextAttach ? '0' : '14px';
         html += `<div style="display:grid;grid-template-columns:${itW==='100'?'1fr':itW+'% 1fr'};gap:18px;align-items:start;margin:${mt} 0 ${mb};">
           <div>
             <div style="position:relative;">
               ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:auto;display:block;border-radius:8px;">` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
-              ${itMapSrc ? `<div style="position:absolute;bottom:${itMapOff}px;right:${itMapOff}px;width:${itMapSz}px;height:${itMapSz}px;border-radius:6px;overflow:hidden;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));z-index:2;"><img src="${itMapSrc}" style="width:100%;height:100%;object-fit:contain;"></div>` : ''}
+              ${itMapSrc ? `<div style="position:absolute;bottom:14px;right:14px;width:${itMapSz}px;height:${itMapSz}px;border-radius:6px;overflow:hidden;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));"><img src="${itMapSrc}" style="width:100%;height:100%;object-fit:contain;"></div>` : ''}
             </div>
           ${b.data.caption ? `<div style="text-align:center;font-size:11px;color:#5a5a7a;margin-top:4px;">${escapeHtml(b.data.caption)}</div>` : ''}</div>
           <div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div>

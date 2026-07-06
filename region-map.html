@@ -48,6 +48,8 @@
     --map-land-stroke-width: .6;
     --map-subdivision-stroke-width: .7;
     --map-label-halo-width: 3px;
+    --map-label-size: 9px;
+    --map-label-weight: 400;
   }
 
   /* "Google Maps style" theme — overrides only the map-canvas variables
@@ -56,8 +58,8 @@
     --map-glow: #aad3df;
     --map-sphere: #aad3df;
     --map-graticule: transparent;
-    --map-land: #cbe4b4;
-    --map-land-hover: #b8d99e;
+    --map-land: #7cb342;
+    --map-land-hover: #6ba139;
     --map-land-stroke: #9fb89a;
     --map-land-nocode: #e3e2dc;
     --map-land-nocode-stroke: #c2c0b9;
@@ -69,6 +71,8 @@
     --map-land-stroke-width: .4;
     --map-subdivision-stroke-width: .5;
     --map-label-halo-width: 2px;
+    --map-label-size: 14px;
+    --map-label-weight: 700;
   }
 
   .ocean-stop-1{ stop-color: var(--map-ocean-1); }
@@ -221,7 +225,8 @@
 
   .label-layer text{
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: var(--map-label-size);
+    font-weight: var(--map-label-weight);
     fill: var(--map-label-text);
     paint-order: stroke;
     stroke: var(--map-label-halo);
@@ -1089,7 +1094,12 @@ function renderCountryView(countryName, geojson){
   // each other when they overlap, while a weak spring pulls each one back
   // toward its true location. A thin leader line connects the label back
   // to its region if it had to move.
-  const CHAR_W = 5.4, LABEL_H = 11; // approx. monospace metrics at 9px
+  // Label box size must match whichever theme is active — Google-style
+  // renders notably bigger text, so the decluttering algorithm needs
+  // proportionally bigger reserved space or labels will overlap again.
+  const isGoogleTheme = document.body.classList.contains('google-theme');
+  const labelFontPx = isGoogleTheme ? 14 : 9;
+  const CHAR_W = 5.4 * (labelFontPx / 9), LABEL_H = 11 * (labelFontPx / 9);
   const fontScale = features.length > 45 ? 0.68 : features.length > 30 ? 0.78 : features.length > 18 ? 0.9 : 1;
 
   const labelData = features.map((d, i) => {
