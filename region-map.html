@@ -545,6 +545,7 @@
       <svg id="map" viewBox="0 0 960 520"></svg>
       <svg id="annotationOverlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;"></svg>
       <div class="annotate-toolbar" id="annotateToolbar">
+        <button class="annotate-btn" id="selectToolBtn" title="Select & drag drawings">🖐️</button>
         <button class="annotate-btn" id="drawToolBtn" title="Draw">✏️</button>
         <button class="annotate-btn" id="fillToolBtn" title="Click a shape to fill it">🪣</button>
         <input type="color" id="annotateColor" value="#ff4136" title="Pen / fill color">
@@ -695,7 +696,7 @@ const labelLayer = g.append('g').attr('class','label-layer');
 
 const zoom = d3.zoom()
   .scaleExtent([1, 12])
-  .filter((event) => !(event.type === 'mousedown' || event.type === 'touchstart'))
+  .filter((event) => !(event.type === 'mousedown' || event.type === 'touchstart' || event.type === 'wheel'))
   .on('zoom', (event) => g.attr('transform', event.transform));
 svg.call(zoom);
 svg.style('cursor', 'default');
@@ -703,6 +704,17 @@ svg.style('cursor', 'default');
 document.getElementById('zoomIn').onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1.5);
 document.getElementById('zoomOut').onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1/1.5);
 document.getElementById('resetBtn').onclick = () => svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+
+// Scroll-wheel zoom, handled explicitly (rather than relying on the zoom
+// behavior's default wheel handling) so it's guaranteed to work regardless
+// of what else is layered over the map, and zooms toward the cursor.
+document.getElementById('mapStage').addEventListener('wheel', (event) => {
+  event.preventDefault();
+  const factor = event.deltaY < 0 ? 1.15 : 1 / 1.15;
+  const rect = svg.node().getBoundingClientRect();
+  const point = [event.clientX - rect.left, event.clientY - rect.top];
+  svg.transition().duration(120).call(zoom.scaleBy, factor, point);
+}, { passive: false });
 
 // ── Map color style toggle (dark app default vs. Google Maps-like) ──
 function applyMapStyle(style){
@@ -728,20 +740,24 @@ document.getElementById('labelsBtn').onclick = () => {
 };
 applyLabelsVisibility(localStorage.getItem('gax_region_map_labels_hidden') === '1');
 
-// ── Annotation tool: freehand pen + click-to-fill ────────────
+// ── Annotation tool: select/drag, freehand pen, and click-to-fill ──
 const annotationOverlay = d3.select('#annotationOverlay');
 const annotationOverlayEl = document.getElementById('annotationOverlay');
-let annotateMode = null; // null | 'draw' | 'fill'
+let annotateMode = null; // null | 'select' | 'draw' | 'fill'
 let currentDrawPath = null;
+let dragTarget = null;
+let dragStart = null;
 let annotateColor = document.getElementById('annotateColor').value;
 
 function setAnnotateMode(mode){
   annotateMode = (annotateMode === mode) ? null : mode; // click active tool again to turn it off
+  document.getElementById('selectToolBtn').classList.toggle('active', annotateMode === 'select');
   document.getElementById('drawToolBtn').classList.toggle('active', annotateMode === 'draw');
   document.getElementById('fillToolBtn').classList.toggle('active', annotateMode === 'fill');
   annotationOverlayEl.style.pointerEvents = annotateMode ? 'auto' : 'none';
-  annotationOverlayEl.style.cursor = annotateMode === 'draw' ? 'crosshair' : annotateMode === 'fill' ? 'pointer' : 'default';
+  annotationOverlayEl.style.cursor = annotateMode === 'draw' ? 'crosshair' : annotateMode === 'fill' ? 'pointer' : annotateMode === 'select' ? 'grab' : 'default';
 }
+document.getElementById('selectToolBtn').onclick = () => setAnnotateMode('select');
 document.getElementById('drawToolBtn').onclick = () => setAnnotateMode('draw');
 document.getElementById('fillToolBtn').onclick = () => setAnnotateMode('fill');
 document.getElementById('annotateColor').addEventListener('input', (e) => { annotateColor = e.target.value; });
@@ -755,7 +771,6 @@ function getOverlayPoint(clientX, clientY){
 }
 
 function startDraw(clientX, clientY){
-  if (annotateMode !== 'draw') return;
   const [x, y] = getOverlayPoint(clientX, clientY);
   currentDrawPath = annotationOverlay.append('path')
     .attr('fill', 'none')
@@ -764,25 +779,71 @@ function startDraw(clientX, clientY){
     .attr('stroke-linecap', 'round')
     .attr('stroke-linejoin', 'round')
     .style('pointer-events', 'all')
-    .datum({ pts: [[x, y]] })
+    .datum({ pts: [[x, y]], tx: 0, ty: 0 })
     .attr('d', `M${x},${y}`);
 }
 function moveDraw(clientX, clientY){
-  if (annotateMode !== 'draw' || !currentDrawPath) return;
+  if (!currentDrawPath) return;
   const [x, y] = getOverlayPoint(clientX, clientY);
   const d = currentDrawPath.datum();
   d.pts.push([x, y]);
   currentDrawPath.attr('d', 'M' + d.pts.map(p => p.join(',')).join('L'));
 }
-function endDraw(){ currentDrawPath = null; }
+function startDrag(target, clientX, clientY){
+  dragTarget = target;
+  const d = target.datum() || {};
+  d.tx = d.tx || 0; d.ty = d.ty || 0;
+  target.datum(d);
+  dragStart = { x: clientX, y: clientY, tx: d.tx, ty: d.ty };
+  annotationOverlayEl.style.cursor = 'grabbing';
+}
+function moveDrag(clientX, clientY){
+  if (!dragTarget || !dragStart) return;
+  const dx = clientX - dragStart.x, dy = clientY - dragStart.y;
+  const d = dragTarget.datum();
+  d.tx = dragStart.tx + dx;
+  d.ty = dragStart.ty + dy;
+  dragTarget.attr('transform', `translate(${d.tx},${d.ty})`);
+}
+function endInteraction(){
+  currentDrawPath = null;
+  dragTarget = null;
+  dragStart = null;
+  if (annotateMode === 'select') annotationOverlayEl.style.cursor = 'grab';
+}
 
-annotationOverlayEl.addEventListener('mousedown', (e) => { startDraw(e.clientX, e.clientY); e.preventDefault(); });
-annotationOverlayEl.addEventListener('mousemove', (e) => moveDraw(e.clientX, e.clientY));
-annotationOverlayEl.addEventListener('mouseup', endDraw);
-annotationOverlayEl.addEventListener('mouseleave', endDraw);
-annotationOverlayEl.addEventListener('touchstart', (e) => { const t = e.touches[0]; startDraw(t.clientX, t.clientY); e.preventDefault(); }, { passive:false });
-annotationOverlayEl.addEventListener('touchmove', (e) => { const t = e.touches[0]; moveDraw(t.clientX, t.clientY); e.preventDefault(); }, { passive:false });
-annotationOverlayEl.addEventListener('touchend', endDraw);
+annotationOverlayEl.addEventListener('mousedown', (e) => {
+  if (annotateMode === 'draw'){
+    startDraw(e.clientX, e.clientY);
+    e.preventDefault();
+  } else if (annotateMode === 'select' && e.target.tagName === 'path'){
+    startDrag(d3.select(e.target), e.clientX, e.clientY);
+    e.preventDefault();
+  }
+});
+annotationOverlayEl.addEventListener('mousemove', (e) => {
+  moveDraw(e.clientX, e.clientY);
+  moveDrag(e.clientX, e.clientY);
+});
+annotationOverlayEl.addEventListener('mouseup', endInteraction);
+annotationOverlayEl.addEventListener('mouseleave', endInteraction);
+
+annotationOverlayEl.addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  if (annotateMode === 'draw'){
+    startDraw(t.clientX, t.clientY);
+  } else if (annotateMode === 'select' && e.target.tagName === 'path'){
+    startDrag(d3.select(e.target), t.clientX, t.clientY);
+  }
+  e.preventDefault();
+}, { passive:false });
+annotationOverlayEl.addEventListener('touchmove', (e) => {
+  const t = e.touches[0];
+  moveDraw(t.clientX, t.clientY);
+  moveDrag(t.clientX, t.clientY);
+  e.preventDefault();
+}, { passive:false });
+annotationOverlayEl.addEventListener('touchend', endInteraction);
 
 annotationOverlayEl.addEventListener('click', (e) => {
   if (annotateMode !== 'fill') return;
