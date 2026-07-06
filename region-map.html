@@ -42,6 +42,11 @@
     --map-land-nocode-stroke: var(--uncovered-stroke);
     --map-label-text: var(--text);
     --map-label-halo: #05070a;
+    --map-ocean-1: #0d131a;
+    --map-ocean-2: #0c1219;
+    --map-land-stroke-width: .6;
+    --map-subdivision-stroke-width: .7;
+    --map-label-halo-width: 3px;
   }
 
   /* "Google Maps style" theme — overrides only the map-canvas variables
@@ -50,13 +55,26 @@
     --map-glow: #aad3df;
     --map-sphere: #aad3df;
     --map-graticule: transparent;
-    --map-land: #cfe8b6;
-    --map-land-hover: #bbdda0;
-    --map-land-stroke: #a9a9a9;
-    --map-land-nocode: #e0ded9;
-    --map-land-nocode-stroke: #b8b6b0;
+    --map-land: #cbe4b4;
+    --map-land-hover: #b8d99e;
+    --map-land-stroke: #9fb89a;
+    --map-land-nocode: #e3e2dc;
+    --map-land-nocode-stroke: #c2c0b9;
     --map-label-text: #3c4043;
     --map-label-halo: #ffffff;
+    --map-ocean-1: #bfe1ef;
+    --map-ocean-2: #9fcbe0;
+    --map-land-stroke-width: .4;
+    --map-subdivision-stroke-width: .5;
+    --map-label-halo-width: 2px;
+  }
+
+  .ocean-stop-1{ stop-color: var(--map-ocean-1); }
+  .ocean-stop-2{ stop-color: var(--map-ocean-2); }
+
+  body.google-theme .country.covered,
+  body.google-theme .subdivision{
+    filter: url(#terrainTexture);
   }
 
   *{box-sizing:border-box;}
@@ -182,7 +200,7 @@
   .map-stage svg{ width:100%; height:100%; display:block; }
 
   .graticule{ stroke: var(--map-graticule); stroke-width:.5; fill:none; }
-  .sphere{ fill: var(--map-sphere); stroke: var(--line); stroke-width:1; }
+  .sphere{ fill: url(#oceanGrad); stroke: var(--line); stroke-width:1; }
 
   .country{
     stroke: var(--map-land-nocode-stroke);
@@ -193,6 +211,7 @@
   .country.covered{
     fill: var(--map-land);
     stroke: var(--map-land-stroke);
+    stroke-width: var(--map-land-stroke-width);
     cursor:pointer;
   }
   .country.covered:hover{
@@ -209,7 +228,7 @@
     fill: var(--map-label-text);
     paint-order: stroke;
     stroke: var(--map-label-halo);
-    stroke-width: 3px;
+    stroke-width: var(--map-label-halo-width);
     stroke-linejoin: round;
     pointer-events:none;
   }
@@ -285,7 +304,7 @@
 
   .subdivision{
     stroke: var(--map-land-stroke);
-    stroke-width: .7;
+    stroke-width: var(--map-subdivision-stroke-width);
     fill: var(--map-land);
   }
 
@@ -609,6 +628,24 @@ const svg = d3.select('#map').attr('viewBox', `0 0 ${width} ${height}`);
 const projection = d3.geoNaturalEarth1().scale(165).translate([width/2, height/2 + 10]);
 const path = d3.geoPath(projection);
 let activeProjection = projection;
+
+// Defs: an ocean gradient (for subtle depth instead of flat color) and a
+// gentle noise-based texture filter so land areas read as terrain rather
+// than a flat corporate infographic fill. Stop-colors reference CSS
+// variables so both the dark theme and the Google-style theme pick up
+// the right tones automatically.
+const defs = svg.append('defs');
+const oceanGrad = defs.append('radialGradient').attr('id','oceanGrad').attr('cx','50%').attr('cy','35%').attr('r','75%');
+oceanGrad.append('stop').attr('class','ocean-stop-1').attr('offset','0%');
+oceanGrad.append('stop').attr('class','ocean-stop-2').attr('offset','100%');
+
+const terrainFilter = defs.append('filter').attr('id','terrainTexture').attr('x','-20%').attr('y','-20%').attr('width','140%').attr('height','140%');
+terrainFilter.append('feTurbulence').attr('type','fractalNoise').attr('baseFrequency','0.9').attr('numOctaves','2').attr('seed','7').attr('result','noise');
+terrainFilter.append('feColorMatrix').attr('in','noise').attr('type','matrix')
+  .attr('values','0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0');
+const feMerge = terrainFilter.append('feMerge');
+feMerge.append('feMergeNode').attr('in','SourceGraphic');
+feMerge.append('feMergeNode').attr('in','noise');
 
 const g = svg.append('g');
 g.append('path').attr('class','sphere').attr('id','sphereBg').attr('d', path({type:'Sphere'}));
