@@ -390,21 +390,29 @@
 
   .region-toggle-item{
     display:flex;
-    align-items:center;
-    gap:8px;
-    padding:6px 8px;
-    border-radius:4px;
+    flex-direction:column;
+    gap:6px;
+    padding:8px;
+    border-radius:6px;
     font-size:12px;
     color: var(--text);
-    cursor:pointer;
   }
   .region-toggle-item:hover{ background: var(--panel-2); }
-  .region-toggle-item input[type=checkbox]{
-    accent-color: var(--covered);
+  .region-toggle-name{ font-weight:600; }
+  .region-swatch-row{ display:flex; gap:5px; flex-wrap:wrap; }
+  .region-swatch{
+    width:18px; height:18px;
+    border-radius:50%;
+    border:2px solid transparent;
     cursor:pointer;
+    padding:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; color:#fff; font-weight:700;
     flex-shrink:0;
+    transition: transform .1s, border-color .1s;
   }
-  .region-toggle-item.unchecked{ color: var(--muted-2); }
+  .region-swatch:hover{ transform: scale(1.15); }
+  .region-swatch.active{ border-color:#fff; box-shadow:0 0 0 1px rgba(0,0,0,0.4); }
 
   .subdivision.dimmed{
     fill: var(--map-land-nocode);
@@ -524,7 +532,7 @@
 
       <div class="panel-section" id="countryRegionsPanelHeader" style="display:none;border-bottom:none;padding-bottom:6px;">
         <h2 id="countryRegionsTitle">Regions</h2>
-        <div class="selected-empty" style="margin-top:-2px;margin-bottom:8px;">Uncheck a region to hide its highlight on the map.</div>
+        <div class="selected-empty" style="margin-top:-2px;margin-bottom:8px;">Click a color swatch to assign that region a group, or ✕ to hide it.</div>
         <div style="display:flex;gap:8px;margin-top:8px;">
           <button class="btn" id="selectAllRegionsBtn" style="flex:1;">Select All</button>
           <button class="btn" id="selectNoneRegionsBtn" style="flex:1;">Select None</button>
@@ -723,25 +731,62 @@ function buildRegionList(){
 }
 buildRegionList();
 
-// ── Country-detail sidebar: per-region show/hide checkboxes ─
-function toggleRegionHighlight(id, visible){
-  countryLayer.select(`path[data-id="${id}"]`).classed('dimmed', !visible);
-  labelLayer.select(`g[data-id="${id}"]`).style('display', visible ? '' : 'none');
+// ── Country-detail sidebar: per-region color picker ─────────
+// A small palette of visually distinct colors, plus "Default" (the
+// theme's normal highlight color) and "Hide" (dims + hides the label).
+// Clicking a swatch immediately recolors that region on the map.
+const REGION_PALETTE = [
+  { key:'hide',    label:'Hide',    color:null, swatchBg:'#3a3a4a' },
+  { key:'default', label:'Default', color:'',   swatchBg:'var(--map-land)' },
+  { key:'red',     label:'Red',     color:'#e74c3c' },
+  { key:'blue',    label:'Blue',    color:'#3498db' },
+  { key:'green',   label:'Green',   color:'#27ae60' },
+  { key:'orange',  label:'Orange',  color:'#f39c12' },
+  { key:'purple',  label:'Purple',  color:'#9b59b6' },
+  { key:'teal',    label:'Teal',    color:'#16a085' },
+  { key:'pink',    label:'Pink',    color:'#e84393' },
+  { key:'yellow',  label:'Yellow',  color:'#f1c40f' },
+];
+
+function setRegionColor(id, key){
+  const entry = REGION_PALETTE.find(p => p.key === key) || REGION_PALETTE[1];
+  const path  = countryLayer.select(`path[data-id="${id}"]`);
+  const label = labelLayer.select(`g[data-id="${id}"]`);
+  if (entry.color === null){
+    // Hide
+    path.classed('dimmed', true).style('fill', null);
+    label.style('display', 'none');
+  } else if (entry.color === ''){
+    // Default theme color — clear any custom override
+    path.classed('dimmed', false).style('fill', null);
+    label.style('display', '');
+  } else {
+    // Custom color override
+    path.classed('dimmed', false).style('fill', entry.color);
+    label.style('display', '');
+  }
 }
 
 function buildCountryRegionsList(labelData){
   const listEl = document.getElementById('countryRegionsList');
   listEl.innerHTML = '';
   labelData.forEach(l => {
-    const item = document.createElement('label');
+    const item = document.createElement('div');
     item.className = 'region-toggle-item';
-    item.innerHTML = `<input type="checkbox" checked data-id="${l.id}"><span>${l.name}</span>`;
-    const checkbox = item.querySelector('input');
-    checkbox.addEventListener('change', () => {
-      item.classList.toggle('unchecked', !checkbox.checked);
-      toggleRegionHighlight(l.id, checkbox.checked);
-    });
+    item.innerHTML = `
+      <div class="region-toggle-name">${l.name}</div>
+      <div class="region-swatch-row" data-id="${l.id}">
+        ${REGION_PALETTE.map(p => `<button class="region-swatch${p.key==='default' ? ' active' : ''}" data-id="${l.id}" data-key="${p.key}" title="${p.label}" style="background:${p.swatchBg || p.color};">${p.key==='hide' ? '✕' : ''}</button>`).join('')}
+      </div>`;
     listEl.appendChild(item);
+  });
+  listEl.querySelectorAll('.region-swatch').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id, key = btn.dataset.key;
+      setRegionColor(id, key);
+      document.querySelectorAll(`.region-swatch[data-id="${id}"]`).forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
   });
 }
 
@@ -762,17 +807,15 @@ function showCountriesPanel(){
 }
 
 document.getElementById('selectAllRegionsBtn').onclick = () => {
-  document.querySelectorAll('#countryRegionsList input[type=checkbox]').forEach(cb => {
-    cb.checked = true;
-    cb.closest('.region-toggle-item').classList.remove('unchecked');
-    toggleRegionHighlight(cb.dataset.id, true);
+  document.querySelectorAll('.region-swatch-row').forEach(row => {
+    setRegionColor(row.dataset.id, 'default');
+    row.querySelectorAll('.region-swatch').forEach(b => b.classList.toggle('active', b.dataset.key === 'default'));
   });
 };
 document.getElementById('selectNoneRegionsBtn').onclick = () => {
-  document.querySelectorAll('#countryRegionsList input[type=checkbox]').forEach(cb => {
-    cb.checked = false;
-    cb.closest('.region-toggle-item').classList.add('unchecked');
-    toggleRegionHighlight(cb.dataset.id, false);
+  document.querySelectorAll('.region-swatch-row').forEach(row => {
+    setRegionColor(row.dataset.id, 'hide');
+    row.querySelectorAll('.region-swatch').forEach(b => b.classList.toggle('active', b.dataset.key === 'hide'));
   });
 };
 
