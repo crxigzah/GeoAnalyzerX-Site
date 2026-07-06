@@ -239,6 +239,37 @@
   .label-layer circle{ fill: var(--amber); }
 
   /* zoom controls */
+  .annotate-toolbar{
+    position:absolute; left:16px; top:16px;
+    display:flex; gap:6px; align-items:center;
+    background: rgba(16,22,29,0.85);
+    border:1px solid var(--line);
+    padding:6px;
+    border-radius:8px;
+    z-index:5;
+    backdrop-filter: blur(4px);
+  }
+  .annotate-btn{
+    width:32px; height:32px;
+    background: var(--panel-2);
+    border:1px solid var(--line);
+    color: var(--text);
+    border-radius:6px;
+    cursor:pointer;
+    font-size:15px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .annotate-btn:hover{ border-color: var(--covered); }
+  .annotate-btn.active{ border-color: var(--covered); background: rgba(0,201,167,0.15); }
+  #annotateColor{
+    width:32px; height:32px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:2px;
+    background:none;
+    cursor:pointer;
+  }
+
   .zoom-controls{
     position:absolute; right:16px; bottom:16px;
     display:flex; flex-direction:column; gap:6px;
@@ -512,6 +543,13 @@
         <div class="loading-text" id="loadingText">Loading regions…</div>
       </div>
       <svg id="map" viewBox="0 0 960 520"></svg>
+      <svg id="annotationOverlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;"></svg>
+      <div class="annotate-toolbar" id="annotateToolbar">
+        <button class="annotate-btn" id="drawToolBtn" title="Draw">✏️</button>
+        <button class="annotate-btn" id="fillToolBtn" title="Click a shape to fill it">🪣</button>
+        <input type="color" id="annotateColor" value="#ff4136" title="Pen / fill color">
+        <button class="annotate-btn" id="clearAnnotateBtn" title="Clear all drawings">🗑️</button>
+      </div>
       <div class="zoom-controls">
         <button id="zoomIn">+</button>
         <button id="zoomOut">–</button>
@@ -689,6 +727,69 @@ document.getElementById('labelsBtn').onclick = () => {
   applyLabelsVisibility(!document.body.classList.contains('labels-hidden'));
 };
 applyLabelsVisibility(localStorage.getItem('gax_region_map_labels_hidden') === '1');
+
+// ── Annotation tool: freehand pen + click-to-fill ────────────
+const annotationOverlay = d3.select('#annotationOverlay');
+const annotationOverlayEl = document.getElementById('annotationOverlay');
+let annotateMode = null; // null | 'draw' | 'fill'
+let currentDrawPath = null;
+let annotateColor = document.getElementById('annotateColor').value;
+
+function setAnnotateMode(mode){
+  annotateMode = (annotateMode === mode) ? null : mode; // click active tool again to turn it off
+  document.getElementById('drawToolBtn').classList.toggle('active', annotateMode === 'draw');
+  document.getElementById('fillToolBtn').classList.toggle('active', annotateMode === 'fill');
+  annotationOverlayEl.style.pointerEvents = annotateMode ? 'auto' : 'none';
+  annotationOverlayEl.style.cursor = annotateMode === 'draw' ? 'crosshair' : annotateMode === 'fill' ? 'pointer' : 'default';
+}
+document.getElementById('drawToolBtn').onclick = () => setAnnotateMode('draw');
+document.getElementById('fillToolBtn').onclick = () => setAnnotateMode('fill');
+document.getElementById('annotateColor').addEventListener('input', (e) => { annotateColor = e.target.value; });
+document.getElementById('clearAnnotateBtn').onclick = () => {
+  if (confirm('Clear all drawings on this map?')) annotationOverlay.selectAll('*').remove();
+};
+
+function getOverlayPoint(clientX, clientY){
+  const rect = annotationOverlayEl.getBoundingClientRect();
+  return [clientX - rect.left, clientY - rect.top];
+}
+
+function startDraw(clientX, clientY){
+  if (annotateMode !== 'draw') return;
+  const [x, y] = getOverlayPoint(clientX, clientY);
+  currentDrawPath = annotationOverlay.append('path')
+    .attr('fill', 'none')
+    .attr('stroke', annotateColor)
+    .attr('stroke-width', 3)
+    .attr('stroke-linecap', 'round')
+    .attr('stroke-linejoin', 'round')
+    .style('pointer-events', 'all')
+    .datum({ pts: [[x, y]] })
+    .attr('d', `M${x},${y}`);
+}
+function moveDraw(clientX, clientY){
+  if (annotateMode !== 'draw' || !currentDrawPath) return;
+  const [x, y] = getOverlayPoint(clientX, clientY);
+  const d = currentDrawPath.datum();
+  d.pts.push([x, y]);
+  currentDrawPath.attr('d', 'M' + d.pts.map(p => p.join(',')).join('L'));
+}
+function endDraw(){ currentDrawPath = null; }
+
+annotationOverlayEl.addEventListener('mousedown', (e) => { startDraw(e.clientX, e.clientY); e.preventDefault(); });
+annotationOverlayEl.addEventListener('mousemove', (e) => moveDraw(e.clientX, e.clientY));
+annotationOverlayEl.addEventListener('mouseup', endDraw);
+annotationOverlayEl.addEventListener('mouseleave', endDraw);
+annotationOverlayEl.addEventListener('touchstart', (e) => { const t = e.touches[0]; startDraw(t.clientX, t.clientY); e.preventDefault(); }, { passive:false });
+annotationOverlayEl.addEventListener('touchmove', (e) => { const t = e.touches[0]; moveDraw(t.clientX, t.clientY); e.preventDefault(); }, { passive:false });
+annotationOverlayEl.addEventListener('touchend', endDraw);
+
+annotationOverlayEl.addEventListener('click', (e) => {
+  if (annotateMode !== 'fill') return;
+  if (e.target.tagName === 'path'){
+    d3.select(e.target).attr('fill', annotateColor).attr('fill-opacity', 0.45);
+  }
+});
 
 const selected = new Map(); // id -> {name, centroid}
 
