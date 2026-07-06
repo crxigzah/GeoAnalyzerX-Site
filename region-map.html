@@ -553,7 +553,9 @@
         <button class="annotate-btn" id="drawToolBtn" title="Draw">✏️</button>
         <button class="annotate-btn" id="fillToolBtn" title="Click a shape to fill it">🪣</button>
         <input type="color" id="annotateColor" value="#ff4136" title="Pen / fill color">
+        <button class="annotate-btn" id="eyedropperBtn" title="Pick an exact color from anywhere on screen">💧</button>
         <input type="range" id="annotateThickness" min="1" max="15" value="3" title="Pen thickness">
+        <button class="annotate-btn" id="undoAnnotateBtn" title="Undo (Ctrl+Z)">↩️</button>
         <button class="annotate-btn" id="clearAnnotateBtn" title="Clear all drawings">🗑️</button>
       </div>
       <div class="zoom-controls">
@@ -799,9 +801,52 @@ document.getElementById('selectToolBtn').onclick = () => setAnnotateMode('select
 document.getElementById('drawToolBtn').onclick = () => setAnnotateMode('draw');
 document.getElementById('fillToolBtn').onclick = () => setAnnotateMode('fill');
 document.getElementById('annotateColor').addEventListener('input', (e) => { annotateColor = e.target.value; });
+document.getElementById('eyedropperBtn').onclick = async () => {
+  if (!('EyeDropper' in window)){
+    alert("Your browser doesn't support the eyedropper tool (it currently needs Chrome or Edge). You can still type an exact hex code into the color picker next to it.");
+    return;
+  }
+  try {
+    const result = await new EyeDropper().open();
+    annotateColor = result.sRGBHex;
+    document.getElementById('annotateColor').value = result.sRGBHex;
+  } catch(e) {
+    // User pressed Escape / cancelled — nothing to do.
+  }
+};
 document.getElementById('annotateThickness').addEventListener('input', (e) => { annotateThickness = e.target.value; });
+
+// ── Undo ──────────────────────────────────────────────────
+let undoStack = [];
+function pushUndo(action){ undoStack.push(action); }
+function undo(){
+  const action = undoStack.pop();
+  if (!action) return;
+  if (action.type === 'add'){
+    action.node.remove();
+  } else if (action.type === 'fill'){
+    d3.select(action.node).attr('fill', action.prevFill).attr('fill-opacity', action.prevOpacity);
+  } else if (action.type === 'move'){
+    d3.select(action.node).attr('transform', `translate(${action.prevTx},${action.prevTy})`);
+    const d = d3.select(action.node).datum();
+    if (d) { d.tx = action.prevTx; d.ty = action.prevTy; }
+  } else if (action.type === 'clear'){
+    action.nodes.forEach(n => annotationLayer.node().appendChild(n));
+  }
+}
+document.getElementById('undoAnnotateBtn').onclick = undo;
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z'){
+    e.preventDefault();
+    undo();
+  }
+});
+
 document.getElementById('clearAnnotateBtn').onclick = () => {
-  if (confirm('Clear all drawings on this map?')) annotationLayer.selectAll('*').remove();
+  if (!confirm('Clear all drawings on this map?')) return;
+  const nodes = annotationLayer.selectAll('path').nodes();
+  if (nodes.length) pushUndo({ type:'clear', nodes: nodes.map(n => n.cloneNode(true)) });
+  annotationLayer.selectAll('*').remove();
 };
 
 function startDraw(clientX, clientY){
@@ -857,6 +902,8 @@ function movePan(clientX, clientY){
 }
 
 function endInteraction(){
+  if (currentDrawPath) pushUndo({ type:'add', node: currentDrawPath.node() });
+  if (dragTarget && dragStart) pushUndo({ type:'move', node: dragTarget.node(), prevTx: dragStart.tx, prevTy: dragStart.ty });
   currentDrawPath = null;
   dragTarget = null;
   dragStart = null;
@@ -907,7 +954,9 @@ mapStageEl.addEventListener('touchend', endInteraction);
 mapStageEl.addEventListener('click', (e) => {
   if (annotateMode !== 'fill') return;
   if (e.target.tagName === 'path' && e.target.closest('.annotation-layer')){
-    d3.select(e.target).attr('fill', annotateColor).attr('fill-opacity', 0.45);
+    const sel = d3.select(e.target);
+    pushUndo({ type:'fill', node: e.target, prevFill: sel.attr('fill'), prevOpacity: sel.attr('fill-opacity') });
+    sel.attr('fill', annotateColor).attr('fill-opacity', 0.45);
   }
 });
 
