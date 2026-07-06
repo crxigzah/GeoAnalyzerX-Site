@@ -553,7 +553,6 @@
         <button class="annotate-btn" id="drawToolBtn" title="Draw">✏️</button>
         <button class="annotate-btn" id="fillToolBtn" title="Click a shape to fill it">🪣</button>
         <input type="color" id="annotateColor" value="#ff4136" title="Pen / fill color">
-        <button class="annotate-btn" id="eyedropperBtn" title="Pick an exact color from anywhere on screen">💧</button>
         <input type="range" id="annotateThickness" min="1" max="15" value="3" title="Pen thickness">
         <button class="annotate-btn" id="undoAnnotateBtn" title="Undo (Ctrl+Z)">↩️</button>
         <button class="annotate-btn" id="clearAnnotateBtn" title="Clear all drawings">🗑️</button>
@@ -801,19 +800,14 @@ document.getElementById('selectToolBtn').onclick = () => setAnnotateMode('select
 document.getElementById('drawToolBtn').onclick = () => setAnnotateMode('draw');
 document.getElementById('fillToolBtn').onclick = () => setAnnotateMode('fill');
 document.getElementById('annotateColor').addEventListener('input', (e) => { annotateColor = e.target.value; });
-document.getElementById('eyedropperBtn').onclick = async () => {
-  if (!('EyeDropper' in window)){
-    alert("Your browser doesn't support the eyedropper tool (it currently needs Chrome or Edge). You can still type an exact hex code into the color picker next to it.");
-    return;
+
+// Safety net: if anything about the annotation tools ever leaves the page
+// feeling unresponsive to clicks, Escape immediately forces every tool off.
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && annotateMode){
+    setAnnotateMode(annotateMode); // toggles the currently-active mode off
   }
-  try {
-    const result = await new EyeDropper().open();
-    annotateColor = result.sRGBHex;
-    document.getElementById('annotateColor').value = result.sRGBHex;
-  } catch(e) {
-    // User pressed Escape / cancelled — nothing to do.
-  }
-};
+});
 document.getElementById('annotateThickness').addEventListener('input', (e) => { annotateThickness = e.target.value; });
 
 // ── Undo ──────────────────────────────────────────────────
