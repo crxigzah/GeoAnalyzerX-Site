@@ -727,6 +727,17 @@ function toSvgPoint(clientX, clientY){
   return [p.x, p.y];
 }
 
+// New annotation points need to be stored in "pre-transform" coordinates —
+// since they render inside the already-zoomed/panned <g>, whatever the
+// current transform is gets applied on top of them. toSvgPoint alone gives
+// the raw viewBox-space position, which is only correct at zoom identity;
+// at any other zoom/pan state that caused drawings to appear offset from
+// the cursor. Inverting the current transform corrects for that.
+function toMapPoint(clientX, clientY){
+  const t = d3.zoomTransform(svg.node());
+  return t.invert(toSvgPoint(clientX, clientY));
+}
+
 // Scroll-wheel zoom, handled explicitly (rather than relying on the zoom
 // behavior's default wheel handling) so it's guaranteed to work regardless
 // of what else is layered over the map, and zooms toward the cursor.
@@ -794,7 +805,7 @@ document.getElementById('clearAnnotateBtn').onclick = () => {
 };
 
 function startDraw(clientX, clientY){
-  const [x, y] = toSvgPoint(clientX, clientY);
+  const [x, y] = toMapPoint(clientX, clientY);
   currentDrawPath = annotationLayer.append('path')
     .attr('fill', 'none')
     .attr('stroke', annotateColor)
@@ -806,7 +817,7 @@ function startDraw(clientX, clientY){
 }
 function moveDraw(clientX, clientY){
   if (!currentDrawPath) return;
-  const [x, y] = toSvgPoint(clientX, clientY);
+  const [x, y] = toMapPoint(clientX, clientY);
   const d = currentDrawPath.datum();
   d.pts.push([x, y]);
   currentDrawPath.attr('d', 'M' + d.pts.map(p => p.join(',')).join('L'));
@@ -816,13 +827,13 @@ function startDrag(target, clientX, clientY){
   const d = target.datum() || {};
   d.tx = d.tx || 0; d.ty = d.ty || 0;
   target.datum(d);
-  const [x, y] = toSvgPoint(clientX, clientY);
+  const [x, y] = toMapPoint(clientX, clientY);
   dragStart = { x, y, tx: d.tx, ty: d.ty };
   mapStageEl.style.cursor = 'grabbing';
 }
 function moveDrag(clientX, clientY){
   if (!dragTarget || !dragStart) return;
-  const [x, y] = toSvgPoint(clientX, clientY);
+  const [x, y] = toMapPoint(clientX, clientY);
   const d = dragTarget.datum();
   d.tx = dragStart.tx + (x - dragStart.x);
   d.ty = dragStart.ty + (y - dragStart.y);
@@ -859,7 +870,7 @@ mapStageEl.addEventListener('mousedown', (e) => {
     startDraw(e.clientX, e.clientY);
     e.preventDefault();
   } else if (annotateMode === 'select'){
-    if (e.target.tagName === 'path') startDrag(d3.select(e.target), e.clientX, e.clientY);
+    if (e.target.tagName === 'path' && e.target.closest('.annotation-layer')) startDrag(d3.select(e.target), e.clientX, e.clientY);
     else startPan(e.clientX, e.clientY);
     e.preventDefault();
   }
@@ -878,7 +889,7 @@ mapStageEl.addEventListener('touchstart', (e) => {
   if (annotateMode === 'draw'){
     startDraw(t.clientX, t.clientY);
   } else if (annotateMode === 'select'){
-    if (e.target.tagName === 'path') startDrag(d3.select(e.target), t.clientX, t.clientY);
+    if (e.target.tagName === 'path' && e.target.closest('.annotation-layer')) startDrag(d3.select(e.target), t.clientX, t.clientY);
     else startPan(t.clientX, t.clientY);
   }
   e.preventDefault();
@@ -895,7 +906,7 @@ mapStageEl.addEventListener('touchend', endInteraction);
 
 mapStageEl.addEventListener('click', (e) => {
   if (annotateMode !== 'fill') return;
-  if (e.target.tagName === 'path'){
+  if (e.target.tagName === 'path' && e.target.closest('.annotation-layer')){
     d3.select(e.target).attr('fill', annotateColor).attr('fill-opacity', 0.45);
   }
 });
