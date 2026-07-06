@@ -44,6 +44,7 @@
     --map-label-halo: #05070a;
     --map-ocean-1: #0d131a;
     --map-ocean-2: #0c1219;
+    --map-bg-outer: var(--bg);
     --map-land-stroke-width: .6;
     --map-subdivision-stroke-width: .7;
     --map-label-halo-width: 3px;
@@ -64,6 +65,7 @@
     --map-label-halo: #ffffff;
     --map-ocean-1: #bfe1ef;
     --map-ocean-2: #9fcbe0;
+    --map-bg-outer: #9fcbe0;
     --map-land-stroke-width: .4;
     --map-subdivision-stroke-width: .5;
     --map-label-halo-width: 2px;
@@ -189,7 +191,7 @@
   .map-stage{
     position:relative;
     background:
-      radial-gradient(ellipse at 50% 40%, var(--map-glow) 0%, var(--bg) 70%);
+      radial-gradient(ellipse at 50% 40%, var(--map-glow) 0%, var(--map-bg-outer) 70%);
     overflow:hidden;
   }
   .map-stage svg{ width:100%; height:100%; display:block; }
@@ -499,9 +501,9 @@
         <button id="zoomOut">–</button>
       </div>
       <div class="legend">
-        <div class="item"><span class="sw" style="background:var(--covered)"></span> Covered</div>
+        <div class="item"><span class="sw" style="background:var(--map-land)"></span> Covered</div>
         <div class="item"><span class="sw" style="background:var(--amber)"></span> Selected</div>
-        <div class="item"><span class="sw" style="background:var(--uncovered-fill);border:1px solid var(--uncovered-stroke)"></span> No coverage</div>
+        <div class="item"><span class="sw" style="background:var(--map-land-nocode);border:1px solid var(--map-land-nocode-stroke)"></span> No coverage</div>
       </div>
     </div>
 
