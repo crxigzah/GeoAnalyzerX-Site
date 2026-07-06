@@ -1722,10 +1722,9 @@ function updatePreview() {
           <div>
             <div style="position:relative;">
               ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:auto;display:block;border-radius:8px;">` : '<div style="background:#1a1a2e;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a5a;font-size:12px;">Image</div>'}
+              ${itMapSrc ? `<div style="position:absolute;bottom:12px;right:12px;width:${itMapSz}px;max-width:40%;border-radius:6px;overflow:hidden;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5));"><img src="${itMapSrc}" style="width:100%;display:block;"></div>` : ''}
             </div>
-          ${b.data.caption ? `<div style="text-align:center;font-size:11px;color:#5a5a7a;margin-top:4px;">${escapeHtml(b.data.caption)}</div>` : ''}
-          ${itMapSrc ? `<div style="margin-top:8px;width:${itMapSz}px;max-width:100%;border-radius:6px;overflow:hidden;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));"><img src="${itMapSrc}" style="width:100%;display:block;"></div>` : ''}
-          </div>
+          ${b.data.caption ? `<div style="text-align:center;font-size:11px;color:#5a5a7a;margin-top:4px;">${escapeHtml(b.data.caption)}</div>` : ''}</div>
           <div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div>
         </div>`;
         break;
