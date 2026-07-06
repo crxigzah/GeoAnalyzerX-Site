@@ -54,6 +54,8 @@
 
   /* "Google Maps style" theme — overrides only the map-canvas variables
      above, leaving the dark app UI (header, sidebar, legend) untouched. */
+  body.labels-hidden .label-layer{ display:none; }
+
   body.google-theme{
     --map-glow: #aad3df;
     --map-sphere: #aad3df;
@@ -482,6 +484,7 @@
         <input id="searchInput" type="text" placeholder="Find a country…" autocomplete="off">
       </div>
       <button class="btn" id="mapStyleBtn">🗺️ MAP STYLE</button>
+      <button class="btn" id="labelsBtn">🏷️ HIDE LABELS</button>
       <button class="btn" id="resetBtn">RESET VIEW</button>
       <div class="count-badge">
         <span class="n" id="countBadge">114</span>
@@ -667,6 +670,17 @@ document.getElementById('mapStyleBtn').onclick = () => {
   applyMapStyle(isGoogle ? 'dark' : 'google');
 };
 applyMapStyle(localStorage.getItem('gax_region_map_style') === 'google' ? 'google' : 'dark');
+
+// ── Labels visibility toggle (for clean badge/screenshot crops) ──
+function applyLabelsVisibility(hidden){
+  document.body.classList.toggle('labels-hidden', hidden);
+  document.getElementById('labelsBtn').textContent = hidden ? '🏷️ SHOW LABELS' : '🏷️ HIDE LABELS';
+  localStorage.setItem('gax_region_map_labels_hidden', hidden ? '1' : '0');
+}
+document.getElementById('labelsBtn').onclick = () => {
+  applyLabelsVisibility(!document.body.classList.contains('labels-hidden'));
+};
+applyLabelsVisibility(localStorage.getItem('gax_region_map_labels_hidden') === '1');
 
 const selected = new Map(); // id -> {name, centroid}
 
