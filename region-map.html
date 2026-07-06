@@ -28,7 +28,37 @@
     --amber: #7c3aed;
     --amber-fill: rgba(124,58,237,0.85);
     --danger: #ff4c6a;
+
+    /* Map-canvas colors — kept separate from the UI-chrome variables above
+       so a map color theme (e.g. "Google Maps style") can be swapped
+       without touching the app's own header/sidebar/panel styling. */
+    --map-glow: #0d131a;
+    --map-sphere: #0c1219;
+    --map-graticule: var(--line-soft);
+    --map-land: var(--covered-fill);
+    --map-land-hover: var(--covered-fill-hover);
+    --map-land-stroke: #0d2b28;
+    --map-land-nocode: var(--uncovered-fill);
+    --map-land-nocode-stroke: var(--uncovered-stroke);
+    --map-label-text: var(--text);
+    --map-label-halo: #05070a;
   }
+
+  /* "Google Maps style" theme — overrides only the map-canvas variables
+     above, leaving the dark app UI (header, sidebar, legend) untouched. */
+  body.google-theme{
+    --map-glow: #aad3df;
+    --map-sphere: #aad3df;
+    --map-graticule: transparent;
+    --map-land: #cfe8b6;
+    --map-land-hover: #bbdda0;
+    --map-land-stroke: #a9a9a9;
+    --map-land-nocode: #e0ded9;
+    --map-land-nocode-stroke: #b8b6b0;
+    --map-label-text: #3c4043;
+    --map-label-halo: #ffffff;
+  }
+
   *{box-sizing:border-box;}
   html,body{
     margin:0; padding:0; height:100%;
@@ -146,27 +176,27 @@
   .map-stage{
     position:relative;
     background:
-      radial-gradient(ellipse at 50% 40%, #0d131a 0%, var(--bg) 70%);
+      radial-gradient(ellipse at 50% 40%, var(--map-glow) 0%, var(--bg) 70%);
     overflow:hidden;
   }
   .map-stage svg{ width:100%; height:100%; display:block; }
 
-  .graticule{ stroke: var(--line-soft); stroke-width:.5; fill:none; }
-  .sphere{ fill:#0c1219; stroke: var(--line); stroke-width:1; }
+  .graticule{ stroke: var(--map-graticule); stroke-width:.5; fill:none; }
+  .sphere{ fill: var(--map-sphere); stroke: var(--line); stroke-width:1; }
 
   .country{
-    stroke: var(--uncovered-stroke);
+    stroke: var(--map-land-nocode-stroke);
     stroke-width: .6;
-    fill: var(--uncovered-fill);
+    fill: var(--map-land-nocode);
     transition: fill .12s ease;
   }
   .country.covered{
-    fill: var(--covered-fill);
-    stroke: #0d2b28;
+    fill: var(--map-land);
+    stroke: var(--map-land-stroke);
     cursor:pointer;
   }
   .country.covered:hover{
-    fill: var(--covered-fill-hover);
+    fill: var(--map-land-hover);
   }
   .country.selected{
     fill: var(--amber-fill) !important;
@@ -176,9 +206,9 @@
   .label-layer text{
     font-family: var(--font-mono);
     font-size: 9px;
-    fill: var(--text);
+    fill: var(--map-label-text);
     paint-order: stroke;
-    stroke: #05070a;
+    stroke: var(--map-label-halo);
     stroke-width: 3px;
     stroke-linejoin: round;
     pointer-events:none;
@@ -254,9 +284,9 @@
   }
 
   .subdivision{
-    stroke: #0d2b28;
+    stroke: var(--map-land-stroke);
     stroke-width: .7;
-    fill: var(--covered-fill);
+    fill: var(--map-land);
   }
 
   /* ---------- side panel ---------- */
@@ -354,8 +384,8 @@
   .region-toggle-item.unchecked{ color: var(--muted-2); }
 
   .subdivision.dimmed{
-    fill: var(--uncovered-fill);
-    stroke: var(--uncovered-stroke);
+    fill: var(--map-land-nocode);
+    stroke: var(--map-land-nocode-stroke);
   }
 
   .region-chip{
@@ -430,6 +460,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="searchInput" type="text" placeholder="Find a country…" autocomplete="off">
       </div>
+      <button class="btn" id="mapStyleBtn">🗺️ MAP STYLE</button>
       <button class="btn" id="resetBtn">RESET VIEW</button>
       <div class="count-badge">
         <span class="n" id="countBadge">114</span>
@@ -594,6 +625,19 @@ svg.style('cursor', 'default');
 document.getElementById('zoomIn').onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1.5);
 document.getElementById('zoomOut').onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1/1.5);
 document.getElementById('resetBtn').onclick = () => svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+
+// ── Map color style toggle (dark app default vs. Google Maps-like) ──
+function applyMapStyle(style){
+  document.body.classList.toggle('google-theme', style === 'google');
+  const btn = document.getElementById('mapStyleBtn');
+  btn.textContent = style === 'google' ? '🌙 DARK STYLE' : '🗺️ MAP STYLE';
+  localStorage.setItem('gax_region_map_style', style);
+}
+document.getElementById('mapStyleBtn').onclick = () => {
+  const isGoogle = document.body.classList.contains('google-theme');
+  applyMapStyle(isGoogle ? 'dark' : 'google');
+};
+applyMapStyle(localStorage.getItem('gax_region_map_style') === 'google' ? 'google' : 'dark');
 
 const selected = new Map(); // id -> {name, centroid}
 
