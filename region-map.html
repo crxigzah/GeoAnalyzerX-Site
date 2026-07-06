@@ -72,11 +72,6 @@
   .ocean-stop-1{ stop-color: var(--map-ocean-1); }
   .ocean-stop-2{ stop-color: var(--map-ocean-2); }
 
-  body.google-theme .country.covered,
-  body.google-theme .subdivision{
-    filter: url(#terrainTexture);
-  }
-
   *{box-sizing:border-box;}
   html,body{
     margin:0; padding:0; height:100%;
@@ -629,23 +624,13 @@ const projection = d3.geoNaturalEarth1().scale(165).translate([width/2, height/2
 const path = d3.geoPath(projection);
 let activeProjection = projection;
 
-// Defs: an ocean gradient (for subtle depth instead of flat color) and a
-// gentle noise-based texture filter so land areas read as terrain rather
-// than a flat corporate infographic fill. Stop-colors reference CSS
-// variables so both the dark theme and the Google-style theme pick up
-// the right tones automatically.
+// Defs: an ocean gradient (for subtle depth instead of flat color). Stop
+// colors reference CSS variables so both the dark theme and the
+// Google-style theme pick up the right tones automatically.
 const defs = svg.append('defs');
 const oceanGrad = defs.append('radialGradient').attr('id','oceanGrad').attr('cx','50%').attr('cy','35%').attr('r','75%');
 oceanGrad.append('stop').attr('class','ocean-stop-1').attr('offset','0%');
 oceanGrad.append('stop').attr('class','ocean-stop-2').attr('offset','100%');
-
-const terrainFilter = defs.append('filter').attr('id','terrainTexture').attr('x','-20%').attr('y','-20%').attr('width','140%').attr('height','140%');
-terrainFilter.append('feTurbulence').attr('type','fractalNoise').attr('baseFrequency','0.9').attr('numOctaves','2').attr('seed','7').attr('result','noise');
-terrainFilter.append('feColorMatrix').attr('in','noise').attr('type','matrix')
-  .attr('values','0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0');
-const feMerge = terrainFilter.append('feMerge');
-feMerge.append('feMergeNode').attr('in','SourceGraphic');
-feMerge.append('feMergeNode').attr('in','noise');
 
 const g = svg.append('g');
 g.append('path').attr('class','sphere').attr('id','sphereBg').attr('d', path({type:'Sphere'}));
