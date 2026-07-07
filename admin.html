@@ -190,7 +190,11 @@
     <div class="card">
       <div class="card-header">
         <h2>🗺️ Country Meta Guides</h2>
-        <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="openGuideEditor(null)">+ Write New Guide</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4a0ff;padding:7px 14px;" onclick="showProgressTracker()">📊 Progress</button>
+          <button class="btn btn-sm" style="background:rgba(240,165,0,0.15);border:1px solid rgba(240,165,0,0.3);color:#f0a500;padding:7px 14px;" onclick="showBatchScaffold()">🚀 Batch-Scaffold</button>
+          <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="openGuideEditor(null)">+ Write New Guide</button>
+        </div>
       </div>
       <div style="overflow-x:auto">
         <table>
@@ -203,6 +207,62 @@
 </div>
 
 <!-- Guide Editor — Modern revamp -->
+<div id="completeness-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:700;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;width:560px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h2 style="margin:0;font-size:17px;">✅ Completeness Check</h2>
+        <div id="completeness-summary" style="font-size:13px;color:var(--muted);margin-top:4px;"></div>
+      </div>
+      <button onclick="document.getElementById('completeness-modal').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div id="completeness-list" style="overflow-y:auto;padding:12px 24px;flex:1;"></div>
+  </div>
+</div>
+
+<div id="photo-checklist-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:700;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;width:500px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h2 style="margin:0;font-size:17px;">📋 Photo Checklist</h2>
+        <div id="checklist-summary" style="font-size:13px;color:var(--muted);margin-top:4px;"></div>
+      </div>
+      <button onclick="document.getElementById('photo-checklist-modal').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div id="checklist-list" style="overflow-y:auto;padding:12px 24px;flex:1;"></div>
+  </div>
+</div>
+
+<div id="batch-scaffold-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:590;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;width:500px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h2 style="margin:0;font-size:17px;">🚀 Batch-Scaffold Countries</h2>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Creates a starter scaffold + saves it immediately for each checked country</div>
+      </div>
+      <button onclick="document.getElementById('batch-scaffold-modal').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div id="batch-scaffold-list" style="overflow-y:auto;padding:8px 24px;flex:1;"></div>
+    <div style="padding:16px 24px;border-top:1px solid var(--border);">
+      <div id="batch-scaffold-progress" style="font-size:12px;color:var(--muted);margin-bottom:10px;min-height:16px;"></div>
+      <button onclick="runBatchScaffold()" style="width:100%;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4a0ff;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Generate Selected Scaffolds</button>
+    </div>
+  </div>
+</div>
+
+<div id="progress-tracker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:590;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;width:600px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h2 style="margin:0;font-size:17px;">📊 Guide Progress</h2>
+        <div id="progress-summary" style="font-size:13px;color:var(--muted);margin-top:4px;"></div>
+      </div>
+      <button onclick="document.getElementById('progress-tracker-modal').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div id="progress-list" style="overflow-y:auto;padding:12px 24px;flex:1;"></div>
+  </div>
+</div>
+
 <div id="guide-editor" style="display:none;position:fixed;inset:0;background:#07070f;z-index:600;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 
   <!-- Top bar -->
@@ -256,6 +316,18 @@
         </div>
         <div class="ge-meta-field" style="max-width:170px;align-self:flex-end;">
           <button onclick="autoScaffoldCountry()" style="width:100%;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4a0ff;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🪄 Auto-Scaffold</button>
+        </div>
+        <div class="ge-meta-field" style="max-width:150px;align-self:flex-end;">
+          <button onclick="showPhotoChecklist()" style="width:100%;background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.4);color:#00c9a7;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📋 Checklist</button>
+        </div>
+      </div>
+      <div class="ge-meta-strip" style="border-top:none;padding-top:0;">
+        <div class="ge-meta-field" style="max-width:170px;">
+          <button onclick="document.getElementById('bulk-upload-input').click()" style="width:100%;background:rgba(240,165,0,0.15);border:1px solid rgba(240,165,0,0.4);color:#f0a500;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📤 Bulk Upload Photos</button>
+          <input type="file" id="bulk-upload-input" accept="image/*" multiple style="display:none" onchange="handleBulkUpload(this.files)">
+        </div>
+        <div class="ge-meta-field" style="max-width:170px;">
+          <button onclick="checkGuideCompleteness()" style="width:100%;background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.4);color:#ff6b6b;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✅ Check Completeness</button>
         </div>
       </div>
 
@@ -1152,6 +1224,241 @@ async function deleteGuide(iso, country) {
   }
 }
 
+// Same ~114-country coverage list used by region-map.html, so "started
+// vs not started" always reflects the real set of countries that matter.
+const GEOGUESSR_COUNTRIES = [
+  "Albania","Andorra","Argentina","Australia","Austria","Bangladesh","Belgium",
+  "Bhutan","Bolivia","Botswana","Brazil","Bulgaria","Cambodia","Canada","Chile",
+  "Colombia","Costa Rica","Croatia","Cyprus","Czechia","Denmark",
+  "Dominican Republic","Ecuador","Estonia","Eswatini","Finland","France",
+  "Georgia","Germany","Ghana","Greece","Greenland","Guatemala","Hungary",
+  "Iceland","India","Indonesia","Ireland","Israel","Italy","Japan","Jordan",
+  "Kazakhstan","Kenya","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho",
+  "Liechtenstein","Lithuania","Luxembourg","Madagascar","Malaysia","Malta",
+  "Mexico","Monaco","Mongolia","Montenegro","Namibia","Nepal","Netherlands",
+  "New Zealand","Nigeria","North Macedonia","Norway","Oman","Pakistan",
+  "Palestine","Panama","Peru","Philippines","Poland","Portugal","Qatar",
+  "Romania","Russia","Rwanda","San Marino","Sao Tome and Principe","Senegal",
+  "Serbia","Singapore","Slovakia","Slovenia","South Africa","South Korea",
+  "Spain","Sri Lanka","Sweden","Switzerland","Taiwan","Thailand","Tunisia",
+  "Turkey","Uganda","Ukraine","United Arab Emirates","United Kingdom",
+  "United States of America","Uruguay","Vietnam",
+  "Bermuda","Curaçao","Faroe Islands","Guam","Isle of Man","Jersey",
+  "Northern Mariana Islands","American Samoa","Puerto Rico",
+  "United States Virgin Islands","Christmas Island","Réunion"
+];
+
+function checkGuideCompleteness(){
+  const issues = [];
+  const placeholderPatterns = [/\[.*?\/.*?\]/, /\[describe/i, /tell goes here/i, /no description yet/i];
+
+  editorBlocks.forEach((b, i) => {
+    if ((b.type === 'img-text' || b.type === 'image') && !b.data.src){
+      issues.push({ type: 'Missing photo', detail: (b.data.text || '(no text)').slice(0, 60), blockId: b.id });
+    }
+    if (b.data.text && placeholderPatterns.some(p => p.test(b.data.text))){
+      issues.push({ type: 'Unfilled placeholder', detail: b.data.text.slice(0, 60), blockId: b.id });
+    }
+    if (b.type === 'links'){
+      (b.data.items || []).forEach(item => {
+        if (item.label && !item.url){
+          issues.push({ type: 'Empty link URL', detail: item.label, blockId: b.id });
+        }
+      });
+    }
+    if (b.type === 'heading'){
+      const next = editorBlocks[i+1];
+      if (!next || next.type === 'heading'){
+        issues.push({ type: 'Empty section', detail: `"${b.data.text}" has nothing under it`, blockId: b.id });
+      }
+    }
+  });
+
+  document.getElementById('completeness-summary').textContent = issues.length
+    ? `${issues.length} thing(s) still need attention`
+    : '🎉 Nothing outstanding — looks ready!';
+  document.getElementById('completeness-list').innerHTML = issues.length
+    ? issues.map(iss => `<div onclick="document.getElementById('completeness-modal').style.display='none';document.querySelector('[data-block-id=\\'${iss.blockId}\\']')?.scrollIntoView({behavior:'smooth',block:'center'})"
+        style="display:flex;gap:10px;align-items:flex-start;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer;">
+        <span style="font-size:11px;font-weight:700;color:#ff6b6b;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;width:130px;">${iss.type}</span>
+        <span style="font-size:13px;color:var(--muted);">${escapeHtml(iss.detail)}</span>
+      </div>`).join('')
+    : '<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center;">✅ Every block has a photo, no leftover placeholders, no empty links, no empty sections.</div>';
+  document.getElementById('completeness-modal').style.display = 'flex';
+}
+
+function showPhotoChecklist(){
+  // Live-derived from the actual blocks in this guide right now — "done"
+  // simply means a photo has been uploaded to that block, so this is
+  // always accurate with zero separate bookkeeping to maintain.
+  const photoBlocks = editorBlocks.filter(b => b.type === 'img-text' || b.type === 'image');
+  if (!photoBlocks.length){
+    document.getElementById('checklist-summary').textContent = 'No photo blocks in this guide yet.';
+    document.getElementById('checklist-list').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center;">Add some Image or Image+Text blocks first, or run Auto-Scaffold.</div>';
+    document.getElementById('photo-checklist-modal').style.display = 'flex';
+    return;
+  }
+  const done = photoBlocks.filter(b => b.data.src).length;
+  document.getElementById('checklist-summary').textContent = `${done} / ${photoBlocks.length} photos uploaded`;
+  document.getElementById('checklist-list').innerHTML = photoBlocks.map(b => {
+    const hasPhoto = !!b.data.src;
+    const preview = (b.data.text || '(no description yet)').slice(0, 70);
+    return `<div onclick="document.getElementById('photo-checklist-modal').style.display='none';document.querySelector('[data-block-id=\\'${b.id}\\']')?.scrollIntoView({behavior:'smooth',block:'center'})"
+      style="display:flex;gap:10px;align-items:flex-start;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer;">
+      <span style="font-size:15px;flex-shrink:0;">${hasPhoto ? '✅' : '⬜'}</span>
+      <span style="font-size:13px;color:${hasPhoto ? 'var(--text)' : 'var(--muted)'};">${escapeHtml(preview)}${(b.data.text||'').length > 70 ? '...' : ''}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('photo-checklist-modal').style.display = 'flex';
+}
+
+// ISO2 codes — required by the save endpoint, so batch-scaffold needs
+// these even though the region-fetching part only needs ISO3.
+const ISO2 = {
+  "Albania":"AL","Andorra":"AD","Argentina":"AR","Australia":"AU","Austria":"AT",
+  "Bangladesh":"BD","Belgium":"BE","Bhutan":"BT","Bolivia":"BO","Botswana":"BW",
+  "Brazil":"BR","Bulgaria":"BG","Cambodia":"KH","Canada":"CA","Chile":"CL",
+  "Colombia":"CO","Costa Rica":"CR","Croatia":"HR","Cyprus":"CY","Czechia":"CZ",
+  "Denmark":"DK","Dominican Republic":"DO","Ecuador":"EC","Estonia":"EE",
+  "Eswatini":"SZ","Finland":"FI","France":"FR","Georgia":"GE","Germany":"DE",
+  "Ghana":"GH","Greece":"GR","Greenland":"GL","Guatemala":"GT","Hungary":"HU",
+  "Iceland":"IS","India":"IN","Indonesia":"ID","Ireland":"IE","Israel":"IL",
+  "Italy":"IT","Japan":"JP","Jordan":"JO","Kazakhstan":"KZ","Kenya":"KE",
+  "Kyrgyzstan":"KG","Laos":"LA","Latvia":"LV","Lebanon":"LB","Lesotho":"LS",
+  "Liechtenstein":"LI","Lithuania":"LT","Luxembourg":"LU","Madagascar":"MG",
+  "Malaysia":"MY","Malta":"MT","Mexico":"MX","Monaco":"MC","Mongolia":"MN",
+  "Montenegro":"ME","Namibia":"NA","Nepal":"NP","Netherlands":"NL",
+  "New Zealand":"NZ","Nigeria":"NG","North Macedonia":"MK","Norway":"NO",
+  "Oman":"OM","Pakistan":"PK","Palestine":"PS","Panama":"PA","Peru":"PE",
+  "Philippines":"PH","Poland":"PL","Portugal":"PT","Qatar":"QA","Romania":"RO",
+  "Russia":"RU","Rwanda":"RW","San Marino":"SM","Sao Tome and Principe":"ST",
+  "Senegal":"SN","Serbia":"RS","Singapore":"SG","Slovakia":"SK","Slovenia":"SI",
+  "South Africa":"ZA","South Korea":"KR","Spain":"ES","Sri Lanka":"LK",
+  "Sweden":"SE","Switzerland":"CH","Taiwan":"TW","Thailand":"TH","Tunisia":"TN",
+  "Turkey":"TR","Uganda":"UG","Ukraine":"UA","United Arab Emirates":"AE",
+  "United Kingdom":"GB","United States of America":"US","Uruguay":"UY","Vietnam":"VN",
+  "Bermuda":"BM","Curaçao":"CW","Faroe Islands":"FO","Guam":"GU","Isle of Man":"IM",
+  "Jersey":"JE","Northern Mariana Islands":"MP","American Samoa":"AS",
+  "Puerto Rico":"PR","United States Virgin Islands":"VI","Christmas Island":"CX","Réunion":"RE"
+};
+
+function showBatchScaffold(){
+  const guideByCountry = {};
+  (allGuides || []).forEach(g => { guideByCountry[g.country] = g; });
+  const notStarted = GEOGUESSR_COUNTRIES.filter(c => !guideByCountry[c]).sort((a,b) => a.localeCompare(b));
+
+  document.getElementById('batch-scaffold-list').innerHTML = notStarted.map(c => `
+    <label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;font-size:13px;">
+      <input type="checkbox" class="batch-scaffold-cb" value="${escapeHtml(c)}" checked>
+      ${escapeHtml(c)}
+    </label>`).join('') || '<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center;">Every country already has a guide started!</div>';
+  document.getElementById('batch-scaffold-progress').textContent = '';
+  document.getElementById('batch-scaffold-modal').style.display = 'flex';
+}
+
+async function runBatchScaffold(){
+  const checked = Array.from(document.querySelectorAll('.batch-scaffold-cb:checked')).map(cb => cb.value);
+  if (!checked.length) { toast('Select at least one country', true); return; }
+  if (!confirm(`Create starter scaffolds for ${checked.length} countries? This saves each one as a new guide immediately.`)) return;
+
+  const progressEl = document.getElementById('batch-scaffold-progress');
+  let done = 0, failed = [];
+
+  for (const country of checked){
+    progressEl.textContent = `${done+1} / ${checked.length}: ${country}...`;
+    const iso = ISO2[country];
+    if (!iso){ failed.push(country); done++; continue; }
+    try {
+      const regions = await fetchScaffoldRegions(country);
+      const blocks = buildScaffoldBlocks(country, regions);
+      const res = await fetch(`${API}/admin/country_meta`, {
+        method:'POST', headers: adminHeaders(),
+        body: JSON.stringify({ country, iso, content: { blocks } })
+      });
+      const d = await res.json();
+      if (d.error) throw new Error(d.error);
+    } catch(e) {
+      console.error('Batch scaffold failed for', country, e);
+      failed.push(country);
+    }
+    done++;
+  }
+
+  progressEl.textContent = `Done — ${done - failed.length} / ${checked.length} scaffolded successfully.` + (failed.length ? ` Failed: ${failed.join(', ')}` : '');
+  loadGuides();
+}
+
+function showProgressTracker(){
+  const modal = document.getElementById('progress-tracker-modal');
+  const guideByCountry = {};
+  (allGuides || []).forEach(g => { guideByCountry[g.country] = g; });
+
+  const rows = GEOGUESSR_COUNTRIES.slice().sort((a,b) => a.localeCompare(b)).map(country => {
+    const g = guideByCountry[country];
+    let statusHtml, statusColor;
+    if (g && g.source === 'manual') { statusHtml = '✅ Written'; statusColor = '#00c9a7'; }
+    else if (g) { statusHtml = '🤖 AI only'; statusColor = '#7c3aed'; }
+    else { statusHtml = '⬜ Not started'; statusColor = '#5a5a7a'; }
+    return `<div onclick="document.getElementById('progress-tracker-modal').style.display='none';${g ? `editGuide('${g.iso}','${escapeHtml(country)}')` : `openGuideEditor(null);document.getElementById('ge-country').value='${escapeHtml(country)}';`}"
+      style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer;">
+      <span style="font-size:13px;">${escapeHtml(country)}</span>
+      <span style="font-size:12px;font-weight:600;color:${statusColor};">${statusHtml}</span>
+    </div>`;
+  }).join('');
+
+  const written = GEOGUESSR_COUNTRIES.filter(c => guideByCountry[c] && guideByCountry[c].source === 'manual').length;
+  document.getElementById('progress-summary').textContent = `${written} / ${GEOGUESSR_COUNTRIES.length} countries written`;
+  document.getElementById('progress-list').innerHTML = rows;
+  modal.style.display = 'flex';
+}
+
+// Commonly-confused GeoGuessr country pairs — not exhaustive, but covers
+// the pairings that come up constantly in community meta discussions.
+const CONFUSE_WITH = {
+  "Australia":["New Zealand"], "New Zealand":["Australia"],
+  "United States of America":["Canada"], "Canada":["United States of America"],
+  "Argentina":["Chile","Uruguay"], "Chile":["Argentina"], "Uruguay":["Argentina"],
+  "Brazil":["Argentina"],
+  "Spain":["Portugal"], "Portugal":["Spain"],
+  "Czechia":["Slovakia","Poland"], "Slovakia":["Czechia","Hungary"],
+  "Poland":["Czechia","Lithuania","Germany"],
+  "Croatia":["Slovenia"], "Slovenia":["Croatia","Austria"],
+  "Sweden":["Norway","Finland"], "Norway":["Sweden"], "Finland":["Sweden","Estonia"],
+  "Estonia":["Latvia","Finland"], "Latvia":["Estonia","Lithuania"], "Lithuania":["Latvia","Poland"],
+  "Germany":["Austria","Netherlands"], "Austria":["Germany","Switzerland"],
+  "Switzerland":["Austria","France"], "Netherlands":["Belgium","Germany"], "Belgium":["Netherlands","France"],
+  "Malaysia":["Indonesia","Thailand"], "Indonesia":["Malaysia"],
+  "Thailand":["Laos","Cambodia"], "Laos":["Thailand","Cambodia","Vietnam"],
+  "Cambodia":["Thailand","Laos","Vietnam"], "Vietnam":["Laos","Cambodia"],
+  "Kenya":["Uganda"], "Uganda":["Kenya","Rwanda"], "Rwanda":["Uganda"],
+  "Nigeria":["Ghana"], "Ghana":["Nigeria","Senegal"], "Senegal":["Ghana"],
+  "South Africa":["Namibia","Lesotho","Eswatini","Botswana"],
+  "Namibia":["South Africa","Botswana"], "Botswana":["Namibia","South Africa"],
+  "Lesotho":["South Africa"], "Eswatini":["South Africa"],
+  "Bangladesh":["India"], "India":["Bangladesh","Pakistan","Nepal"], "Pakistan":["India"],
+  "Nepal":["India","Bhutan"], "Bhutan":["Nepal"], "Sri Lanka":["India"],
+  "Bolivia":["Peru"], "Peru":["Bolivia","Ecuador"], "Ecuador":["Peru","Colombia"],
+  "Colombia":["Ecuador","Panama"], "Panama":["Costa Rica","Colombia"], "Costa Rica":["Panama"],
+  "Guatemala":["Mexico"],
+  "Romania":["Bulgaria"], "Bulgaria":["Romania","Serbia"],
+  "Serbia":["Bulgaria","Montenegro","North Macedonia"],
+  "Montenegro":["Serbia","Croatia"], "North Macedonia":["Serbia","Bulgaria","Greece"],
+  "Greece":["North Macedonia","Albania","Turkey"], "Albania":["Greece","Montenegro","North Macedonia"],
+  "Turkey":["Greece","Bulgaria"],
+  "Ukraine":["Russia","Poland","Romania"], "Russia":["Ukraine","Kazakhstan"],
+  "Kazakhstan":["Russia","Kyrgyzstan","Mongolia"], "Kyrgyzstan":["Kazakhstan"], "Mongolia":["Russia","Kazakhstan"],
+  "Japan":["South Korea"], "South Korea":["Japan"],
+  "Mexico":["United States of America","Guatemala"],
+  "Denmark":["Netherlands","Germany","Sweden"], "Iceland":["Greenland","Norway"],
+  "Greenland":["Iceland","Canada"], "Ireland":["United Kingdom"], "United Kingdom":["Ireland"],
+  "Israel":["Jordan","Palestine"], "Jordan":["Israel"], "Palestine":["Israel","Jordan"],
+  "Lebanon":["Jordan","Israel"],
+  "Qatar":["United Arab Emirates","Oman"], "United Arab Emirates":["Qatar","Oman"], "Oman":["United Arab Emirates"],
+  "Cyprus":["Malta","Greece"], "Malta":["Cyprus"],
+  "Andorra":["Liechtenstein","Monaco","San Marino"], "Liechtenstein":["Andorra","Monaco","San Marino"],
+  "Monaco":["Andorra","Liechtenstein","San Marino"], "San Marino":["Andorra","Liechtenstein","Monaco"]
+};
+
 async function editGuide(iso, country) {
   openGuideEditor(iso, country);
   try {
@@ -1197,6 +1504,78 @@ const SCAFFOLD_ISO3 = {
   "Christmas Island":"CXR","Réunion":"REU"
 };
 
+// Objective, publicly-verifiable facts (not GeoGuessr-community trivia) —
+// safe to auto-fill, unlike bollards/signs/road-lines which genuinely vary
+// and need real research per country.
+const DRIVING_SIDE = {
+  "Albania":"right","Andorra":"right","Argentina":"right","Australia":"left","Austria":"right",
+  "Bangladesh":"left","Belgium":"right","Bhutan":"left","Bolivia":"right","Botswana":"left",
+  "Brazil":"right","Bulgaria":"right","Cambodia":"right","Canada":"right","Chile":"right",
+  "Colombia":"right","Costa Rica":"right","Croatia":"right","Cyprus":"left","Czechia":"right",
+  "Denmark":"right","Dominican Republic":"right","Ecuador":"right","Estonia":"right",
+  "Eswatini":"left","Finland":"right","France":"right","Georgia":"right","Germany":"right",
+  "Ghana":"right","Greece":"right","Greenland":"right","Guatemala":"right","Hungary":"right",
+  "Iceland":"right","India":"left","Indonesia":"left","Ireland":"left","Israel":"right",
+  "Italy":"right","Japan":"left","Jordan":"right","Kazakhstan":"right","Kenya":"left",
+  "Kyrgyzstan":"right","Laos":"right","Latvia":"right","Lebanon":"right","Lesotho":"left",
+  "Liechtenstein":"right","Lithuania":"right","Luxembourg":"right","Madagascar":"right",
+  "Malaysia":"left","Malta":"left","Mexico":"right","Monaco":"right","Mongolia":"right",
+  "Montenegro":"right","Namibia":"left","Nepal":"left","Netherlands":"right",
+  "New Zealand":"left","Nigeria":"right","North Macedonia":"right","Norway":"right",
+  "Oman":"right","Pakistan":"left","Palestine":"right","Panama":"right","Peru":"right",
+  "Philippines":"right","Poland":"right","Portugal":"right","Qatar":"right","Romania":"right",
+  "Russia":"right","Rwanda":"right","San Marino":"right","Sao Tome and Principe":"right",
+  "Senegal":"right","Serbia":"right","Singapore":"left","Slovakia":"right","Slovenia":"right",
+  "South Africa":"left","South Korea":"right","Spain":"right","Sri Lanka":"left",
+  "Sweden":"right","Switzerland":"right","Taiwan":"right","Thailand":"left","Tunisia":"right",
+  "Turkey":"right","Uganda":"left","Ukraine":"right","United Arab Emirates":"right",
+  "United Kingdom":"left","United States of America":"right","Uruguay":"right","Vietnam":"right",
+  "Bermuda":"left","Curaçao":"right","Faroe Islands":"right","Guam":"right","Isle of Man":"left",
+  "Jersey":"left","Northern Mariana Islands":"right","American Samoa":"right",
+  "Puerto Rico":"right","United States Virgin Islands":"left","Christmas Island":"left",
+  "Réunion":"right"
+};
+
+const HEMISPHERE = {
+  "Albania":"northern","Andorra":"northern","Argentina":"southern","Australia":"southern",
+  "Austria":"northern","Bangladesh":"northern","Belgium":"northern","Bhutan":"northern",
+  "Bolivia":"southern","Botswana":"southern","Brazil":"southern","Bulgaria":"northern",
+  "Cambodia":"northern","Canada":"northern","Chile":"southern","Colombia":"northern",
+  "Costa Rica":"northern","Croatia":"northern","Cyprus":"northern","Czechia":"northern",
+  "Denmark":"northern","Dominican Republic":"northern","Ecuador":"southern","Estonia":"northern",
+  "Eswatini":"southern","Finland":"northern","France":"northern","Georgia":"northern",
+  "Germany":"northern","Ghana":"northern","Greece":"northern","Greenland":"northern",
+  "Guatemala":"northern","Hungary":"northern","Iceland":"northern","India":"northern",
+  "Indonesia":"southern","Ireland":"northern","Israel":"northern","Italy":"northern",
+  "Japan":"northern","Jordan":"northern","Kazakhstan":"northern","Kenya":"southern",
+  "Kyrgyzstan":"northern","Laos":"northern","Latvia":"northern","Lebanon":"northern",
+  "Lesotho":"southern","Liechtenstein":"northern","Lithuania":"northern","Luxembourg":"northern",
+  "Madagascar":"southern","Malaysia":"northern","Malta":"northern","Mexico":"northern",
+  "Monaco":"northern","Mongolia":"northern","Montenegro":"northern","Namibia":"southern",
+  "Nepal":"northern","Netherlands":"northern","New Zealand":"southern","Nigeria":"northern",
+  "North Macedonia":"northern","Norway":"northern","Oman":"northern","Pakistan":"northern",
+  "Palestine":"northern","Panama":"northern","Peru":"southern","Philippines":"northern",
+  "Poland":"northern","Portugal":"northern","Qatar":"northern","Romania":"northern",
+  "Russia":"northern","Rwanda":"southern","San Marino":"northern",
+  "Sao Tome and Principe":"northern","Senegal":"northern","Serbia":"northern",
+  "Singapore":"northern","Slovakia":"northern","Slovenia":"northern","South Africa":"southern",
+  "South Korea":"northern","Spain":"northern","Sri Lanka":"northern","Sweden":"northern",
+  "Switzerland":"northern","Taiwan":"northern","Thailand":"northern","Tunisia":"northern",
+  "Turkey":"northern","Uganda":"northern","Ukraine":"northern","United Arab Emirates":"northern",
+  "United Kingdom":"northern","United States of America":"northern","Uruguay":"southern",
+  "Vietnam":"northern","Bermuda":"northern","Curaçao":"northern","Faroe Islands":"northern",
+  "Guam":"northern","Isle of Man":"northern","Jersey":"northern",
+  "Northern Mariana Islands":"northern","American Samoa":"southern","Puerto Rico":"northern",
+  "United States Virgin Islands":"northern","Christmas Island":"southern","Réunion":"southern"
+};
+
+function slugifyForPlonkit(country){
+  return country.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
 async function fetchScaffoldRegions(country){
   const iso3 = SCAFFOLD_ISO3[country];
   if (!iso3) return [];
@@ -1215,6 +1594,57 @@ async function fetchScaffoldRegions(country){
   }
 }
 
+// Pure function: given a country and its region list, returns the array
+// of {type, data} block definitions for the starter scaffold. Used by
+// both the single-country Auto-Scaffold button (via addBlock) and the
+// batch-scaffold feature (which saves directly via the API instead).
+function buildScaffoldBlocks(country, regions){
+  const blocks = [];
+  blocks.push({ type:'nav', data:{ buttons: ['Overall','Region Specific','Vegetation & Landscapes','Documents & Links'] } });
+
+  blocks.push({ type:'heading', data:{ text: 'Overall' } });
+  const side = DRIVING_SIDE[country];
+  const hemi = HEMISPHERE[country];
+  const overallPrompts = [
+    side ? `${country} drives on the ${side} side of the road.` : `${country} drives on the [left / right] side of the road.`,
+    hemi ? `${country} is located in the ${hemi} hemisphere.` : `${country} is located in the [northern / southern] hemisphere.`,
+    `${country}'s bollards are [describe shape, color, reflector placement].`,
+    `${country} mainly uses [white / yellow] road lines.`,
+    `${country}'s warning signs are [shape] and [color].`,
+    `${country}'s speed limit signs use [describe style].`
+  ];
+  overallPrompts.forEach(text => blocks.push({ type:'img-text', data:{ text, imgWidth:'55' } }));
+
+  (CONFUSE_WITH[country] || []).forEach(other => {
+    blocks.push({ type:'warning', data:{ text: `${other} — [describe the specific visual difference from ${country}].` } });
+  });
+
+  blocks.push({ type:'heading', data:{ text: 'Region Specific' } });
+  if (regions.length){
+    blocks.push({ type:'region-tabs', data:{ buttons: regions } });
+    regions.forEach(region => {
+      blocks.push({ type:'heading', data:{ text: region } });
+      blocks.push({ type:'img-text', data:{ text: `${region} tell goes here...`, imgWidth:'55' } });
+    });
+  } else {
+    blocks.push({ type:'text', data:{ text: `Couldn't auto-fetch a region list for ${country} — add region headings manually, or double-check the country name matches exactly.` } });
+  }
+
+  blocks.push({ type:'heading', data:{ text: 'Vegetation & Landscapes' } });
+  blocks.push({ type:'img-text', data:{ text: 'Describe a distinctive landscape/vegetation tell here...', imgWidth:'55' } });
+
+  blocks.push({ type:'heading', data:{ text: 'Documents & Links' } });
+  blocks.push({ type:'links', data:{ items: [
+    { label: `A Balanced ${country} map`, url: '' },
+    { label: `${country} Discord`, url: '' },
+    { label: 'Plonkit guide', url: `https://www.plonkit.net/${slugifyForPlonkit(country)}` },
+    { label: `Definitive ${country} guide`, url: '' },
+    { label: `${country} Tips and Hints`, url: '' }
+  ] } });
+
+  return blocks;
+}
+
 async function autoScaffoldCountry(){
   const country = document.getElementById('ge-country').value.trim();
   if (!country) { toast('Enter a country name first', true); return; }
@@ -1222,49 +1652,8 @@ async function autoScaffoldCountry(){
 
   toast(`Fetching ${country}'s region list...`);
   const regions = await fetchScaffoldRegions(country);
-
-  // 1. Top nav pills
-  addBlock('nav', { buttons: ['Overall','Region Specific','Vegetation & Landscapes','Documents & Links'] });
-
-  // 2. Overall — the universal checks that apply to almost every country
-  addBlock('heading', { text: 'Overall' });
-  const overallPrompts = [
-    `${country} drives on the [left / right] side of the road.`,
-    `${country} is located in the [northern / southern] hemisphere.`,
-    `${country}'s bollards are [describe shape, color, reflector placement].`,
-    `${country} mainly uses [white / yellow] road lines.`,
-    `${country}'s warning signs are [shape] and [color].`,
-    `${country}'s speed limit signs use [describe style].`
-  ];
-  overallPrompts.forEach(text => addBlock('img-text', { text, imgWidth:'55' }));
-
-  // 3. Region Specific — jump-nav + a heading (and a starter fact block)
-  //    per real region, pulled live from the same geoBoundaries data
-  //    region-map.html already uses, so the list is always accurate.
-  addBlock('heading', { text: 'Region Specific' });
-  if (regions.length){
-    addBlock('region-tabs', { buttons: regions });
-    regions.forEach(region => {
-      addBlock('heading', { text: region });
-      addBlock('img-text', { text: `${region} tell goes here...`, imgWidth:'55' });
-    });
-  } else {
-    addBlock('text', { text: `Couldn't auto-fetch a region list for ${country} — add region headings manually, or double-check the country name matches exactly.` });
-  }
-
-  // 4. Vegetation & Landscapes
-  addBlock('heading', { text: 'Vegetation & Landscapes' });
-  addBlock('img-text', { text: 'Describe a distinctive landscape/vegetation tell here...', imgWidth:'55' });
-
-  // 5. Documents & Links — same boilerplate link types every guide has
-  addBlock('heading', { text: 'Documents & Links' });
-  addBlock('links', { items: [
-    { label: `A Balanced ${country} map`, url: '' },
-    { label: `${country} Discord`, url: '' },
-    { label: 'Plonkit guide', url: '' },
-    { label: `Definitive ${country} guide`, url: '' },
-    { label: `${country} Tips and Hints`, url: '' }
-  ]});
+  const blocks = buildScaffoldBlocks(country, regions);
+  blocks.forEach(b => addBlock(b.type, b.data));
 
   toast(`Scaffold generated for ${country}${regions.length ? ' — ' + regions.length + ' regions found' : ' (no region list found)'}`);
 }
@@ -1675,6 +2064,32 @@ function moveBlock(id, dir) {
 }
 
 // ── Image handling — file, drag & drop, paste ─────────────
+// ── Bulk photo upload ──────────────────────────────────────
+// Fills empty photo slots (img-text/image blocks with no src) in order;
+// any leftover files beyond available slots get their own new block
+// created automatically so nothing is ever silently dropped.
+async function handleBulkUpload(fileList){
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+
+  const emptySlots = editorBlocks.filter(b => (b.type === 'img-text' || b.type === 'image') && !b.data.src);
+
+  for (let i = 0; i < files.length; i++){
+    let targetId;
+    if (i < emptySlots.length){
+      targetId = emptySlots[i].id;
+    } else {
+      // Ran out of empty slots — create a fresh img-text block for this photo
+      addBlock('img-text', { text: '', imgWidth: '55' });
+      targetId = editorBlocks[editorBlocks.length - 1].id;
+    }
+    loadImageFile(targetId, files[i]);
+    await new Promise(r => setTimeout(r, 400)); // stagger uploads slightly
+  }
+  toast(`Distributing ${files.length} photo(s) into the guide...`);
+  document.getElementById('bulk-upload-input').value = '';
+}
+
 function handleFileSelect(blockId, input, field='src') {
   if (!input.files[0]) return;
   loadImageFile(blockId, input.files[0], field);
