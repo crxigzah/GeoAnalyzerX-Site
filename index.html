@@ -704,9 +704,18 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     <span></span><span></span><span></span>
   </button>
   <div class="nav-links" id="nav-links">
-    <a href="#features" onclick="goHome();setTimeout(()=>document.getElementById('features')?.scrollIntoView({behavior:'smooth'}),100);return false;">Features</a>
-    <a href="#faq" onclick="goHome();setTimeout(()=>document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}),100);return false;">FAQ</a>
-    <a href="#pricing" onclick="goHome();setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),100);return false;">Pricing</a>
+    <a id="nav-dashboard-link" onclick="goToDashboard()" style="display:none;cursor:pointer;">📊 Dashboard</a>
+    <div class="nav-dropdown-wrap" style="display:flex;align-items:center;">
+      <a style="display:flex;align-items:center;gap:4px;">
+        Script
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </a>
+      <div class="nav-dropdown-menu">
+        <a href="#features" onclick="goHome();setTimeout(()=>document.getElementById('features')?.scrollIntoView({behavior:'smooth'}),100);return false;">Features</a>
+        <a href="#faq" onclick="goHome();setTimeout(()=>document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}),100);return false;">FAQ</a>
+        <a href="#pricing" onclick="goHome();setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),100);return false;">Pricing</a>
+      </div>
+    </div>
     <a href="#download" onclick="goHome();setTimeout(()=>document.getElementById('download')?.scrollIntoView({behavior:'smooth'}),100);return false;">Download</a>
     <a href="#rules" onclick="goHome();setTimeout(()=>document.getElementById('rules')?.scrollIntoView({behavior:'smooth'}),100);return false;">Rules</a>
     <div class="nav-dropdown-wrap" style="display:flex;align-items:center;">
@@ -717,6 +726,13 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
       <div class="nav-dropdown-menu">
         <a href="/region-map.html">🗺️ Region Map</a>
         <a href="/phone-code-map.html">📞 Phone Code Map</a>
+        <a href="/camera-gen-game.html">🎥 Camera Generation Game</a>
+        <a href="/photo-quiz-game.html?type=bollard">🚧 Bollard Bingo</a>
+        <a href="/photo-quiz-game.html?type=sign_shape">🚸 Sign Shape Sprint</a>
+        <a href="/photo-quiz-game.html?type=vegetation">🌿 Vegetation Snap</a>
+        <a href="/photo-quiz-game.html?type=license_plate">🚗 License Plate Guess</a>
+        <a href="/meta-quiz-game.html">⚡ Meta Speed Quiz</a>
+        <a href="/daily-challenge.html">📅 Daily Challenge</a>
       </div>
     </div>
     <a href="/metas" style="color:#00c9a7;font-weight:700;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);padding:4px 12px;border-radius:20px;font-size:12px;text-decoration:none;transition:background .2s;" onmouseover="this.style.background='rgba(0,201,167,0.2)'" onmouseout="this.style.background='rgba(0,201,167,0.1)'">🗺️ Metas</a>
@@ -1579,6 +1595,7 @@ function showPaymentMethods() {
 function updateNav(user) {
   document.getElementById('nav-auth-guest').style.display = 'none';
   document.getElementById('nav-auth-user').style.display = 'block';
+  document.getElementById('nav-dashboard-link').style.display = '';
   document.getElementById('nav-username').textContent = user.username || 'Account';
   const du = document.getElementById('dropdown-username');
   const de = document.getElementById('dropdown-email');
@@ -1594,6 +1611,7 @@ function updateNav(user) {
 function resetNav() {
   document.getElementById('nav-auth-guest').style.display = 'flex';
   document.getElementById('nav-auth-user').style.display = 'none';
+  document.getElementById('nav-dashboard-link').style.display = 'none';
 }
 
 function showDashboard(user, token) {
@@ -1627,7 +1645,7 @@ async function loadRegionAccuracy(token){
     const res = await fetch(API + '/guess/stats', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) });
     const data = await res.json();
     if (!data.stats || !data.stats.length) {
-      listEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;">No rounds tracked yet — play some GeoGuessr with the extension active and this fills in automatically.</div>';
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;">⏳ Awaiting games played — play some GeoGuessr with the extension active and this fills in automatically.</div>';
       return;
     }
     // Weakest countries first — the most actionable view of what to
@@ -1659,25 +1677,25 @@ async function loadGuessInsights(token){
 
     bestEl.innerHTML = data.best
       ? `${escapeHtmlLocal(data.best.country)} <span style="color:var(--teal);font-size:14px;">${data.best.pct}%</span> <span style="color:var(--muted);font-size:12px;font-weight:400;">(${data.best.correct}/${data.best.total})</span>`
-      : `<span style="color:var(--muted);font-size:13px;font-weight:400;">Not enough rounds yet</span>`;
+      : `<span style="color:var(--muted);font-size:13px;font-weight:400;">⏳ Awaiting games played</span>`;
 
     worstEl.innerHTML = data.worst
       ? `${escapeHtmlLocal(data.worst.country)} <span style="color:#ff6b6b;font-size:14px;">${data.worst.pct}%</span> <span style="color:var(--muted);font-size:12px;font-weight:400;">(${data.worst.correct}/${data.worst.total})</span>`
-      : `<span style="color:var(--muted);font-size:13px;font-weight:400;">Not enough rounds yet</span>`;
+      : `<span style="color:var(--muted);font-size:13px;font-weight:400;">⏳ Awaiting games played</span>`;
 
     fiftyEl.innerHTML = (data.fifty_fifty && data.fifty_fifty.length)
       ? data.fifty_fifty.map(c => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">
           <span>${escapeHtmlLocal(c.country)}</span>
           <span style="color:#f0a500;">${c.pct}% <span style="color:var(--muted);">(${c.correct}/${c.total})</span></span>
         </div>`).join('')
-      : `<div style="color:var(--muted);font-size:13px;">No coin-flip countries right now — you're either solid or still building sample size.</div>`;
+      : `<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>`;
 
     mixupEl.innerHTML = (data.mixups && data.mixups.length)
       ? data.mixups.map(m => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
           <span>${escapeHtmlLocal(m.country)}</span>
           <span style="color:var(--muted);">You guess <strong style="color:#ff6b6b;">${escapeHtmlLocal(m.guessed_region)}</strong> instead of <strong style="color:var(--teal);">${escapeHtmlLocal(m.correct_region)}</strong> <span style="opacity:.7">(${m.count}×)</span></span>
         </div>`).join('')
-      : `<div style="color:var(--muted);font-size:13px;">No repeated region mixups yet.</div>`;
+      : `<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>`;
   } catch(e) {
     bestEl.textContent = '—'; worstEl.textContent = '—';
     fiftyEl.innerHTML = mixupEl.innerHTML = '<div style="color:var(--muted);font-size:13px;">Couldn\'t load insights right now.</div>';

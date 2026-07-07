@@ -203,6 +203,70 @@
         </table>
       </div>
     </div>
+
+    <!-- Camera Generation Quiz -->
+    <div class="card">
+      <div class="card-header">
+        <h2>🎥 Camera Generation Quiz Images</h2>
+      </div>
+      <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+        <div>
+          <label style="display:block;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Correct Generation</label>
+          <select id="camera-quiz-gen-select" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+            <option>Gen 1</option>
+            <option>Gen 2</option>
+            <option>Gen 3</option>
+            <option>Gen 4</option>
+            <option>Trekker / Other</option>
+          </select>
+        </div>
+        <div>
+          <input type="file" id="camera-quiz-file-input" accept="image/*" style="display:none" onchange="uploadCameraQuizImage(this.files[0])">
+          <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="document.getElementById('camera-quiz-file-input').click()">📤 Upload Labeled Image</button>
+        </div>
+        <div id="camera-quiz-upload-status" style="font-size:12px;color:var(--muted);"></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Preview</th><th>Correct Generation</th><th>Uploaded</th><th>Actions</th></tr></thead>
+          <tbody id="camera-quiz-tbody"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Photo-guess training games: Bollard Bingo, Sign Shape Sprint,
+         Vegetation Snap, License Plate Guess — one shared upload system -->
+    <div class="card">
+      <div class="card-header">
+        <h2>📸 Country-Guess Training Games</h2>
+      </div>
+      <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+        <div>
+          <label style="display:block;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Game</label>
+          <select id="photo-quiz-type-select" onchange="loadPhotoQuizList()" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+            <option value="bollard">Bollard Bingo</option>
+            <option value="sign_shape">Sign Shape Sprint</option>
+            <option value="vegetation">Vegetation Snap</option>
+            <option value="license_plate">License Plate Guess</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Correct Country</label>
+          <select id="photo-quiz-country-select" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;max-width:200px;"></select>
+        </div>
+        <div>
+          <input type="file" id="photo-quiz-file-input" accept="image/*" style="display:none" onchange="uploadPhotoQuizImage(this.files[0])">
+          <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="document.getElementById('photo-quiz-file-input').click()">📤 Upload Labeled Image</button>
+        </div>
+        <div id="photo-quiz-upload-status" style="font-size:12px;color:var(--muted);"></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Preview</th><th>Correct Country</th><th>Uploaded</th><th>Actions</th></tr></thead>
+          <tbody id="photo-quiz-tbody"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -625,6 +689,9 @@ function loadDashboard() {
       startPoll();
       resetInactivityTimer();
       loadGuides();
+      loadCameraQuizList();
+      populatePhotoQuizCountrySelect();
+      loadPhotoQuizList();
     })
     .catch(() => doLogout('Could not connect.'));
 }
@@ -1168,6 +1235,132 @@ function loadGuides() {
           </td>
         </tr>`).join('');
     });
+}
+
+// ── Camera Generation Quiz management ─────────────────────
+function loadCameraQuizList(){
+  fetch(`${API}/admin/camera_quiz/list`, {headers: adminHeaders()})
+    .then(r => r.json())
+    .then(d => {
+      const images = d.images || [];
+      const tbody = document.getElementById('camera-quiz-tbody');
+      if (!images.length){
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">No quiz images yet — upload the first one above.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = images.map(img => `
+        <tr>
+          <td><img src="${img.image_url}" style="width:70px;height:50px;object-fit:cover;border-radius:6px;"></td>
+          <td style="font-weight:600">${escapeHtml(img.correct_gen)}</td>
+          <td style="color:var(--muted);font-size:12px">${formatDate(img.created_at)}</td>
+          <td>
+            <button onclick="deleteCameraQuizImage('${img.id}')" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Delete</button>
+          </td>
+        </tr>`).join('');
+    });
+}
+
+function uploadCameraQuizImage(file){
+  if (!file) return;
+  const correctGen = document.getElementById('camera-quiz-gen-select').value;
+  const statusEl = document.getElementById('camera-quiz-upload-status');
+  statusEl.textContent = 'Uploading...';
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const res = await fetch(`${API}/admin/camera_quiz/upload`, {
+        method: 'POST', headers: adminHeaders(),
+        body: JSON.stringify({ image: e.target.result, correct_gen: correctGen })
+      });
+      const d = await res.json();
+      if (d.error) throw new Error(d.error);
+      statusEl.textContent = `✓ Uploaded as ${correctGen}`;
+      document.getElementById('camera-quiz-file-input').value = '';
+      loadCameraQuizList();
+    } catch(err) {
+      statusEl.textContent = 'Upload failed: ' + err.message;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function deleteCameraQuizImage(id){
+  if (!confirm('Delete this quiz image?')) return;
+  try {
+    const res = await fetch(`${API}/admin/camera_quiz/delete/${id}`, { method:'DELETE', headers: adminHeaders() });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    loadCameraQuizList();
+  } catch(e) {
+    toast('Delete failed: ' + e.message, true);
+  }
+}
+
+// ── Country-guess training games (Bollard/Sign/Vegetation/Plate) ─
+function populatePhotoQuizCountrySelect(){
+  const sel = document.getElementById('photo-quiz-country-select');
+  sel.innerHTML = GEOGUESSR_COUNTRIES.slice().sort((a,b)=>a.localeCompare(b))
+    .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+}
+
+function loadPhotoQuizList(){
+  const quizType = document.getElementById('photo-quiz-type-select').value;
+  fetch(`${API}/admin/photo_quiz/list?type=${quizType}`, {headers: adminHeaders()})
+    .then(r => r.json())
+    .then(d => {
+      const images = d.images || [];
+      const tbody = document.getElementById('photo-quiz-tbody');
+      if (!images.length){
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">No images yet for this game — upload the first one above.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = images.map(img => `
+        <tr>
+          <td><img src="${img.image_url}" style="width:70px;height:50px;object-fit:cover;border-radius:6px;"></td>
+          <td style="font-weight:600">${escapeHtml(img.correct_country)}</td>
+          <td style="color:var(--muted);font-size:12px">${formatDate(img.created_at)}</td>
+          <td>
+            <button onclick="deletePhotoQuizImage('${img.id}')" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Delete</button>
+          </td>
+        </tr>`).join('');
+    });
+}
+
+function uploadPhotoQuizImage(file){
+  if (!file) return;
+  const quizType = document.getElementById('photo-quiz-type-select').value;
+  const correctCountry = document.getElementById('photo-quiz-country-select').value;
+  const statusEl = document.getElementById('photo-quiz-upload-status');
+  statusEl.textContent = 'Uploading...';
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const res = await fetch(`${API}/admin/photo_quiz/upload`, {
+        method: 'POST', headers: adminHeaders(),
+        body: JSON.stringify({ image: e.target.result, quiz_type: quizType, correct_country: correctCountry })
+      });
+      const d = await res.json();
+      if (d.error) throw new Error(d.error);
+      statusEl.textContent = `✓ Uploaded as ${correctCountry}`;
+      document.getElementById('photo-quiz-file-input').value = '';
+      loadPhotoQuizList();
+    } catch(err) {
+      statusEl.textContent = 'Upload failed: ' + err.message;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function deletePhotoQuizImage(id){
+  if (!confirm('Delete this quiz image?')) return;
+  try {
+    const res = await fetch(`${API}/admin/photo_quiz/delete/${id}`, { method:'DELETE', headers: adminHeaders() });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    loadPhotoQuizList();
+  } catch(e) {
+    toast('Delete failed: ' + e.message, true);
+  }
 }
 
 // ── Pane mode ─────────────────────────────────────────────

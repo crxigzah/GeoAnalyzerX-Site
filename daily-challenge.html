@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Challenge — GeoAnalyzerX</title>
+<style>
+  :root{
+    --bg:#080810; --panel:#10101e; --panel2:#14142a; --border:#1e1e35;
+    --text:#e8e8f5; --muted:#8888aa; --teal:#00c9a7; --purple:#7c3aed; --red:#ff6b6b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  header{
+    width:100%; padding:16px 24px; display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid var(--border); box-sizing:border-box;
+  }
+  header a{ color:var(--muted); text-decoration:none; font-size:13px; }
+  header a:hover{ color:var(--text); }
+  .logo{ font-weight:800; color:var(--teal); font-size:16px; }
+
+  main{ width:100%; max-width:640px; padding:32px 20px; display:flex; flex-direction:column; align-items:center; }
+  h1{ font-size:26px; margin:0 0 4px; text-align:center; }
+  .sub{ color:var(--muted); font-size:14px; margin-bottom:24px; text-align:center; max-width:500px; }
+  .date-badge{ font-size:12px; color:var(--purple); font-weight:700; margin-bottom:14px; letter-spacing:.5px; }
+
+  .scoreboard{
+    display:flex; gap:24px; margin-bottom:24px; background:var(--panel); border:1px solid var(--border);
+    border-radius:12px; padding:14px 24px;
+  }
+  .score-item{ text-align:center; }
+  .score-num{ font-size:20px; font-weight:800; color:var(--teal); }
+  .score-label{ font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+
+  .quiz-card{
+    width:100%; background:var(--panel); border:1px solid var(--border); border-radius:16px;
+    padding:20px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center;
+  }
+  .quiz-img-wrap{ width:100%; border-radius:12px; overflow:hidden; background:var(--panel2); min-height:280px; display:flex; align-items:center; justify-content:center; }
+  .quiz-img-wrap img{ width:100%; display:block; }
+  .kind-badge{ display:inline-block; font-size:11px; font-weight:700; color:var(--purple); text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px; background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.3); padding:4px 12px; border-radius:20px; }
+
+  .options{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; text-align:left; }
+  @media (max-width:480px){ .options{ grid-template-columns:1fr; } }
+  .opt-btn{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    padding:14px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .opt-btn:hover:not(:disabled){ border-color:var(--teal); background:rgba(0,201,167,0.08); }
+  .opt-btn:disabled{ cursor:default; }
+  .opt-btn.correct{ background:rgba(0,201,167,0.18); border-color:var(--teal); color:var(--teal); }
+  .opt-btn.wrong{ background:rgba(255,107,107,0.18); border-color:var(--red); color:var(--red); }
+
+  .feedback{ margin-top:16px; text-align:center; font-size:15px; font-weight:700; min-height:20px; }
+  .share-btn{
+    margin-top:16px; width:100%; padding:13px; background:linear-gradient(135deg,#00c9a7,#7c3aed);
+    border:none; border-radius:10px; color:#080810; font-weight:800; font-size:14px; cursor:pointer;
+  }
+  .empty-state{ color:var(--muted); text-align:center; padding:60px 20px; }
+  .loading{ color:var(--muted); text-align:center; padding:60px 20px; }
+  .already-played{ font-size:15px; color:var(--muted); padding:20px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">GeoAnalyzerX</span>
+  <a href="/">← Back to GeoAnalyzerX</a>
+</header>
+
+<main>
+  <h1>📅 Daily Challenge</h1>
+  <div class="sub">One challenge a day, the same for everyone. Come back tomorrow to keep your streak alive.</div>
+  <div class="date-badge" id="date-badge"></div>
+
+  <div class="scoreboard">
+    <div class="score-item"><div class="score-num" id="score-streak">0</div><div class="score-label">Current Streak</div></div>
+    <div class="score-item"><div class="score-num" id="score-best">0</div><div class="score-label">Best Streak</div></div>
+    <div class="score-item"><div class="score-num" id="score-played">0</div><div class="score-label">Days Played</div></div>
+  </div>
+
+  <div class="quiz-card">
+    <div id="quiz-body">
+      <div class="loading">Loading today's challenge...</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = 'https://geoanalyzerx.onrender.com';
+const KIND_LABELS = {
+  camera_gen: '🎥 Camera Generation', bollard: '🚧 Bollard Bingo',
+  sign_shape: '🚸 Sign Shape Sprint', vegetation: '🌿 Vegetation Snap',
+  license_plate: '🚗 License Plate Guess'
+};
+
+const streakData = JSON.parse(localStorage.getItem('gax_daily_streak') || '{"streak":0,"best":0,"played":0,"lastDate":null,"lastResult":null}');
+let current = null;
+let answered = false;
+
+function renderStreak(){
+  document.getElementById('score-streak').textContent = streakData.streak;
+  document.getElementById('score-best').textContent = streakData.best;
+  document.getElementById('score-played').textContent = streakData.played;
+}
+function saveStreak(){ localStorage.setItem('gax_daily_streak', JSON.stringify(streakData)); }
+renderStreak();
+
+function yesterday(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0,10);
+}
+
+async function init(){
+  try {
+    const res = await fetch(API + '/daily_challenge');
+    const data = await res.json();
+    if (data.error){
+      document.getElementById('quiz-body').innerHTML = `<div class="empty-state">${data.error}</div>`;
+      return;
+    }
+    current = data;
+    document.getElementById('date-badge').textContent = data.date;
+
+    if (streakData.lastDate === data.date && streakData.lastResult){
+      showAlreadyPlayed();
+      return;
+    }
+
+    document.getElementById('quiz-body').innerHTML = `
+      <div class="kind-badge">${KIND_LABELS[data.kind] || data.kind}</div>
+      <div class="quiz-img-wrap"><img src="${data.image_url}"></div>
+      <div class="options" id="options-wrap">
+        ${data.options.map(opt => `<button class="opt-btn" data-ans="${opt}" onclick="submitAnswer('${opt.replace(/'/g,"\\'")}')">${opt}</button>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+    `;
+  } catch(e) {
+    document.getElementById('quiz-body').innerHTML = '<div class="empty-state">Could not load today\'s challenge — try refreshing.</div>';
+  }
+}
+
+function submitAnswer(picked){
+  if (answered || !current) return;
+  answered = true;
+  const isCorrect = picked === current.answer;
+
+  // Streak continues only if yesterday was the last played day; otherwise
+  // a missed day (or first-ever play) starts a fresh streak count.
+  if (streakData.lastDate === yesterday(current.date)){
+    streakData.streak = isCorrect ? streakData.streak + 1 : 0;
+  } else {
+    streakData.streak = isCorrect ? 1 : 0;
+  }
+  if (streakData.streak > streakData.best) streakData.best = streakData.streak;
+  streakData.played++;
+  streakData.lastDate = current.date;
+  streakData.lastResult = { correct: isCorrect, kind: current.kind, answer: current.answer };
+  saveStreak();
+  renderStreak();
+
+  document.querySelectorAll('.opt-btn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.ans === current.answer) btn.classList.add('correct');
+    else if (btn.dataset.ans === picked) btn.classList.add('wrong');
+  });
+
+  document.getElementById('feedback').innerHTML = isCorrect
+    ? `<span style="color:var(--teal);">✓ Correct! Come back tomorrow for the next one.</span>`
+    : `<span style="color:var(--red);">✗ Not quite — it was ${current.answer}. Come back tomorrow!</span>`;
+
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'share-btn';
+  shareBtn.textContent = '📋 Copy Shareable Result';
+  shareBtn.onclick = shareResult;
+  document.getElementById('quiz-body').appendChild(shareBtn);
+}
+
+function showAlreadyPlayed(){
+  const r = streakData.lastResult;
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="kind-badge">${KIND_LABELS[r.kind] || r.kind}</div>
+    <div class="already-played">
+      You've already played today's challenge.<br>
+      Result: <strong style="color:${r.correct ? 'var(--teal)' : 'var(--red)'}">${r.correct ? '✓ Correct' : '✗ Incorrect'}</strong>
+      <br>Come back tomorrow for a new one!
+    </div>
+    <button class="share-btn" onclick="shareResult()">📋 Copy Shareable Result</button>
+  `;
+}
+
+function shareResult(){
+  const r = streakData.lastResult;
+  const text = `GeoAnalyzerX Daily Challenge — ${current.date}\n${r.correct ? '✅' : '❌'} ${KIND_LABELS[r.kind] || r.kind}\n🔥 Streak: ${streakData.streak} (best: ${streakData.best})\ngeoanalyzerx.net/daily-challenge.html`;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Copied! Paste it anywhere to share your result.');
+  }).catch(() => {
+    prompt('Copy your result:', text);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
