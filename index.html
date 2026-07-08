@@ -1545,6 +1545,17 @@ function goToDashboard() {
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   window.scrollTo(0, 0);
+  // Refresh stats every time the dashboard is opened, not just on
+  // initial page load — previously only showDashboard() (called once
+  // by checkAuth() at load) did this, so stats never refreshed on
+  // subsequent nav clicks and could stay empty if the API was still
+  // waking up on first load.
+  const user = getUser();
+  const token = getToken();
+  if (user && token) {
+    loadRegionAccuracy(token);
+    loadGuessInsights(token);
+  }
 }
 
 function toggleUserMenu() {
