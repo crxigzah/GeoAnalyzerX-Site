@@ -708,20 +708,21 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     <a id="nav-stats-link" onclick="goToStats()" style="display:none;cursor:pointer;">📈 Stats</a>
     <div class="nav-dropdown-wrap" style="display:flex;align-items:center;">
       <a style="display:flex;align-items:center;gap:4px;">
-        Script
+        📜 Script
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </a>
       <div class="nav-dropdown-menu">
         <a href="#features" onclick="goHome();setTimeout(()=>document.getElementById('features')?.scrollIntoView({behavior:'smooth'}),100);return false;">Features</a>
         <a href="#faq" onclick="goHome();setTimeout(()=>document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}),100);return false;">FAQ</a>
         <a href="#pricing" onclick="goHome();setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),100);return false;">Pricing</a>
+        <a onclick="goToForms()" style="cursor:pointer;">📝 Forms</a>
       </div>
     </div>
-    <a href="#download" onclick="goHome();setTimeout(()=>document.getElementById('download')?.scrollIntoView({behavior:'smooth'}),100);return false;">Download</a>
-    <a href="#rules" onclick="goHome();setTimeout(()=>document.getElementById('rules')?.scrollIntoView({behavior:'smooth'}),100);return false;">Rules</a>
+    <a href="#download" onclick="goHome();setTimeout(()=>document.getElementById('download')?.scrollIntoView({behavior:'smooth'}),100);return false;">⬇️ Download</a>
+    <a href="#rules" onclick="goHome();setTimeout(()=>document.getElementById('rules')?.scrollIntoView({behavior:'smooth'}),100);return false;">📋 Rules</a>
     <div class="nav-dropdown-wrap" style="display:flex;align-items:center;">
       <a style="display:flex;align-items:center;gap:4px;">
-        Tools
+        🛠️ Tools
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </a>
       <div class="nav-dropdown-menu">
@@ -1204,8 +1205,18 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     <!-- Badges -->
     <div style="background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(0,201,167,0.08));border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
       <div style="font-weight:700;">🏆 Country Badges</div>
-      <div style="color:var(--muted);font-size:13px;margin-top:4px;margin-bottom:16px;">Get 20 region guesses correct in a country to earn its flag as a badge next to your name. Manage your active badge in Account Settings.</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px;margin-bottom:16px;">Get 1000 region guesses correct in a country to reach Diamond status and earn its flag as a badge next to your name. Manage your active badge in Account Settings.</div>
       <div id="stats-badges"><div style="color:var(--muted);font-size:13px;text-align:center;padding:10px 0;">Loading...</div></div>
+    </div>
+
+    <!-- World Diamond Map -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
+      <div style="font-weight:700;">🌍 World Progress Map</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px;margin-bottom:16px;">Every supported country starts blacked out. Reach 1000 correct region guesses in a country to light it up teal and earn Diamond status.</div>
+      <div id="stats-world-map" style="position:relative;width:100%;min-height:320px;background:#05050a;border-radius:10px;overflow:hidden;">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;" id="stats-world-map-loading">Loading map...</div>
+      </div>
+      <div id="stats-world-map-tip" style="color:var(--muted);font-size:12px;margin-top:10px;text-align:center;min-height:16px;">Hover a country to see your progress.</div>
     </div>
 
     <!-- Overview -->
@@ -1263,16 +1274,76 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
 
     <!-- Full confusion matrix -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
-      <div style="font-weight:700;margin-bottom:4px;">🔀 Full Region Confusion Matrix</div>
-      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Every wrong-region pair you've ever made, not just the top one per country — ranked by how often it happens.</div>
-      <div id="stats-confusion-matrix"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
+      <div style="font-weight:700;margin-bottom:4px;">🔀 Region Mixups</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Every wrong-region pair you've made — ranked by how often it happens.</div>
+      <div id="stats-confusion-matrix" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
+      <div id="stats-confusion-more" style="display:none;text-align:center;margin-top:14px;">
+        <button onclick="toggleConfusionExpand()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:6px 16px;font-size:12px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Show more</button>
+      </div>
     </div>
 
     <!-- Recent activity -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;margin-bottom:40px;">
       <div style="font-weight:700;margin-bottom:4px;">🕒 Recent Activity</div>
-      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Your last 20 rounds, most recent first.</div>
-      <div id="stats-recent-activity"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Your last rounds, most recent first.</div>
+      <div id="stats-recent-activity" style="display:flex;flex-direction:column;gap:2px;"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
+      <div id="stats-recent-more" style="display:none;text-align:center;margin-top:14px;">
+        <button onclick="toggleRecentExpand()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:6px 16px;font-size:12px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Show more</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="forms-page" style="display:none;min-height:80vh;">
+  <div style="padding:40px;max-width:800px;margin:0 auto;position:relative;z-index:1;">
+    <div class="dash-header">
+      <div>
+        <div class="dash-welcome">📝 Forms</div>
+        <div style="color:var(--muted);font-size:14px;margin-top:4px;">Report bugs, request features, correct a country meta, or send general feedback — straight to the team.</div>
+      </div>
+    </div>
+
+    <div id="forms-msg" style="display:none;padding:14px 18px;border-radius:10px;margin-bottom:20px;font-size:13px;font-weight:600;"></div>
+
+    <!-- Bug Report -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;">
+      <div style="font-weight:700;margin-bottom:4px;">🐛 Report a Bug</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Found something broken? Tell us what happened and how to reproduce it.</div>
+      <input id="form-bug-name" type="text" placeholder="Your name (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
+      <input id="form-bug-email" type="email" placeholder="Email (optional, so we can follow up)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
+      <textarea id="form-bug-message" rows="4" placeholder="What went wrong? Include steps to reproduce, browser, and script version if you can." style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;"></textarea>
+      <button onclick="submitGaxForm('bug')" class="btn btn-primary" style="padding:9px 20px;font-size:13px;">Submit Bug Report</button>
+    </div>
+
+    <!-- Feature Request -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;">
+      <div style="font-weight:700;margin-bottom:4px;">💡 Feature Request</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Got an idea for GeoAnalyzerX? We read every one of these.</div>
+      <input id="form-feature-name" type="text" placeholder="Your name (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
+      <input id="form-feature-email" type="email" placeholder="Email (optional, so we can follow up)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
+      <textarea id="form-feature-message" rows="4" placeholder="What would you like to see added or changed?" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;"></textarea>
+      <button onclick="submitGaxForm('feature')" class="btn btn-primary" style="padding:9px 20px;font-size:13px;">Submit Feature Request</button>
+    </div>
+
+    <!-- Meta Correction / Submission -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;">
+      <div style="font-weight:700;margin-bottom:4px;">🗺️ Meta Correction / Submission</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Spotted something wrong in a country guide, or found a genuinely new learnable clue? Let us know — original research only, no copied text from other sites.</div>
+      <input id="form-meta_correction-name" type="text" placeholder="Your name (optional, credited in the guide if used)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
+      <input id="form-meta_correction-email" type="email" placeholder="Email (optional, so we can follow up)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
+      <input id="form-meta_correction-extra" type="text" placeholder="Country / region this relates to" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
+      <textarea id="form-meta_correction-message" rows="4" placeholder="Describe the correction or new meta, in your own words." style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;"></textarea>
+      <button onclick="submitGaxForm('meta_correction')" class="btn btn-primary" style="padding:9px 20px;font-size:13px;">Submit Meta Correction</button>
+    </div>
+
+    <!-- General Feedback -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:40px;">
+      <div style="font-weight:700;margin-bottom:4px;">💬 General Feedback</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Anything else on your mind — good or bad, we want to hear it.</div>
+      <input id="form-feedback-name" type="text" placeholder="Your name (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
+      <input id="form-feedback-email" type="email" placeholder="Email (optional, so we can follow up)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
+      <textarea id="form-feedback-message" rows="4" placeholder="Your feedback" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;"></textarea>
+      <button onclick="submitGaxForm('feedback')" class="btn btn-primary" style="padding:9px 20px;font-size:13px;">Submit Feedback</button>
     </div>
   </div>
 </div>
@@ -1333,7 +1404,6 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     <a href="#pricing" onclick="goHome();setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),100);return false;">Pricing</a>
     <a href="#rules" onclick="goHome();setTimeout(()=>document.getElementById('rules')?.scrollIntoView({behavior:'smooth'}),100);return false;">Rules</a>
     <a href="#faq" onclick="goHome();setTimeout(()=>document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}),100);return false;">FAQ</a>
-    <a href="#faq" onclick="goHome();setTimeout(()=>document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}),100);return false;">FAQ</a>
     <a href="#contact" onclick="goHome();setTimeout(()=>document.getElementById('contact')?.scrollIntoView({behavior:'smooth'}),100);return false;">Contact</a>
     <a onclick="showPolicy('tos')" style="cursor:pointer;">Terms of Service</a>
     <a onclick="showPolicy('privacy')" style="cursor:pointer;">Privacy Policy</a>
@@ -1343,7 +1413,7 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
   </div>
   <div style="margin-bottom:8px;font-size:16px;font-weight:700;background:linear-gradient(135deg,#00c9a7,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">GeoAnalyzerX</div>
   <div>AI-powered GeoGuessr training · Learning · Accuracy · Training · Perfection</div>
-  <div style="margin-top:8px;font-size:11px;opacity:0.5;">© 2026 GeoAnalyzerX · Not affiliated with GeoGuessr</div>
+  <div style="margin-top:8px;font-size:11px;opacity:0.5;">© 2026 GeoAnalyzerX</div>
 </footer>
 
 <script>
@@ -1591,6 +1661,7 @@ function goHome() {
   document.getElementById('landing').style.display = '';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('forms-page').style.display = 'none';
   window.scrollTo(0, 0);
 }
 
@@ -1599,6 +1670,7 @@ function goToDashboard() {
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('forms-page').style.display = 'none';
   window.scrollTo(0, 0);
   // Refresh stats every time the dashboard is opened, not just on
   // initial page load — previously only showDashboard() (called once
@@ -1618,6 +1690,7 @@ function goToStats() {
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'block';
+  document.getElementById('forms-page').style.display = 'none';
   window.scrollTo(0, 0);
   const token = getToken();
   if (token) {
@@ -1625,6 +1698,66 @@ function goToStats() {
     loadGuessInsights(token);
     loadFullStats(token);
     loadStatsBadges(token);
+    loadWorldMap(token);
+  }
+}
+
+function goToForms() {
+  closeUserMenu();
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('forms-page').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+async function submitGaxForm(type){
+  const nameEl = document.getElementById(`form-${type}-name`);
+  const emailEl = document.getElementById(`form-${type}-email`);
+  const messageEl = document.getElementById(`form-${type}-message`);
+  const extraEl = document.getElementById(`form-${type}-extra`);
+  const msgEl = document.getElementById('forms-msg');
+  const message = (messageEl?.value || '').trim();
+  if (!message) {
+    msgEl.style.display = 'block';
+    msgEl.style.background = 'rgba(255,107,107,0.1)';
+    msgEl.style.color = '#ff6b6b';
+    msgEl.textContent = 'Please fill in the message field before submitting.';
+    messageEl?.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  const body = {
+    form_type: type,
+    name: nameEl?.value || '',
+    email: emailEl?.value || '',
+    message,
+    extra: extraEl?.value || '',
+    token: getToken() || '',
+  };
+  try {
+    const res = await fetch(API + '/forms/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      msgEl.style.display = 'block';
+      msgEl.style.background = 'rgba(255,107,107,0.1)';
+      msgEl.style.color = '#ff6b6b';
+      msgEl.textContent = data.error || 'Could not submit. Please try again.';
+    } else {
+      msgEl.style.display = 'block';
+      msgEl.style.background = 'rgba(0,201,167,0.1)';
+      msgEl.style.color = 'var(--teal)';
+      msgEl.textContent = '✓ Thanks — your submission was sent!';
+      if (nameEl) nameEl.value = '';
+      if (emailEl) emailEl.value = '';
+      if (messageEl) messageEl.value = '';
+      if (extraEl) extraEl.value = '';
+    }
+    msgEl.scrollIntoView({behavior:'smooth', block:'center'});
+  } catch(e) {
+    msgEl.style.display = 'block';
+    msgEl.style.background = 'rgba(255,107,107,0.1)';
+    msgEl.style.color = '#ff6b6b';
+    msgEl.textContent = 'Could not connect to server. Please try again.';
   }
 }
 
@@ -1701,6 +1834,7 @@ function showDashboard(user, token) {
   document.getElementById('landing').style.display   = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('forms-page').style.display = 'none';
   window.scrollTo(0,0);
   updateNav(user);
   updateNavAvatar();
@@ -1712,6 +1846,8 @@ function showDashboard(user, token) {
   const tierText = user.tier === 'pro' ? '⭐ Pro' : 'Free';
   if (tierEl) { tierEl.textContent = tierText; if (user.tier === 'pro') tierEl.classList.add('pro'); }
   if (tierDisplayEl) tierDisplayEl.textContent = tierText;
+  const upgradeSection = document.getElementById('upgrade-section');
+  if (upgradeSection) upgradeSection.style.display = (user.tier === 'pro') ? 'none' : '';
   if (user.created_at) {
     document.getElementById('dash-joined').textContent = new Date(user.created_at).toLocaleDateString('en-AU', {month:'short', year:'numeric'});
   }
@@ -1854,12 +1990,27 @@ async function loadFullStats(token){
     if (!data.daily_trend || !data.daily_trend.length) {
       trendEl.innerHTML = '<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>';
     } else {
-      const maxTotal = Math.max(...data.daily_trend.map(d => d.total));
-      trendEl.innerHTML = data.daily_trend.map(d => {
-        const color = d.pct >= 80 ? 'var(--teal)' : d.pct >= 50 ? '#f0a500' : '#ff6b6b';
-        const h = Math.max(6, Math.round((d.total / maxTotal) * 100));
+      // Always render a fixed 30-day timeline, zero-filling days with no
+      // games — otherwise a handful of played days (e.g. just 1-2) would
+      // each take up a huge share of flex width/height and look like one
+      // solid block instead of an actual trend shape.
+      const byDate = {};
+      data.daily_trend.forEach(d => { byDate[d.date] = d; });
+      const days = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        days.push(byDate[key] || { date: key, total: 0, correct: 0, pct: 0 });
+      }
+      const maxTotal = Math.max(1, ...days.map(d => d.total));
+      trendEl.innerHTML = days.map(d => {
+        const played = d.total > 0;
+        const color = !played ? 'var(--border)' : (d.pct >= 80 ? 'var(--teal)' : d.pct >= 50 ? '#f0a500' : '#ff6b6b');
+        const h = played ? Math.max(8, Math.round((d.total / maxTotal) * 100)) : 3;
         const dateLabel = new Date(d.date).toLocaleDateString('en-AU', {month:'short', day:'numeric'});
-        return `<div title="${dateLabel}: ${d.pct}% (${d.correct}/${d.total})" style="flex:1;min-width:4px;height:${h}%;background:${color};border-radius:3px 3px 0 0;"></div>`;
+        const tip = played ? `${dateLabel}: ${d.pct}% (${d.correct}/${d.total})` : `${dateLabel}: no games`;
+        return `<div title="${tip}" style="flex:1;min-width:2px;height:${h}%;background:${color};border-radius:2px 2px 0 0;opacity:${played ? '1' : '0.4'};transition:height .3s ease;"></div>`;
       }).join('');
     }
 
@@ -1879,30 +2030,267 @@ async function loadFullStats(token){
       }).join('');
     }
 
-    // ── Full confusion matrix ────────────────────────────────────
-    confusionEl.innerHTML = (data.confusion_matrix && data.confusion_matrix.length)
-      ? data.confusion_matrix.map(m => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
-          <span>${escapeHtmlLocal(m.country)}</span>
-          <span style="color:var(--muted);">You guess <strong style="color:#ff6b6b;">${escapeHtmlLocal(m.guessed_region)}</strong> instead of <strong style="color:var(--teal);">${escapeHtmlLocal(m.correct_region)}</strong> <span style="opacity:.7">(${m.count}×)</span></span>
-        </div>`).join('')
-      : `<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>`;
+    // ── Region Mixups (compact chip cards) ────────────────────────
+    _gaxConfusionData = data.confusion_matrix || [];
+    _gaxConfusionExpanded = false;
+    renderConfusionMatrix();
 
-    // ── Recent activity feed ─────────────────────────────────────
-    recentEl.innerHTML = (data.recent_activity && data.recent_activity.length)
-      ? data.recent_activity.map(a => {
-          const when = new Date(a.created_at).toLocaleString('en-AU', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
-          const icon = a.is_correct ? '✅' : '❌';
-          const detail = a.is_correct
-            ? `${escapeHtmlLocal(a.correct_region || a.country)}`
-            : `guessed <strong style="color:#ff6b6b;">${escapeHtmlLocal(a.guessed_region || '?')}</strong>, was <strong style="color:var(--teal);">${escapeHtmlLocal(a.correct_region || a.country)}</strong>`;
-          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
-            <span>${icon} <strong>${escapeHtmlLocal(a.country)}</strong> — <span style="color:var(--muted);">${detail}</span></span>
-            <span style="color:var(--muted);flex-shrink:0;margin-left:10px;">${when}</span>
-          </div>`;
-        }).join('')
-      : `<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>`;
+    // ── Recent activity feed (compact timeline) ───────────────────
+    _gaxRecentData = data.recent_activity || [];
+    _gaxRecentExpanded = false;
+    renderRecentActivity();
   } catch(e) {
     overviewEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;grid-column:1/-1;">Couldn\'t load stats right now.</div>';
+  }
+}
+
+let _gaxConfusionData = [];
+let _gaxConfusionExpanded = false;
+function renderConfusionMatrix(){
+  const el = document.getElementById('stats-confusion-matrix');
+  const moreWrap = document.getElementById('stats-confusion-more');
+  const moreBtn = moreWrap?.querySelector('button');
+  if (!el) return;
+  if (!_gaxConfusionData.length) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:13px;grid-column:1/-1;">⏳ Awaiting games played</div>`;
+    if (moreWrap) moreWrap.style.display = 'none';
+    return;
+  }
+  const LIMIT = 6;
+  const shown = _gaxConfusionExpanded ? _gaxConfusionData : _gaxConfusionData.slice(0, LIMIT);
+  el.innerHTML = shown.map(m => `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;transition:border-color .15s;" onmouseover="this.style.borderColor='rgba(255,107,107,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+      ${renderBadgeImg(m.country, 18)}
+      <div style="min-width:0;flex:1;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">${escapeHtmlLocal(m.country)}</div>
+        <div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          <span style="color:#ff6b6b;font-weight:600;">${escapeHtmlLocal(m.guessed_region)}</span>
+          <span style="color:var(--muted);"> → </span>
+          <span style="color:var(--teal);font-weight:600;">${escapeHtmlLocal(m.correct_region)}</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);background:var(--card);border-radius:8px;padding:2px 7px;flex-shrink:0;">×${m.count}</div>
+    </div>`).join('');
+  if (moreWrap) {
+    if (_gaxConfusionData.length > LIMIT) {
+      moreWrap.style.display = 'block';
+      if (moreBtn) moreBtn.textContent = _gaxConfusionExpanded ? 'Show less' : `Show ${_gaxConfusionData.length - LIMIT} more`;
+    } else {
+      moreWrap.style.display = 'none';
+    }
+  }
+}
+function toggleConfusionExpand(){ _gaxConfusionExpanded = !_gaxConfusionExpanded; renderConfusionMatrix(); }
+
+let _gaxRecentData = [];
+let _gaxRecentExpanded = false;
+function relativeTimeAgo(iso){
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString('en-AU', {month:'short', day:'numeric'});
+}
+function renderRecentActivity(){
+  const el = document.getElementById('stats-recent-activity');
+  const moreWrap = document.getElementById('stats-recent-more');
+  const moreBtn = moreWrap?.querySelector('button');
+  if (!el) return;
+  if (!_gaxRecentData.length) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>`;
+    if (moreWrap) moreWrap.style.display = 'none';
+    return;
+  }
+  const LIMIT = 8;
+  const shown = _gaxRecentExpanded ? _gaxRecentData : _gaxRecentData.slice(0, LIMIT);
+  el.innerHTML = shown.map(a => {
+    const dotColor = a.is_correct ? 'var(--teal)' : '#ff6b6b';
+    const detail = a.is_correct
+      ? `<span style="color:var(--muted);">${escapeHtmlLocal(a.correct_region || '')}</span>`
+      : `<span style="color:#ff6b6b;">${escapeHtmlLocal(a.guessed_region || '?')}</span><span style="color:var(--muted);"> → </span><span style="color:var(--teal);">${escapeHtmlLocal(a.correct_region || '')}</span>`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 4px;border-radius:8px;font-size:12px;transition:background .15s;" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='transparent'">
+      <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>
+      ${renderBadgeImg(a.country, 16)}
+      <span style="font-weight:600;flex-shrink:0;">${escapeHtmlLocal(a.country)}</span>
+      <span style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${detail}</span>
+      <span style="color:var(--muted);flex-shrink:0;font-size:11px;">${relativeTimeAgo(a.created_at)}</span>
+    </div>`;
+  }).join('');
+  if (moreWrap) {
+    if (_gaxRecentData.length > LIMIT) {
+      moreWrap.style.display = 'block';
+      if (moreBtn) moreBtn.textContent = _gaxRecentExpanded ? 'Show less' : `Show ${_gaxRecentData.length - LIMIT} more`;
+    } else {
+      moreWrap.style.display = 'none';
+    }
+  }
+}
+function toggleRecentExpand(){ _gaxRecentExpanded = !_gaxRecentExpanded; renderRecentActivity(); }
+
+// ── World Progress Map ───────────────────────────────────────
+// Embedded ISO 3166-1 numeric ID -> country name table, matching the IDs
+// used by the world-atlas TopoJSON country shapes. Embedded directly
+// (same approach as region-map.html) so this never breaks due to an
+// external file being slow, rate-limited, or moved.
+const WORLDMAP_COUNTRY_ID_NAME = {
+  "4":"Afghanistan","8":"Albania","12":"Algeria","24":"Angola","10":"Antarctica","32":"Argentina",
+  "51":"Armenia","36":"Australia","40":"Austria","31":"Azerbaijan","44":"Bahamas","50":"Bangladesh",
+  "112":"Belarus","56":"Belgium","84":"Belize","204":"Benin","64":"Bhutan","68":"Bolivia",
+  "70":"Bosnia and Herz.","72":"Botswana","76":"Brazil","96":"Brunei","100":"Bulgaria","854":"Burkina Faso",
+  "108":"Burundi","116":"Cambodia","120":"Cameroon","124":"Canada","140":"Central African Rep.","148":"Chad",
+  "152":"Chile","156":"China","170":"Colombia","178":"Congo","180":"Dem. Rep. Congo","188":"Costa Rica",
+  "384":"Ivory Coast","191":"Croatia","192":"Cuba","196":"Cyprus","203":"Czechia","208":"Denmark",
+  "262":"Djibouti","214":"Dominican Republic","218":"Ecuador","818":"Egypt","222":"El Salvador",
+  "226":"Equatorial Guinea","232":"Eritrea","233":"Estonia","748":"Eswatini","231":"Ethiopia","242":"Fiji",
+  "246":"Finland","250":"France","266":"Gabon","270":"Gambia","268":"Georgia","276":"Germany","288":"Ghana",
+  "300":"Greece","304":"Greenland","320":"Guatemala","324":"Guinea","624":"Guinea-Bissau","328":"Guyana",
+  "332":"Haiti","340":"Honduras","348":"Hungary","352":"Iceland","356":"India","360":"Indonesia","364":"Iran",
+  "368":"Iraq","372":"Ireland","376":"Israel","380":"Italy","388":"Jamaica","392":"Japan","400":"Jordan",
+  "398":"Kazakhstan","404":"Kenya","408":"North Korea","410":"South Korea","414":"Kuwait","417":"Kyrgyzstan",
+  "418":"Laos","428":"Latvia","422":"Lebanon","426":"Lesotho","430":"Liberia","434":"Libya",
+  "438":"Liechtenstein","440":"Lithuania","442":"Luxembourg","450":"Madagascar","454":"Malawi",
+  "458":"Malaysia","466":"Mali","470":"Malta","478":"Mauritania","480":"Mauritius","484":"Mexico",
+  "498":"Moldova","496":"Mongolia","499":"Montenegro","504":"Morocco","508":"Mozambique","104":"Myanmar",
+  "516":"Namibia","524":"Nepal","528":"Netherlands","540":"New Caledonia","554":"New Zealand","558":"Nicaragua",
+  "562":"Niger","566":"Nigeria","578":"Norway","512":"Oman","586":"Pakistan","591":"Panama",
+  "598":"Papua New Guinea","600":"Paraguay","604":"Peru","608":"Philippines","616":"Poland","620":"Portugal",
+  "630":"Puerto Rico","634":"Qatar","642":"Romania","643":"Russia","646":"Rwanda","682":"Saudi Arabia",
+  "686":"Senegal","688":"Serbia","694":"Sierra Leone","702":"Singapore","703":"Slovakia","705":"Slovenia",
+  "90":"Solomon Islands","706":"Somalia","710":"South Africa","728":"South Sudan","724":"Spain",
+  "144":"Sri Lanka","729":"Sudan","740":"Suriname","752":"Sweden","756":"Switzerland","760":"Syria",
+  "158":"Taiwan","762":"Tajikistan","834":"Tanzania","764":"Thailand","626":"East Timor","768":"Togo",
+  "780":"Trinidad and Tobago","788":"Tunisia","792":"Turkey","795":"Turkmenistan","800":"Uganda",
+  "804":"Ukraine","784":"United Arab Emirates","826":"United Kingdom","840":"United States of America",
+  "858":"Uruguay","860":"Uzbekistan","548":"Vanuatu","862":"Venezuela","704":"Vietnam","732":"W. Sahara",
+  "887":"Yemen","894":"Zambia","716":"Zimbabwe","20":"Andorra","48":"Bahrain","132":"Cabo Verde",
+  "174":"Comoros","212":"Dominica","678":"Sao Tome and Principe","674":"San Marino",
+  "690":"Seychelles","662":"Saint Lucia","584":"Marshall Islands","583":"Micronesia","520":"Nauru",
+  "570":"Niue","585":"Palau","882":"Samoa","798":"Tuvalu","533":"Aruba",
+  "658":"Saint Kitts and Nevis","670":"Saint Vincent and the Grenadines",
+  "60":"Bermuda","136":"Cayman Islands","260":"French Southern and Antarctic Lands","292":"Gibraltar",
+  "833":"Isle of Man","832":"Jersey","831":"Guernsey","663":"Saint Martin",
+  "666":"Saint Pierre and Miquelon","162":"Christmas Island","166":"Cocos Islands",
+  "234":"Faroe Islands","254":"French Guiana","258":"French Polynesia","312":"Guadeloupe","316":"Guam",
+  "474":"Martinique","175":"Mayotte","580":"Northern Mariana Islands","581":"United States Minor Outlying Islands",
+  "638":"Reunion","652":"Saint Barthelemy","654":"Saint Helena","796":"Turks and Caicos Islands",
+  "850":"United States Virgin Islands","16":"American Samoa","531":"Curacao",
+  "999":"N. Cyprus"
+};
+const WORLDMAP_ALIASES = {
+  "United States of America": ["United States of America","United States"],
+  "Czechia": ["Czechia","Czech Republic"],
+  "North Macedonia": ["North Macedonia","Macedonia"],
+  "Russia": ["Russia","Russian Federation"],
+  "South Korea": ["South Korea","Republic of Korea","Korea, Rep."],
+  "Laos": ["Laos","Lao PDR"],
+  "Eswatini": ["Eswatini","Swaziland"],
+  "Palestine": ["Palestine","Palestinian Territory","West Bank"],
+  "Sao Tome and Principe": ["São Tomé and Principe","Sao Tome and Principe"],
+  "Vietnam": ["Vietnam","Viet Nam"],
+};
+function _gaxNormalizeCountry(name){ return (name||'').trim().toLowerCase(); }
+
+let _gaxWorldLibsPromise = null;
+function loadWorldMapLibs(){
+  if (_gaxWorldLibsPromise) return _gaxWorldLibsPromise;
+  _gaxWorldLibsPromise = new Promise((resolve, reject) => {
+    if (window.d3 && window.topojson) { resolve(); return; }
+    const s1 = document.createElement('script');
+    s1.src = 'https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js';
+    s1.onload = () => {
+      const s2 = document.createElement('script');
+      s2.src = 'https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';
+      s2.onload = resolve;
+      s2.onerror = reject;
+      document.head.appendChild(s2);
+    };
+    s1.onerror = reject;
+    document.head.appendChild(s1);
+  });
+  return _gaxWorldLibsPromise;
+}
+
+let _gaxWorldFeatures = null; // cached parsed features, fetched once per session
+async function loadWorldMap(token){
+  const container = document.getElementById('stats-world-map');
+  const loadingEl = document.getElementById('stats-world-map-loading');
+  const tipEl = document.getElementById('stats-world-map-tip');
+  if (!container) return;
+  try {
+    const [statsRes] = await Promise.all([
+      fetch(API + '/guess/stats', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) }),
+      loadWorldMapLibs(),
+    ]);
+    const statsData = await statsRes.json();
+    const DIAMOND_THRESHOLD = 1000;
+    // normalized country name -> correct count
+    const correctByCountry = {};
+    (statsData.stats || []).forEach(s => { correctByCountry[_gaxNormalizeCountry(s.country)] = s.correct; });
+
+    if (!_gaxWorldFeatures) {
+      const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+      _gaxWorldFeatures = topojson.feature(world, world.objects.countries).features;
+    }
+
+    if (loadingEl) loadingEl.remove();
+    container.querySelectorAll('svg').forEach(el => el.remove());
+
+    const width = container.clientWidth || 800;
+    const height = 340;
+    const svg = d3.select(container).append('svg')
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('width', '100%')
+      .attr('height', height)
+      .style('display', 'block');
+    const projection = d3.geoNaturalEarth1().fitSize([width, height], {type:'Sphere'});
+    const path = d3.geoPath(projection);
+
+    svg.append('path').attr('d', path({type:'Sphere'})).attr('fill', '#0a0a14');
+
+    const g = svg.append('g');
+    g.selectAll('path.country')
+      .data(_gaxWorldFeatures)
+      .join('path')
+      .attr('class', 'country')
+      .attr('d', path)
+      .attr('fill', d => {
+        const name = WORLDMAP_COUNTRY_ID_NAME[String(d.id)];
+        if (!name) return '#15151f';
+        const variants = WORLDMAP_ALIASES[name] || [name];
+        const correct = Math.max(0, ...variants.map(v => correctByCountry[_gaxNormalizeCountry(v)] || 0));
+        return correct >= DIAMOND_THRESHOLD ? 'var(--teal)' : '#15151f';
+      })
+      .attr('stroke', '#05050a')
+      .attr('stroke-width', 0.5)
+      .style('cursor', 'default')
+      .style('transition', 'fill .2s')
+      .on('mouseenter', function(event, d){
+        const name = WORLDMAP_COUNTRY_ID_NAME[String(d.id)];
+        if (!name) return;
+        d3.select(this).attr('fill', 'rgba(0,201,167,0.6)');
+        const variants = WORLDMAP_ALIASES[name] || [name];
+        const correct = Math.max(0, ...variants.map(v => correctByCountry[_gaxNormalizeCountry(v)] || 0));
+        if (tipEl) {
+          tipEl.textContent = correct >= DIAMOND_THRESHOLD
+            ? `💎 ${name} — Diamond status! (${correct} correct)`
+            : correct > 0
+              ? `${name} — ${correct}/${DIAMOND_THRESHOLD} correct guesses`
+              : `${name} — not attempted yet`;
+        }
+      })
+      .on('mouseleave', function(event, d){
+        const name = WORLDMAP_COUNTRY_ID_NAME[String(d.id)];
+        const variants = name ? (WORLDMAP_ALIASES[name] || [name]) : [];
+        const correct = name ? Math.max(0, ...variants.map(v => correctByCountry[_gaxNormalizeCountry(v)] || 0)) : 0;
+        d3.select(this).attr('fill', name ? (correct >= DIAMOND_THRESHOLD ? 'var(--teal)' : '#15151f') : '#15151f');
+        if (tipEl) tipEl.textContent = 'Hover a country to see your progress.';
+      });
+  } catch(e) {
+    if (loadingEl) loadingEl.textContent = "Couldn't load the map right now.";
   }
 }
 
@@ -1912,6 +2300,7 @@ function logout() {
   document.getElementById('landing').style.display   = '';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('forms-page').style.display = 'none';
   resetNav();
   closeUserMenu();
   if (token) {
@@ -2136,7 +2525,7 @@ function showAccountSettings() {
       <!-- Country Badge -->
       <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #1e1e35;">
         <label style="color:#8888aa;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">🏳️ COUNTRY BADGE</label>
-        <div style="color:#4a4a6a;font-size:11px;margin-bottom:10px;">Earn a country's flag by getting 20 region guesses correct in it. Shown next to your name.</div>
+        <div style="color:#4a4a6a;font-size:11px;margin-bottom:10px;">Earn a country's flag by getting 1000 region guesses correct in it (Diamond status). Shown next to your name.</div>
         <div id="settings-badges-list"><div style="color:#5a5a7a;font-size:12px;">Loading...</div></div>
       </div>
 
@@ -2385,7 +2774,7 @@ async function loadBadgesIntoSettings(){
   try {
     const res = await fetch(API + '/badges/list', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) });
     const data = await res.json();
-    const threshold = data.threshold || 20;
+    const threshold = data.threshold || 1000;
     let html = '';
     if (data.earned && data.earned.length) {
       html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">` + data.earned.map(b => {
@@ -2445,7 +2834,7 @@ async function loadStatsBadges(){
   try {
     const res = await fetch(API + '/badges/list', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) });
     const data = await res.json();
-    const threshold = data.threshold || 20;
+    const threshold = data.threshold || 1000;
     let html = '';
     if (data.earned && data.earned.length) {
       html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:${data.in_progress && data.in_progress.length ? '18px' : '0'};">` + data.earned.map(b => {
