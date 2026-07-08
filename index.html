@@ -705,6 +705,7 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
   </button>
   <div class="nav-links" id="nav-links">
     <a id="nav-dashboard-link" onclick="goToDashboard()" style="display:none;cursor:pointer;">📊 Dashboard</a>
+    <a id="nav-stats-link" onclick="goToStats()" style="display:none;cursor:pointer;">📈 Stats</a>
     <div class="nav-dropdown-wrap" style="display:flex;align-items:center;">
       <a style="display:flex;align-items:center;gap:4px;">
         Script
@@ -771,6 +772,7 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
           <div id="dropdown-tier" style="display:inline-block;margin-top:6px;padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(0,201,167,0.12);border:1px solid var(--teal);color:var(--teal);"></div>
         </div>
         <a onclick="goToDashboard()" style="display:block;padding:11px 16px;color:var(--text);font-size:13px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''">📊 Dashboard</a>
+        <a onclick="goToStats()" style="display:block;padding:11px 16px;color:var(--text);font-size:13px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''">📈 Stats</a>
         <a onclick="showPaymentHistory()" style="display:block;padding:11px 16px;color:var(--text);font-size:13px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''">🧾 Payment History</a>
         <a onclick="showPaymentMethods()" style="display:block;padding:11px 16px;color:var(--text);font-size:13px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--card2)'" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''">💳 Payment Methods</a>
         <a onclick="showAccountSettings()" style="display:block;padding:11px 16px;color:var(--text);font-size:13px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''">⚙️ Account Settings</a>
@@ -1187,38 +1189,83 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
         <div id="upgrade-msg" style="font-size:12px;margin-top:8px;text-align:center;"></div>
       </div>
     </div>
+  </div>
+</div>
 
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <div>
-          <div style="font-weight:700;">🎯 Region Accuracy by Country</div>
-          <div style="color:var(--muted);font-size:13px;margin-top:4px;">How often your guess lands in the correct region — tracked automatically as you play.</div>
-        </div>
+<div id="stats-page" style="display:none;min-height:80vh;">
+  <div style="padding:40px;max-width:1000px;margin:0 auto;position:relative;z-index:1;">
+    <div class="dash-header">
+      <div>
+        <div class="dash-welcome">📊 Your Stats</div>
+        <div style="color:var(--muted);font-size:14px;margin-top:4px;">Every crumb of data extracted from your actual gameplay — tracked automatically, no manual input.</div>
       </div>
-      <div id="region-accuracy-list"><div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;">Loading...</div></div>
     </div>
 
+    <!-- Overview -->
+    <div id="stats-overview-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;">
+      <div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;grid-column:1/-1;">Loading...</div>
+    </div>
+
+    <!-- Region Accuracy by Country -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
+      <div style="font-weight:700;">🎯 Region Accuracy by Country</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px;margin-bottom:16px;">How often your guess lands in the correct region. Click a country to see its region-by-region breakdown.</div>
+      <div id="stats-region-accuracy-list"><div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;">Loading...</div></div>
+    </div>
+
+    <!-- Best/Worst Country + Region -->
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;">
       <div style="flex:1;min-width:200px;background:var(--card);border:1px solid rgba(0,201,167,0.3);border-radius:14px;padding:20px;">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🏆 Best Country</div>
-        <div id="insight-best" style="font-size:18px;font-weight:700;">—</div>
+        <div id="stats-best-country" style="font-size:18px;font-weight:700;">—</div>
       </div>
       <div style="flex:1;min-width:200px;background:var(--card);border:1px solid rgba(255,107,107,0.3);border-radius:14px;padding:20px;">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">📉 Worst Country</div>
-        <div id="insight-worst" style="font-size:18px;font-weight:700;">—</div>
+        <div id="stats-worst-country" style="font-size:18px;font-weight:700;">—</div>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--card);border:1px solid rgba(0,201,167,0.3);border-radius:14px;padding:20px;">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🌟 Best Region</div>
+        <div id="stats-best-region" style="font-size:18px;font-weight:700;">—</div>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--card);border:1px solid rgba(255,107,107,0.3);border-radius:14px;padding:20px;">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🌧️ Worst Region</div>
+        <div id="stats-worst-region" style="font-size:18px;font-weight:700;">—</div>
       </div>
     </div>
 
+    <!-- Coin-Flip Countries -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
       <div style="font-weight:700;margin-bottom:4px;">🪙 Coin-Flip Countries</div>
       <div style="color:var(--muted);font-size:13px;margin-bottom:12px;">Sitting near 50% — genuinely ambiguous for you right now.</div>
-      <div id="insight-fifty-fifty"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
+      <div id="stats-fifty-fifty"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
     </div>
 
+    <!-- Daily trend -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
-      <div style="font-weight:700;margin-bottom:4px;">🔀 Your Most Common Region Mixups</div>
-      <div style="color:var(--muted);font-size:13px;margin-bottom:12px;">The specific region you most often guess instead of the correct one, per country.</div>
-      <div id="insight-mixups"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
+      <div style="font-weight:700;margin-bottom:4px;">📈 Accuracy Trend (Last 30 Days)</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Each bar is one day you played — height is games that day, color is accuracy.</div>
+      <div id="stats-daily-trend" style="display:flex;align-items:flex-end;gap:3px;height:120px;"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
+    </div>
+
+    <!-- Day of week pattern -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
+      <div style="font-weight:700;margin-bottom:4px;">📅 Accuracy by Day of Week</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Some players are sharper on certain days — see if a pattern shows up.</div>
+      <div id="stats-day-of-week"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
+    </div>
+
+    <!-- Full confusion matrix -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
+      <div style="font-weight:700;margin-bottom:4px;">🔀 Full Region Confusion Matrix</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Every wrong-region pair you've ever made, not just the top one per country — ranked by how often it happens.</div>
+      <div id="stats-confusion-matrix"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
+    </div>
+
+    <!-- Recent activity -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;margin-bottom:40px;">
+      <div style="font-weight:700;margin-bottom:4px;">🕒 Recent Activity</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Your last 20 rounds, most recent first.</div>
+      <div id="stats-recent-activity"><div style="color:var(--muted);font-size:13px;">Loading...</div></div>
     </div>
   </div>
 </div>
@@ -1536,6 +1583,7 @@ async function login() {
 function goHome() {
   document.getElementById('landing').style.display = '';
   document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('stats-page').style.display = 'none';
   window.scrollTo(0, 0);
 }
 
@@ -1543,6 +1591,7 @@ function goToDashboard() {
   closeUserMenu();
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('stats-page').style.display = 'none';
   window.scrollTo(0, 0);
   // Refresh stats every time the dashboard is opened, not just on
   // initial page load — previously only showDashboard() (called once
@@ -1554,6 +1603,20 @@ function goToDashboard() {
   if (user && token) {
     loadRegionAccuracy(token);
     loadGuessInsights(token);
+  }
+}
+
+function goToStats() {
+  closeUserMenu();
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('stats-page').style.display = 'block';
+  window.scrollTo(0, 0);
+  const token = getToken();
+  if (token) {
+    loadRegionAccuracy(token);
+    loadGuessInsights(token);
+    loadFullStats(token);
   }
 }
 
@@ -1606,6 +1669,7 @@ function updateNav(user) {
   document.getElementById('nav-auth-guest').style.display = 'none';
   document.getElementById('nav-auth-user').style.display = 'block';
   document.getElementById('nav-dashboard-link').style.display = '';
+  document.getElementById('nav-stats-link').style.display = '';
   document.getElementById('nav-username').textContent = user.username || 'Account';
   const du = document.getElementById('dropdown-username');
   const de = document.getElementById('dropdown-email');
@@ -1622,11 +1686,13 @@ function resetNav() {
   document.getElementById('nav-auth-guest').style.display = 'flex';
   document.getElementById('nav-auth-user').style.display = 'none';
   document.getElementById('nav-dashboard-link').style.display = 'none';
+  document.getElementById('nav-stats-link').style.display = 'none';
 }
 
 function showDashboard(user, token) {
   document.getElementById('landing').style.display   = 'none';
   document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('stats-page').style.display = 'none';
   window.scrollTo(0,0);
   updateNav(user);
   updateNavAvatar();
@@ -1649,8 +1715,10 @@ function escapeHtmlLocal(s){
   return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+let _gaxRegionBreakdown = {};
+
 async function loadRegionAccuracy(token){
-  const listEl = document.getElementById('region-accuracy-list');
+  const listEl = document.getElementById('stats-region-accuracy-list');
   try {
     const res = await fetch(API + '/guess/stats', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) });
     const data = await res.json();
@@ -1661,14 +1729,18 @@ async function loadRegionAccuracy(token){
     // Weakest countries first — the most actionable view of what to
     // actually work on next.
     const sorted = data.stats.slice().sort((a,b) => a.pct - b.pct);
-    listEl.innerHTML = sorted.map(s => {
+    listEl.innerHTML = sorted.map((s, i) => {
       const color = s.pct >= 80 ? 'var(--teal)' : s.pct >= 50 ? '#f0a500' : '#ff6b6b';
-      return `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
-        <div style="width:150px;font-size:13px;font-weight:600;flex-shrink:0;">${escapeHtmlLocal(s.country)}</div>
-        <div style="flex:1;background:var(--bg2);border-radius:6px;height:8px;overflow:hidden;">
-          <div style="width:${s.pct}%;height:100%;background:${color};"></div>
+      const rowId = `stats-country-row-${i}`;
+      return `<div>
+        <div onclick="toggleCountryRegions('${rowId}', ${JSON.stringify(s.country)})" style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+          <div style="width:150px;font-size:13px;font-weight:600;flex-shrink:0;">${escapeHtmlLocal(s.country)}</div>
+          <div style="flex:1;background:var(--bg2);border-radius:6px;height:8px;overflow:hidden;">
+            <div style="width:${s.pct}%;height:100%;background:${color};"></div>
+          </div>
+          <div style="width:100px;text-align:right;font-size:12px;color:var(--muted);flex-shrink:0;">${s.pct}% <span style="opacity:.6">(${s.correct}/${s.total})</span></div>
         </div>
-        <div style="width:100px;text-align:right;font-size:12px;color:var(--muted);flex-shrink:0;">${s.pct}% <span style="opacity:.6">(${s.correct}/${s.total})</span></div>
+        <div id="${rowId}" style="display:none;padding:6px 0 10px 24px;"></div>
       </div>`;
     }).join('');
   } catch(e) {
@@ -1676,11 +1748,33 @@ async function loadRegionAccuracy(token){
   }
 }
 
+function toggleCountryRegions(rowId, country){
+  const el = document.getElementById(rowId);
+  if (!el) return;
+  if (el.style.display === 'block') { el.style.display = 'none'; return; }
+  const regions = _gaxRegionBreakdown[country];
+  if (!regions || !regions.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;">No region-level data yet for this country.</div>';
+  } else {
+    const sortedRegions = regions.slice().sort((a,b) => a.pct - b.pct);
+    el.innerHTML = sortedRegions.map(r => {
+      const color = r.pct >= 80 ? 'var(--teal)' : r.pct >= 50 ? '#f0a500' : '#ff6b6b';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12px;">
+        <div style="width:130px;flex-shrink:0;color:var(--muted);">${escapeHtmlLocal(r.region)}</div>
+        <div style="flex:1;background:var(--bg2);border-radius:5px;height:6px;overflow:hidden;">
+          <div style="width:${r.pct}%;height:100%;background:${color};"></div>
+        </div>
+        <div style="width:90px;text-align:right;color:var(--muted);flex-shrink:0;">${r.pct}% (${r.correct}/${r.total})</div>
+      </div>`;
+    }).join('');
+  }
+  el.style.display = 'block';
+}
+
 async function loadGuessInsights(token){
-  const bestEl = document.getElementById('insight-best');
-  const worstEl = document.getElementById('insight-worst');
-  const fiftyEl = document.getElementById('insight-fifty-fifty');
-  const mixupEl = document.getElementById('insight-mixups');
+  const bestEl = document.getElementById('stats-best-country');
+  const worstEl = document.getElementById('stats-worst-country');
+  const fiftyEl = document.getElementById('stats-fifty-fifty');
   try {
     const res = await fetch(API + '/guess/insights', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) });
     const data = await res.json();
@@ -1699,16 +1793,108 @@ async function loadGuessInsights(token){
           <span style="color:#f0a500;">${c.pct}% <span style="color:var(--muted);">(${c.correct}/${c.total})</span></span>
         </div>`).join('')
       : `<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>`;
+  } catch(e) {
+    bestEl.textContent = '—'; worstEl.textContent = '—';
+    fiftyEl.innerHTML = '<div style="color:var(--muted);font-size:13px;">Couldn\'t load insights right now.</div>';
+  }
+}
 
-    mixupEl.innerHTML = (data.mixups && data.mixups.length)
-      ? data.mixups.map(m => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
+async function loadFullStats(token){
+  const overviewEl = document.getElementById('stats-overview-cards');
+  const bestRegionEl = document.getElementById('stats-best-region');
+  const worstRegionEl = document.getElementById('stats-worst-region');
+  const trendEl = document.getElementById('stats-daily-trend');
+  const dowEl = document.getElementById('stats-day-of-week');
+  const confusionEl = document.getElementById('stats-confusion-matrix');
+  const recentEl = document.getElementById('stats-recent-activity');
+  try {
+    const res = await fetch(API + '/guess/full_stats', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) });
+    const data = await res.json();
+    _gaxRegionBreakdown = data.region_breakdown || {};
+
+    // ── Overview cards ──────────────────────────────────────────
+    const o = data.overview || {};
+    if (!o.total_games) {
+      overviewEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;grid-column:1/-1;">⏳ Awaiting games played — play some GeoGuessr with the extension active and this fills in automatically.</div>';
+    } else {
+      const cards = [
+        ['🎮', o.total_games, 'Total Games'],
+        ['🎯', o.overall_pct + '%', 'Overall Accuracy'],
+        ['🌍', o.countries_attempted, 'Countries Attempted'],
+        ['🏅', o.countries_mastered, 'Countries Mastered (80%+)'],
+        ['🔥', o.current_streak, 'Current Streak'],
+        ['⚡', o.best_streak, 'Best Streak Ever'],
+        ['📅', o.sessions, 'Sessions Played'],
+      ];
+      overviewEl.innerHTML = cards.map(([icon, num, label]) => `
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;">
+          <div style="font-size:20px;">${icon}</div>
+          <div style="font-size:22px;font-weight:800;margin-top:4px;">${num}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${label}</div>
+        </div>`).join('');
+    }
+
+    // ── Best/worst region ────────────────────────────────────────
+    bestRegionEl.innerHTML = data.best_region
+      ? `${escapeHtmlLocal(data.best_region.region)} <span style="color:var(--muted);font-size:12px;font-weight:400;">(${escapeHtmlLocal(data.best_region.country)})</span> <span style="color:var(--teal);font-size:14px;">${data.best_region.pct}%</span>`
+      : `<span style="color:var(--muted);font-size:13px;font-weight:400;">⏳ Awaiting games played</span>`;
+    worstRegionEl.innerHTML = data.worst_region
+      ? `${escapeHtmlLocal(data.worst_region.region)} <span style="color:var(--muted);font-size:12px;font-weight:400;">(${escapeHtmlLocal(data.worst_region.country)})</span> <span style="color:#ff6b6b;font-size:14px;">${data.worst_region.pct}%</span>`
+      : `<span style="color:var(--muted);font-size:13px;font-weight:400;">⏳ Awaiting games played</span>`;
+
+    // ── Daily trend (last 30 days) ────────────────────────────────
+    if (!data.daily_trend || !data.daily_trend.length) {
+      trendEl.innerHTML = '<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>';
+    } else {
+      const maxTotal = Math.max(...data.daily_trend.map(d => d.total));
+      trendEl.innerHTML = data.daily_trend.map(d => {
+        const color = d.pct >= 80 ? 'var(--teal)' : d.pct >= 50 ? '#f0a500' : '#ff6b6b';
+        const h = Math.max(6, Math.round((d.total / maxTotal) * 100));
+        const dateLabel = new Date(d.date).toLocaleDateString('en-AU', {month:'short', day:'numeric'});
+        return `<div title="${dateLabel}: ${d.pct}% (${d.correct}/${d.total})" style="flex:1;min-width:4px;height:${h}%;background:${color};border-radius:3px 3px 0 0;"></div>`;
+      }).join('');
+    }
+
+    // ── Day-of-week pattern ─────────────────────────────────────
+    if (!data.day_of_week || !data.day_of_week.length) {
+      dowEl.innerHTML = '<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>';
+    } else {
+      dowEl.innerHTML = data.day_of_week.map(d => {
+        const color = d.pct >= 80 ? 'var(--teal)' : d.pct >= 50 ? '#f0a500' : '#ff6b6b';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:5px 0;font-size:13px;">
+          <div style="width:90px;flex-shrink:0;color:var(--muted);">${d.day}</div>
+          <div style="flex:1;background:var(--bg2);border-radius:6px;height:8px;overflow:hidden;">
+            <div style="width:${d.pct}%;height:100%;background:${color};"></div>
+          </div>
+          <div style="width:100px;text-align:right;font-size:12px;color:var(--muted);flex-shrink:0;">${d.pct}% (${d.correct}/${d.total})</div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Full confusion matrix ────────────────────────────────────
+    confusionEl.innerHTML = (data.confusion_matrix && data.confusion_matrix.length)
+      ? data.confusion_matrix.map(m => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
           <span>${escapeHtmlLocal(m.country)}</span>
           <span style="color:var(--muted);">You guess <strong style="color:#ff6b6b;">${escapeHtmlLocal(m.guessed_region)}</strong> instead of <strong style="color:var(--teal);">${escapeHtmlLocal(m.correct_region)}</strong> <span style="opacity:.7">(${m.count}×)</span></span>
         </div>`).join('')
       : `<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>`;
+
+    // ── Recent activity feed ─────────────────────────────────────
+    recentEl.innerHTML = (data.recent_activity && data.recent_activity.length)
+      ? data.recent_activity.map(a => {
+          const when = new Date(a.created_at).toLocaleString('en-AU', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+          const icon = a.is_correct ? '✅' : '❌';
+          const detail = a.is_correct
+            ? `${escapeHtmlLocal(a.correct_region || a.country)}`
+            : `guessed <strong style="color:#ff6b6b;">${escapeHtmlLocal(a.guessed_region || '?')}</strong>, was <strong style="color:var(--teal);">${escapeHtmlLocal(a.correct_region || a.country)}</strong>`;
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
+            <span>${icon} <strong>${escapeHtmlLocal(a.country)}</strong> — <span style="color:var(--muted);">${detail}</span></span>
+            <span style="color:var(--muted);flex-shrink:0;margin-left:10px;">${when}</span>
+          </div>`;
+        }).join('')
+      : `<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>`;
   } catch(e) {
-    bestEl.textContent = '—'; worstEl.textContent = '—';
-    fiftyEl.innerHTML = mixupEl.innerHTML = '<div style="color:var(--muted);font-size:13px;">Couldn\'t load insights right now.</div>';
+    overviewEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;grid-column:1/-1;">Couldn\'t load stats right now.</div>';
   }
 }
 
@@ -1717,6 +1903,7 @@ function logout() {
   localStorage.clear();
   document.getElementById('landing').style.display   = '';
   document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('stats-page').style.display = 'none';
   resetNav();
   closeUserMenu();
   if (token) {
