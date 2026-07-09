@@ -267,6 +267,55 @@
         </table>
       </div>
     </div>
+
+    <!-- Scene Library — browse, time-filter, and quality-check the
+         community photo library that feeds teaching reference images -->
+    <div class="card">
+      <div class="card-header">
+        <h2>🖼️ Scene Library</h2>
+      </div>
+      <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+        <div>
+          <label style="display:block;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">From</label>
+          <input type="date" id="scenes-date-from" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">To</label>
+          <input type="date" id="scenes-date-to" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Quality</label>
+          <select id="scenes-quality-filter" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+            <option value="all">All</option>
+            <option value="unchecked">Not yet checked</option>
+            <option value="passed">Passed</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Sort</label>
+          <select id="scenes-sort" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="quality_asc">Lowest quality first</option>
+            <option value="quality_desc">Highest quality first</option>
+          </select>
+        </div>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="scenesOffset=0;loadScenesList()">🔍 Apply Filters</button>
+        <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;padding:9px 16px;" onclick="recheckSceneQuality()" id="scenes-recheck-btn">🤖 Re-check Quality (next 20 unchecked)</button>
+        <div id="scenes-recheck-status" style="font-size:12px;color:var(--muted);"></div>
+      </div>
+      <div id="scenes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;padding:16px;">
+        <div class="empty">Loading...</div>
+      </div>
+      <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);">
+        <div id="scenes-count-label" style="font-size:12px;color:var(--muted);"></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" onclick="scenesPrevPage()">← Prev</button>
+          <button class="btn btn-sm" onclick="scenesNextPage()">Next →</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -711,6 +760,7 @@ function loadDashboard() {
       loadCameraQuizList();
       populatePhotoQuizCountrySelect();
       loadPhotoQuizList();
+      loadScenesList();
     })
     .catch(() => doLogout('Could not connect.'));
 }
@@ -1377,6 +1427,103 @@ async function deletePhotoQuizImage(id){
     const d = await res.json();
     if (d.error) throw new Error(d.error);
     loadPhotoQuizList();
+  } catch(e) {
+    toast('Delete failed: ' + e.message, true);
+  }
+}
+
+// ── Scene Library ──────────────────────────────────────────
+let scenesOffset = 0;
+const SCENES_PAGE_SIZE = 60;
+let scenesTotal = 0;
+
+function loadScenesList(){
+  const grid = document.getElementById('scenes-grid');
+  grid.innerHTML = '<div class="empty">Loading...</div>';
+
+  const params = new URLSearchParams({
+    limit: SCENES_PAGE_SIZE,
+    offset: scenesOffset,
+    quality: document.getElementById('scenes-quality-filter').value,
+    sort: document.getElementById('scenes-sort').value,
+  });
+  const dateFrom = document.getElementById('scenes-date-from').value;
+  const dateTo = document.getElementById('scenes-date-to').value;
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo + 'T23:59:59');
+
+  fetch(`${API}/admin/scenes/list?${params}`, { headers: adminHeaders() })
+    .then(r => r.json())
+    .then(d => {
+      const scenes = d.scenes || [];
+      scenesTotal = d.total || 0;
+      if (!scenes.length){
+        grid.innerHTML = '<div class="empty">No scenes match these filters.</div>';
+      } else {
+        grid.innerHTML = scenes.map(s => {
+          const badge = s.quality_checked_at === null
+            ? `<span style="color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:10px;">⚪ Not checked</span>`
+            : s.quality_score === 1
+              ? `<span style="color:#00c9a7;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);border-radius:6px;padding:2px 8px;font-size:10px;">✅ Passed</span>`
+              : `<span style="color:#ff6b6b;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:6px;padding:2px 8px;font-size:10px;" title="${escapeHtml(s.quality_reason||'')}">❌ Failed</span>`;
+          return `
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+            <img src="${s.image_url}" loading="lazy" style="width:100%;height:120px;object-fit:cover;display:block;background:#000;">
+            <div style="padding:8px 10px;">
+              <div style="font-size:12px;font-weight:600;">${escapeHtml(s.country)}</div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escapeHtml(s.state||'')} ${s.region ? '· '+escapeHtml(s.region) : ''}</div>
+              <div style="margin-bottom:6px;">${badge}</div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">${formatDate(s.uploaded_at)} · used ${s.times_used}×</div>
+              <button onclick="deleteScene('${s.id}')" style="width:100%;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;">Delete</button>
+            </div>
+          </div>`;
+        }).join('');
+      }
+      const shown = scenes.length ? `${scenesOffset+1}–${scenesOffset+scenes.length}` : '0';
+      document.getElementById('scenes-count-label').textContent = `Showing ${shown} of ${scenesTotal}`;
+    })
+    .catch(() => { grid.innerHTML = '<div class="empty">Failed to load.</div>'; });
+}
+
+function scenesPrevPage(){
+  scenesOffset = Math.max(0, scenesOffset - SCENES_PAGE_SIZE);
+  loadScenesList();
+}
+function scenesNextPage(){
+  if (scenesOffset + SCENES_PAGE_SIZE >= scenesTotal) return;
+  scenesOffset += SCENES_PAGE_SIZE;
+  loadScenesList();
+}
+
+async function recheckSceneQuality(){
+  const btn = document.getElementById('scenes-recheck-btn');
+  const status = document.getElementById('scenes-recheck-status');
+  btn.disabled = true;
+  status.textContent = 'Checking next 20 unchecked scenes — this can take a little while...';
+  try {
+    const res = await fetch(`${API}/admin/scenes/recheck_quality`, {
+      method: 'POST', headers: adminHeaders(),
+      body: JSON.stringify({ unchecked_only: true, limit: 20 })
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    status.textContent = d.checked
+      ? `✓ Checked ${d.checked} — ${d.passed} passed, ${d.failed} failed.`
+      : 'No unchecked scenes found — the whole library is up to date.';
+    loadScenesList();
+  } catch(e) {
+    status.textContent = 'Re-check failed: ' + e.message;
+  }
+  btn.disabled = false;
+}
+
+async function deleteScene(id){
+  if (!confirm('Delete this scene? This removes it from storage permanently.')) return;
+  try {
+    const res = await fetch(`${API}/admin/scenes/delete/${id}`, { method:'DELETE', headers: adminHeaders() });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    loadScenesList();
   } catch(e) {
     toast('Delete failed: ' + e.message, true);
   }
