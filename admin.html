@@ -303,6 +303,8 @@
         </div>
         <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="scenesOffset=0;loadScenesList()">🔍 Apply Filters</button>
         <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;padding:9px 16px;" onclick="recheckSceneQuality()" id="scenes-recheck-btn">🤖 Re-check Quality (next 20 unchecked)</button>
+        <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="deleteSelectedScenes()" id="scenes-bulk-delete-btn">🗑️ Delete Selected (<span id="scenes-selected-count">0</span>)</button>
+        <button class="btn btn-sm" style="padding:9px 16px;" onclick="toggleSelectAllScenes()" id="scenes-select-all-btn">☐ Select All</button>
         <div id="scenes-recheck-status" style="font-size:12px;color:var(--muted);"></div>
       </div>
       <div id="scenes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;padding:16px;">
@@ -1436,10 +1438,13 @@ async function deletePhotoQuizImage(id){
 let scenesOffset = 0;
 const SCENES_PAGE_SIZE = 60;
 let scenesTotal = 0;
+let selectedSceneIds = new Set();
 
 function loadScenesList(){
   const grid = document.getElementById('scenes-grid');
   grid.innerHTML = '<div class="empty">Loading...</div>';
+  selectedSceneIds.clear();
+  updateScenesSelectionUI();
 
   const params = new URLSearchParams({
     limit: SCENES_PAGE_SIZE,
@@ -1467,12 +1472,16 @@ function loadScenesList(){
               ? `<span style="color:#00c9a7;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);border-radius:6px;padding:2px 8px;font-size:10px;">✅ Passed</span>`
               : `<span style="color:#ff6b6b;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:6px;padding:2px 8px;font-size:10px;" title="${escapeHtml(s.quality_reason||'')}">❌ Failed</span>`;
           return `
-          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+          <div class="scene-card" data-scene-id="${s.id}" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;">
+            <label style="position:absolute;top:6px;left:6px;z-index:2;background:rgba(0,0,0,0.55);border-radius:5px;padding:3px 5px;display:flex;cursor:pointer;">
+              <input type="checkbox" onchange="toggleSceneSelected('${s.id}',this.checked)" style="cursor:pointer;">
+            </label>
             <img src="${s.image_url}" loading="lazy" style="width:100%;height:120px;object-fit:cover;display:block;background:#000;">
             <div style="padding:8px 10px;">
               <div style="font-size:12px;font-weight:600;">${escapeHtml(s.country)}</div>
               <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escapeHtml(s.state||'')} ${s.region ? '· '+escapeHtml(s.region) : ''}</div>
               <div style="margin-bottom:6px;">${badge}</div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">👤 ${escapeHtml(s.contributor_username)}</div>
               <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">${formatDate(s.uploaded_at)} · used ${s.times_used}×</div>
               <button onclick="deleteScene('${s.id}')" style="width:100%;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;">Delete</button>
             </div>
@@ -1493,6 +1502,54 @@ function scenesNextPage(){
   if (scenesOffset + SCENES_PAGE_SIZE >= scenesTotal) return;
   scenesOffset += SCENES_PAGE_SIZE;
   loadScenesList();
+}
+
+function toggleSceneSelected(id, checked){
+  if (checked) selectedSceneIds.add(id);
+  else selectedSceneIds.delete(id);
+  updateScenesSelectionUI();
+}
+
+function updateScenesSelectionUI(){
+  const count = selectedSceneIds.size;
+  document.getElementById('scenes-selected-count').textContent = count;
+  document.getElementById('scenes-bulk-delete-btn').style.display = count ? '' : 'none';
+  const cardCount = document.querySelectorAll('#scenes-grid .scene-card').length;
+  document.getElementById('scenes-select-all-btn').textContent =
+    (count && count === cardCount) ? '☑ Deselect All' : '☐ Select All';
+}
+
+function toggleSelectAllScenes(){
+  const cards = document.querySelectorAll('#scenes-grid .scene-card');
+  const allSelected = selectedSceneIds.size === cards.length && cards.length > 0;
+  cards.forEach(card => {
+    const id = card.dataset.sceneId;
+    const cb = card.querySelector('input[type="checkbox"]');
+    if (allSelected) {
+      selectedSceneIds.delete(id);
+      if (cb) cb.checked = false;
+    } else {
+      selectedSceneIds.add(id);
+      if (cb) cb.checked = true;
+    }
+  });
+  updateScenesSelectionUI();
+}
+
+// Removes a card straight from the DOM instead of re-fetching and
+// re-rendering the whole grid — much snappier when deleting several
+// images in a row, and avoids the visible "flash" of a full reload.
+function removeSceneCardFromDom(id){
+  document.querySelector(`#scenes-grid .scene-card[data-scene-id="${id}"]`)?.remove();
+  selectedSceneIds.delete(id);
+  scenesTotal = Math.max(0, scenesTotal - 1);
+  const remaining = document.querySelectorAll('#scenes-grid .scene-card').length;
+  if (!remaining) {
+    document.getElementById('scenes-grid').innerHTML = '<div class="empty">No scenes match these filters.</div>';
+  }
+  const shown = remaining ? `${scenesOffset+1}–${scenesOffset+remaining}` : '0';
+  document.getElementById('scenes-count-label').textContent = `Showing ${shown} of ${scenesTotal}`;
+  updateScenesSelectionUI();
 }
 
 async function recheckSceneQuality(){
@@ -1523,10 +1580,31 @@ async function deleteScene(id){
     const res = await fetch(`${API}/admin/scenes/delete/${id}`, { method:'DELETE', headers: adminHeaders() });
     const d = await res.json();
     if (d.error) throw new Error(d.error);
-    loadScenesList();
+    removeSceneCardFromDom(id);
   } catch(e) {
     toast('Delete failed: ' + e.message, true);
   }
+}
+
+async function deleteSelectedScenes(){
+  const ids = Array.from(selectedSceneIds);
+  if (!ids.length) return;
+  if (!confirm(`Delete ${ids.length} selected scene${ids.length===1?'':'s'}? This removes them from storage permanently.`)) return;
+  const btn = document.getElementById('scenes-bulk-delete-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/admin/scenes/delete_bulk`, {
+      method: 'POST', headers: adminHeaders(),
+      body: JSON.stringify({ scene_ids: ids })
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    ids.forEach(id => removeSceneCardFromDom(id));
+    toast(`Deleted ${d.deleted ?? ids.length} scene(s).`);
+  } catch(e) {
+    toast('Bulk delete failed: ' + e.message, true);
+  }
+  btn.disabled = false;
 }
 
 // ── Pane mode ─────────────────────────────────────────────
