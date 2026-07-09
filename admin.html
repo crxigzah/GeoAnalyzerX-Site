@@ -541,6 +541,20 @@
 .ge-add-name { font-size:12px;font-weight:600;color:#8888aa; }
 .ge-add-btn:hover .ge-add-name { color:#a78bfa; }
 
+.ge-inline-add-wrap { margin-top:8px; position:relative; }
+.ge-inline-add-btn {
+  width:100%;background:none;border:1px dashed #1e1e38;color:#4a4a6a;
+  border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;
+  cursor:pointer;transition:all .15s;text-align:center;
+}
+.ge-inline-add-btn:hover { border-color:#7c3aed;color:#a78bfa;background:rgba(124,58,237,0.06); }
+.ge-inline-add-menu {
+  position:absolute;z-index:50;top:calc(100% + 4px);left:0;right:0;
+  background:#0d0d1c;border:1px solid #7c3aed;border-radius:12px;
+  padding:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.5);
+}
+
 /* ── Block cards ─────────────────────────── */
 .block-card {
   background:#0d0d1c;border:1px solid #151525;border-radius:10px;
@@ -1865,6 +1879,40 @@ function addBlock(type, data={}) {
   updatePreview();
 }
 
+// Inserts a new block directly after another block, instead of always
+// appending to the end — this is what powers the "+ Add block below"
+// button under every block, so you don't have to scroll to the bottom
+// panel just to add the next block in a region.
+function insertBlockAfter(afterId, type) {
+  const id = ++blockIdCounter;
+  const block = { id, type, data: {} };
+  const idx = editorBlocks.findIndex(b => b.id === afterId);
+  if (idx === -1) editorBlocks.push(block);
+  else editorBlocks.splice(idx + 1, 0, block);
+
+  const pane = document.getElementById('editor-left');
+  const scrollPos = pane.scrollTop;
+  const list = document.getElementById('block-list');
+  list.innerHTML = '';
+  editorBlocks.forEach(b => renderBlock(b));
+  pane.scrollTop = scrollPos;
+  updatePreview();
+}
+
+function toggleInlineAddMenu(blockId) {
+  const menu = document.getElementById(`inline-add-menu-${blockId}`);
+  if (!menu) return;
+  const wasOpen = menu.style.display === 'grid';
+  closeAllInlineAddMenus();
+  if (!wasOpen) menu.style.display = 'grid';
+}
+function closeAllInlineAddMenus() {
+  document.querySelectorAll('.ge-inline-add-menu').forEach(m => m.style.display = 'none');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ge-inline-add-wrap')) closeAllInlineAddMenus();
+});
+
 function renderBlock(block) {
   const el = document.createElement('div');
   el.className = 'block-card';
@@ -2037,7 +2085,24 @@ function renderBlock(block) {
       <button class="block-move" onclick="moveBlock(${block.id},1)">↓</button>
       <button class="block-delete" onclick="deleteBlock(${block.id})">✕</button>
     </div>
-    ${inner}`;
+    ${inner}
+    <div class="ge-inline-add-wrap">
+      <button class="ge-inline-add-btn" onclick="toggleInlineAddMenu(${block.id})">+ Add block below</button>
+      <div class="ge-inline-add-menu" id="inline-add-menu-${block.id}" style="display:none;">
+        <button onclick="insertBlockAfter(${block.id},'heading')" class="ge-add-btn"><span class="ge-add-icon">H</span><span class="ge-add-name">Heading</span></button>
+        <button onclick="insertBlockAfter(${block.id},'text')" class="ge-add-btn"><span class="ge-add-icon">¶</span><span class="ge-add-name">Text</span></button>
+        <button onclick="insertBlockAfter(${block.id},'image')" class="ge-add-btn"><span class="ge-add-icon">🖼</span><span class="ge-add-name">Image</span></button>
+        <button onclick="insertBlockAfter(${block.id},'img-text')" class="ge-add-btn"><span class="ge-add-icon">🖼¶</span><span class="ge-add-name">Image + Text</span></button>
+        <button onclick="insertBlockAfter(${block.id},'two-col')" class="ge-add-btn"><span class="ge-add-icon">⬛⬛</span><span class="ge-add-name">Two Column</span></button>
+        <button onclick="insertBlockAfter(${block.id},'tip')" class="ge-add-btn"><span class="ge-add-icon">💡</span><span class="ge-add-name">Tip</span></button>
+        <button onclick="insertBlockAfter(${block.id},'warning')" class="ge-add-btn"><span class="ge-add-icon">⚠️</span><span class="ge-add-name">Confuse With</span></button>
+        <button onclick="insertBlockAfter(${block.id},'links')" class="ge-add-btn"><span class="ge-add-icon">🔗</span><span class="ge-add-name">Links List</span></button>
+        <button onclick="insertBlockAfter(${block.id},'nav')" class="ge-add-btn"><span class="ge-add-icon">📋</span><span class="ge-add-name">Nav Buttons</span></button>
+        <button onclick="insertBlockAfter(${block.id},'region-tabs')" class="ge-add-btn"><span class="ge-add-icon">🗺️</span><span class="ge-add-name">Region Tabs</span></button>
+        <button onclick="insertBlockAfter(${block.id},'divider')" class="ge-add-btn"><span class="ge-add-icon">—</span><span class="ge-add-name">Divider</span></button>
+        <button onclick="insertBlockAfter(${block.id},'spacer')" class="ge-add-btn"><span class="ge-add-icon">↕</span><span class="ge-add-name">Spacer</span></button>
+      </div>
+    </div>`;
 
   document.getElementById('block-list').appendChild(el);
   el.querySelectorAll('textarea').forEach(ta => autoResize(ta));
