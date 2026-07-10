@@ -1558,12 +1558,15 @@ async function recheckSceneQuality(){
   const btn = document.getElementById('scenes-recheck-btn');
   const status = document.getElementById('scenes-recheck-status');
   btn.disabled = true;
-  status.textContent = 'Checking next 20 unchecked scenes — this can take a little while...';
+  status.textContent = 'Checking next 10 unchecked scenes — this can take a little while...';
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
     const res = await fetch(`${API}/admin/scenes/recheck_quality`, {
-      method: 'POST', headers: adminHeaders(),
-      body: JSON.stringify({ unchecked_only: true, limit: 20 })
+      method: 'POST', headers: adminHeaders(), signal: controller.signal,
+      body: JSON.stringify({ unchecked_only: true, limit: 10 })
     });
+    clearTimeout(timeoutId);
     const d = await res.json();
     if (d.error) throw new Error(d.error);
     status.textContent = d.checked
@@ -1571,7 +1574,7 @@ async function recheckSceneQuality(){
       : 'No unchecked scenes found — the whole library is up to date.';
     loadScenesList();
   } catch(e) {
-    status.textContent = 'Re-check failed: ' + e.message;
+    status.textContent = 'Re-check failed: ' + (e.name === 'AbortError' ? 'timed out after 60s — try again, or it may need a smaller batch.' : e.message);
   }
   btn.disabled = false;
 }
@@ -1593,10 +1596,17 @@ async function autoProcessAllUnchecked(){
   try {
     while (scenesAutoProcessing) {
       status.textContent = `Processing... ${totalChecked} checked so far (${totalPassed} passed, ${totalFailed} failed). Working on the next batch...`;
-      const res = await fetch(`${API}/admin/scenes/recheck_quality`, {
-        method: 'POST', headers: adminHeaders(),
-        body: JSON.stringify({ unchecked_only: true, limit: 20 })
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      let res;
+      try {
+        res = await fetch(`${API}/admin/scenes/recheck_quality`, {
+          method: 'POST', headers: adminHeaders(), signal: controller.signal,
+          body: JSON.stringify({ unchecked_only: true, limit: 5 })
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
       const d = await res.json();
       if (d.error) throw new Error(d.error);
       if (!d.checked) break; // backlog exhausted
