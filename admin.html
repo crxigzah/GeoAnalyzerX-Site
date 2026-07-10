@@ -321,6 +321,7 @@
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="stopAutoCategorizeAllGenerations()" id="scenes-autogen-stop-btn">⏹ Stop</button>
         <button class="btn btn-sm" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;display:none;" onclick="passSelectedScenes()" id="scenes-bulk-pass-btn">✓ Pass Selected (<span id="scenes-selected-count-pass">0</span>)</button>
         <button class="btn btn-sm" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="passAllFailedScenes()" id="scenes-pass-all-failed-btn">✓ Pass ALL Failed</button>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="passAllUncheckedScenes()" id="scenes-pass-all-unchecked-btn">✓ Pass ALL Unchecked</button>
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="deleteSelectedScenes()" id="scenes-bulk-delete-btn">🗑️ Delete Selected (<span id="scenes-selected-count">0</span>)</button>
         <button class="btn btn-sm" style="padding:9px 16px;" onclick="toggleSelectAllScenes()" id="scenes-select-all-btn">☐ Select All</button>
         <div id="scenes-recheck-status" style="font-size:12px;color:var(--muted);"></div>
@@ -1772,6 +1773,25 @@ async function passAllFailedScenes(){
     toast(`Marked ${d.updated} previously-failed scene(s) as Passed.`);
   } catch(e) {
     toast('Pass ALL Failed failed: ' + e.message, true);
+  }
+  btn.disabled = false;
+}
+
+async function passAllUncheckedScenes(){
+  if (!confirm('Mark EVERY currently-UNCHECKED scene in the library as Passed, skipping the AI quality check entirely? This affects the whole library, not just what\'s visible on this page.')) return;
+  const btn = document.getElementById('scenes-pass-all-unchecked-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/admin/scenes/manual_pass_bulk`, {
+      method: 'POST', headers: adminHeaders(),
+      body: JSON.stringify({ all_unchecked: true })
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    loadScenesList();
+    toast(`Marked ${d.updated} previously-unchecked scene(s) as Passed.`);
+  } catch(e) {
+    toast('Pass ALL Unchecked failed: ' + e.message, true);
   }
   btn.disabled = false;
 }
