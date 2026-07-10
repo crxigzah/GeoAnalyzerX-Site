@@ -303,6 +303,8 @@
         </div>
         <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="scenesOffset=0;loadScenesList()">🔍 Apply Filters</button>
         <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;padding:9px 16px;" onclick="recheckSceneQuality()" id="scenes-recheck-btn">🤖 Re-check Quality (next 20 unchecked)</button>
+        <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;padding:9px 16px;" onclick="autoProcessAllUnchecked()" id="scenes-autoprocess-btn">🤖 Process ALL Unchecked (auto)</button>
+        <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="stopAutoProcessAllUnchecked()" id="scenes-autoprocess-stop-btn">⏹ Stop</button>
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="deleteSelectedScenes()" id="scenes-bulk-delete-btn">🗑️ Delete Selected (<span id="scenes-selected-count">0</span>)</button>
         <button class="btn btn-sm" style="padding:9px 16px;" onclick="toggleSelectAllScenes()" id="scenes-select-all-btn">☐ Select All</button>
         <div id="scenes-recheck-status" style="font-size:12px;color:var(--muted);"></div>
@@ -1572,6 +1574,53 @@ async function recheckSceneQuality(){
     status.textContent = 'Re-check failed: ' + e.message;
   }
   btn.disabled = false;
+}
+
+// Chains the same batch-of-20 endpoint together automatically, so
+// working through a large backlog (e.g. 2000+ photos) is one click
+// instead of ~100 manual ones. Runs in the background with a short
+// pause between batches, shows a running total, and can be cancelled.
+let scenesAutoProcessing = false;
+async function autoProcessAllUnchecked(){
+  if (scenesAutoProcessing) return;
+  scenesAutoProcessing = true;
+  document.getElementById('scenes-recheck-btn').disabled = true;
+  document.getElementById('scenes-autoprocess-btn').disabled = true;
+  document.getElementById('scenes-autoprocess-stop-btn').style.display = '';
+  const status = document.getElementById('scenes-recheck-status');
+
+  let totalChecked = 0, totalPassed = 0, totalFailed = 0;
+  try {
+    while (scenesAutoProcessing) {
+      status.textContent = `Processing... ${totalChecked} checked so far (${totalPassed} passed, ${totalFailed} failed). Working on the next batch...`;
+      const res = await fetch(`${API}/admin/scenes/recheck_quality`, {
+        method: 'POST', headers: adminHeaders(),
+        body: JSON.stringify({ unchecked_only: true, limit: 20 })
+      });
+      const d = await res.json();
+      if (d.error) throw new Error(d.error);
+      if (!d.checked) break; // backlog exhausted
+      totalChecked += d.checked;
+      totalPassed += d.passed;
+      totalFailed += d.failed;
+      loadScenesList();
+      // Brief pause between batches so this doesn't hammer the API
+      // back-to-back with zero breathing room.
+      await new Promise(r => setTimeout(r, 800));
+    }
+    status.textContent = scenesAutoProcessing
+      ? `✓ Done — checked ${totalChecked} total (${totalPassed} passed, ${totalFailed} failed). The whole library is now up to date.`
+      : `⏹ Stopped — checked ${totalChecked} so far (${totalPassed} passed, ${totalFailed} failed). Click again to resume.`;
+  } catch(e) {
+    status.textContent = `Stopped due to an error after checking ${totalChecked}: ${e.message}`;
+  }
+  scenesAutoProcessing = false;
+  document.getElementById('scenes-recheck-btn').disabled = false;
+  document.getElementById('scenes-autoprocess-btn').disabled = false;
+  document.getElementById('scenes-autoprocess-stop-btn').style.display = 'none';
+}
+function stopAutoProcessAllUnchecked(){
+  scenesAutoProcessing = false;
 }
 
 async function deleteScene(id){
