@@ -319,6 +319,8 @@
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="stopAutoProcessAllUnchecked()" id="scenes-autoprocess-stop-btn">⏹ Stop</button>
         <button class="btn btn-sm" style="background:rgba(0,150,255,0.12);border:1px solid rgba(0,150,255,0.3);color:#5eb8ff;padding:9px 16px;" onclick="autoCategorizeAllGenerations()" id="scenes-autogen-btn">📷 Camera Gen: Process ALL (auto)</button>
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="stopAutoCategorizeAllGenerations()" id="scenes-autogen-stop-btn">⏹ Stop</button>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;display:none;" onclick="passSelectedScenes()" id="scenes-bulk-pass-btn">✓ Pass Selected (<span id="scenes-selected-count-pass">0</span>)</button>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="passAllFailedScenes()" id="scenes-pass-all-failed-btn">✓ Pass ALL Failed</button>
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="deleteSelectedScenes()" id="scenes-bulk-delete-btn">🗑️ Delete Selected (<span id="scenes-selected-count">0</span>)</button>
         <button class="btn btn-sm" style="padding:9px 16px;" onclick="toggleSelectAllScenes()" id="scenes-select-all-btn">☐ Select All</button>
         <div id="scenes-recheck-status" style="font-size:12px;color:var(--muted);"></div>
@@ -1551,7 +1553,9 @@ function toggleSceneSelected(id, checked){
 function updateScenesSelectionUI(){
   const count = selectedSceneIds.size;
   document.getElementById('scenes-selected-count').textContent = count;
+  document.getElementById('scenes-selected-count-pass').textContent = count;
   document.getElementById('scenes-bulk-delete-btn').style.display = count ? '' : 'none';
+  document.getElementById('scenes-bulk-pass-btn').style.display = count ? '' : 'none';
   const cardCount = document.querySelectorAll('#scenes-grid .scene-card').length;
   document.getElementById('scenes-select-all-btn').textContent =
     (count && count === cardCount) ? '☑ Deselect All' : '☐ Select All';
@@ -1733,6 +1737,43 @@ async function manualPassScene(id){
   } catch(e) {
     toast('Manual pass failed: ' + e.message, true);
   }
+}
+
+async function passSelectedScenes(){
+  const ids = Array.from(selectedSceneIds);
+  if (!ids.length) return;
+  if (!confirm(`Mark ${ids.length} selected scene${ids.length===1?'':'s'} as Passed?`)) return;
+  try {
+    const res = await fetch(`${API}/admin/scenes/manual_pass_bulk`, {
+      method: 'POST', headers: adminHeaders(),
+      body: JSON.stringify({ scene_ids: ids })
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    loadScenesList();
+    toast(`Marked ${d.updated} scene(s) as Passed.`);
+  } catch(e) {
+    toast('Bulk pass failed: ' + e.message, true);
+  }
+}
+
+async function passAllFailedScenes(){
+  if (!confirm('Mark EVERY currently-failed scene in the library as Passed? This affects all failed scenes, not just what\'s visible on this page.')) return;
+  const btn = document.getElementById('scenes-pass-all-failed-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/admin/scenes/manual_pass_bulk`, {
+      method: 'POST', headers: adminHeaders(),
+      body: JSON.stringify({ all_failed: true })
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    loadScenesList();
+    toast(`Marked ${d.updated} previously-failed scene(s) as Passed.`);
+  } catch(e) {
+    toast('Pass ALL Failed failed: ' + e.message, true);
+  }
+  btn.disabled = false;
 }
 
 async function categorizeOneScene(id){
