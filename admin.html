@@ -1592,8 +1592,8 @@ async function recheckSceneQuality(){
     clearTimeout(timeoutId);
     const d = await res.json();
     if (d.error) throw new Error(d.error);
-    status.textContent = d.checked
-      ? `✓ Checked ${d.checked} — ${d.passed} passed, ${d.failed} failed.`
+    status.textContent = d.attempted
+      ? `✓ Checked ${d.checked} — ${d.passed} passed, ${d.failed} failed` + (d.fetch_failed ? `, ${d.fetch_failed} couldn't be fetched from storage (broken link).` : '.')
       : 'No unchecked scenes found — the whole library is up to date.';
     loadScenesList();
   } catch(e) {
@@ -1615,10 +1615,10 @@ async function autoProcessAllUnchecked(){
   document.getElementById('scenes-autoprocess-stop-btn').style.display = '';
   const status = document.getElementById('scenes-recheck-status');
 
-  let totalChecked = 0, totalPassed = 0, totalFailed = 0;
+  let totalChecked = 0, totalPassed = 0, totalFailed = 0, totalFetchFailed = 0;
   try {
     while (scenesAutoProcessing) {
-      status.textContent = `Processing... ${totalChecked} checked so far (${totalPassed} passed, ${totalFailed} failed). Working on the next batch...`;
+      status.textContent = `Processing... ${totalChecked} checked so far (${totalPassed} passed, ${totalFailed} failed${totalFetchFailed ? ', '+totalFetchFailed+' fetch errors' : ''}). Working on the next batch...`;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
       let res;
@@ -1632,17 +1632,18 @@ async function autoProcessAllUnchecked(){
       }
       const d = await res.json();
       if (d.error) throw new Error(d.error);
-      if (!d.checked) break; // backlog exhausted
+      if (!d.attempted) break; // backlog exhausted
       totalChecked += d.checked;
       totalPassed += d.passed;
       totalFailed += d.failed;
+      totalFetchFailed += (d.fetch_failed || 0);
       loadScenesList();
       // Brief pause between batches so this doesn't hammer the API
       // back-to-back with zero breathing room.
       await new Promise(r => setTimeout(r, 800));
     }
     status.textContent = scenesAutoProcessing
-      ? `✓ Done — checked ${totalChecked} total (${totalPassed} passed, ${totalFailed} failed). The whole library is now up to date.`
+      ? `✓ Done — checked ${totalChecked} total (${totalPassed} passed, ${totalFailed} failed${totalFetchFailed ? ', '+totalFetchFailed+' fetch errors' : ''}). The whole library is now up to date.`
       : `⏹ Stopped — checked ${totalChecked} so far (${totalPassed} passed, ${totalFailed} failed). Click again to resume.`;
   } catch(e) {
     status.textContent = `Stopped due to an error after checking ${totalChecked}: ${e.message}`;
