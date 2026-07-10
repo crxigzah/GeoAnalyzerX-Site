@@ -293,6 +293,18 @@
           </select>
         </div>
         <div>
+          <label style="display:block;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Camera Gen</label>
+          <select id="scenes-generation-filter" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+            <option value="">All</option>
+            <option value="1">Gen 1</option>
+            <option value="2">Gen 2</option>
+            <option value="3">Gen 3</option>
+            <option value="4">Gen 4</option>
+            <option value="trekker">Trekker</option>
+            <option value="unknown">Unknown / not estimated</option>
+          </select>
+        </div>
+        <div>
           <label style="display:block;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Sort</label>
           <select id="scenes-sort" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
             <option value="newest">Newest first</option>
@@ -302,12 +314,15 @@
           </select>
         </div>
         <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="scenesOffset=0;loadScenesList()">🔍 Apply Filters</button>
-        <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;padding:9px 16px;" onclick="recheckSceneQuality()" id="scenes-recheck-btn">🤖 Re-check Quality (next 20 unchecked)</button>
-        <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;padding:9px 16px;" onclick="autoProcessAllUnchecked()" id="scenes-autoprocess-btn">🤖 Process ALL Unchecked (auto)</button>
+        <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;padding:9px 16px;" onclick="recheckSceneQuality()" id="scenes-recheck-btn">🤖 Quality: next 10 unchecked</button>
+        <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;padding:9px 16px;" onclick="autoProcessAllUnchecked()" id="scenes-autoprocess-btn">🤖 Quality: Process ALL (auto)</button>
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="stopAutoProcessAllUnchecked()" id="scenes-autoprocess-stop-btn">⏹ Stop</button>
+        <button class="btn btn-sm" style="background:rgba(0,150,255,0.12);border:1px solid rgba(0,150,255,0.3);color:#5eb8ff;padding:9px 16px;" onclick="autoCategorizeAllGenerations()" id="scenes-autogen-btn">📷 Camera Gen: Process ALL (auto)</button>
+        <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="stopAutoCategorizeAllGenerations()" id="scenes-autogen-stop-btn">⏹ Stop</button>
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="deleteSelectedScenes()" id="scenes-bulk-delete-btn">🗑️ Delete Selected (<span id="scenes-selected-count">0</span>)</button>
         <button class="btn btn-sm" style="padding:9px 16px;" onclick="toggleSelectAllScenes()" id="scenes-select-all-btn">☐ Select All</button>
         <div id="scenes-recheck-status" style="font-size:12px;color:var(--muted);"></div>
+        <div id="scenes-gen-status" style="font-size:12px;color:var(--muted);"></div>
       </div>
       <div id="scenes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;padding:16px;">
         <div class="empty">Loading...</div>
@@ -1454,6 +1469,8 @@ function loadScenesList(){
     quality: document.getElementById('scenes-quality-filter').value,
     sort: document.getElementById('scenes-sort').value,
   });
+  const generationFilter = document.getElementById('scenes-generation-filter').value;
+  if (generationFilter) params.set('generation', generationFilter);
   const dateFrom = document.getElementById('scenes-date-from').value;
   const dateTo = document.getElementById('scenes-date-to').value;
   if (dateFrom) params.set('date_from', dateFrom);
@@ -1473,6 +1490,12 @@ function loadScenesList(){
             : s.quality_score === 1
               ? `<span style="color:#00c9a7;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);border-radius:6px;padding:2px 8px;font-size:10px;">✅ Passed</span>`
               : `<span style="color:#ff6b6b;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:6px;padding:2px 8px;font-size:10px;" title="${escapeHtml(s.quality_reason||'')}">❌ Failed</span>`;
+          const genLabel = s.camera_generation && s.camera_generation !== 'unknown'
+            ? (s.camera_generation === 'trekker' ? 'Trekker' : `Gen ${s.camera_generation}`)
+            : null;
+          const genBadge = genLabel
+            ? `<span style="color:#a78bfa;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:6px;padding:2px 8px;font-size:10px;margin-left:4px;" title="AI best-guess estimate, not guaranteed accurate">📷 ${genLabel}</span>`
+            : '';
           return `
           <div class="scene-card" data-scene-id="${s.id}" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;">
             <label style="position:absolute;top:6px;left:6px;z-index:2;background:rgba(0,0,0,0.55);border-radius:5px;padding:3px 5px;display:flex;cursor:pointer;">
@@ -1482,7 +1505,7 @@ function loadScenesList(){
             <div style="padding:8px 10px;">
               <div style="font-size:12px;font-weight:600;">${escapeHtml(s.country)}</div>
               <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escapeHtml(s.state||'')} ${s.region ? '· '+escapeHtml(s.region) : ''}</div>
-              <div style="margin-bottom:6px;">${badge}</div>
+              <div style="margin-bottom:6px;">${badge}${genBadge}</div>
               <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">👤 ${escapeHtml(s.contributor_username)}</div>
               <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">${formatDate(s.uploaded_at)} · used ${s.times_used}×</div>
               <button onclick="deleteScene('${s.id}')" style="width:100%;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;">Delete</button>
@@ -1631,6 +1654,59 @@ async function autoProcessAllUnchecked(){
 }
 function stopAutoProcessAllUnchecked(){
   scenesAutoProcessing = false;
+}
+
+// Mirrors the quality auto-loop above, but calls the dedicated
+// generation-only endpoint — genuinely independent, never touches
+// quality_score/quality_checked_at. Lets you label every photo's
+// camera generation as its own pass, separate from deciding whether
+// it's good enough quality-wise to use in teaching.
+let scenesAutoCategorizing = false;
+async function autoCategorizeAllGenerations(){
+  if (scenesAutoCategorizing) return;
+  scenesAutoCategorizing = true;
+  document.getElementById('scenes-autogen-btn').disabled = true;
+  document.getElementById('scenes-autogen-stop-btn').style.display = '';
+  const status = document.getElementById('scenes-gen-status');
+
+  let totalChecked = 0;
+  const genTotals = {};
+  try {
+    while (scenesAutoCategorizing) {
+      const genSummary = Object.entries(genTotals).map(([g,n]) => `${g}:${n}`).join(', ');
+      status.textContent = `Categorizing... ${totalChecked} labeled so far${genSummary ? ' ('+genSummary+')' : ''}. Working on the next batch...`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      let res;
+      try {
+        res = await fetch(`${API}/admin/scenes/categorize_generation`, {
+          method: 'POST', headers: adminHeaders(), signal: controller.signal,
+          body: JSON.stringify({ uncategorized_only: true, limit: 5 })
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+      const d = await res.json();
+      if (d.error) throw new Error(d.error);
+      if (!d.checked) break; // backlog exhausted
+      totalChecked += d.checked;
+      Object.entries(d.by_generation || {}).forEach(([g,n]) => { genTotals[g] = (genTotals[g]||0) + n; });
+      loadScenesList();
+      await new Promise(r => setTimeout(r, 800));
+    }
+    const genSummary = Object.entries(genTotals).map(([g,n]) => `${g}: ${n}`).join(', ');
+    status.textContent = scenesAutoCategorizing
+      ? `✓ Done — labeled ${totalChecked} total${genSummary ? ' ('+genSummary+')' : ''}.`
+      : `⏹ Stopped — labeled ${totalChecked} so far. Click again to resume.`;
+  } catch(e) {
+    status.textContent = `Stopped due to an error after labeling ${totalChecked}: ${e.message}`;
+  }
+  scenesAutoCategorizing = false;
+  document.getElementById('scenes-autogen-btn').disabled = false;
+  document.getElementById('scenes-autogen-stop-btn').style.display = 'none';
+}
+function stopAutoCategorizeAllGenerations(){
+  scenesAutoCategorizing = false;
 }
 
 async function deleteScene(id){
