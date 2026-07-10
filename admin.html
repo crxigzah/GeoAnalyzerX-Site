@@ -290,6 +290,7 @@
             <option value="unchecked">Not yet checked</option>
             <option value="passed">Passed</option>
             <option value="failed">Failed</option>
+            <option value="suspicious">⚠️ Suspicious (needs review)</option>
           </select>
         </div>
         <div>
@@ -1499,16 +1500,25 @@ function loadScenesList(){
           const genBadge = genLabel
             ? `<span style="color:#a78bfa;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:6px;padding:2px 8px;font-size:10px;margin-left:4px;" title="AI best-guess estimate, not guaranteed accurate">📷 ${genLabel}</span>`
             : '';
+          const suspiciousBadge = s.flagged_suspicious
+            ? `<span style="color:#ffb800;background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.3);border-radius:6px;padding:2px 8px;font-size:10px;margin-left:4px;">⚠️ Suspicious</span>`
+            : '';
           // Visible failure reason — previously only shown as a hover
           // tooltip, easy to miss and can't be read on mobile at all.
           const failReasonText = (s.quality_checked_at && s.quality_score === 0 && s.quality_reason)
             ? `<div style="font-size:10px;color:#ff6b6b;background:rgba(255,107,107,0.06);border-radius:5px;padding:4px 6px;margin-bottom:6px;line-height:1.35;">${escapeHtml(s.quality_reason)}</div>`
             : '';
+          const suspiciousReasonText = (s.flagged_suspicious && s.suspicious_reason)
+            ? `<div style="font-size:10px;color:#ffb800;background:rgba(255,184,0,0.06);border-radius:5px;padding:4px 6px;margin-bottom:6px;line-height:1.35;">⚠️ ${escapeHtml(s.suspicious_reason)}</div>`
+            : '';
           const passBtn = (s.quality_checked_at && s.quality_score === 0)
             ? `<button onclick="manualPassScene('${s.id}')" style="flex:1;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;" title="Override — mark this as Passed anyway">✓ Pass</button>`
             : '';
+          const reviewedBtn = s.flagged_suspicious
+            ? `<button onclick="clearSuspicious('${s.id}')" style="flex:1;background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.3);color:#ffb800;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;" title="I've reviewed this — clear the suspicious flag">👁️ Reviewed</button>`
+            : '';
           return `
-          <div class="scene-card" data-scene-id="${s.id}" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;">
+          <div class="scene-card" data-scene-id="${s.id}" style="background:var(--bg2);border:1px solid ${s.flagged_suspicious ? 'rgba(255,184,0,0.5)' : 'var(--border)'};border-radius:10px;overflow:hidden;position:relative;">
             <label style="position:absolute;top:6px;left:6px;z-index:2;background:rgba(0,0,0,0.55);border-radius:5px;padding:3px 5px;display:flex;cursor:pointer;">
               <input type="checkbox" onchange="toggleSceneSelected('${s.id}',this.checked)" style="cursor:pointer;">
             </label>
@@ -1516,12 +1526,14 @@ function loadScenesList(){
             <div style="padding:8px 10px;">
               <div style="font-size:12px;font-weight:600;">${escapeHtml(s.country)}</div>
               <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escapeHtml(s.state||'')} ${s.region ? '· '+escapeHtml(s.region) : ''}</div>
-              <div style="margin-bottom:6px;">${badge}${genBadge}</div>
+              <div style="margin-bottom:6px;">${badge}${genBadge}${suspiciousBadge}</div>
               ${failReasonText}
+              ${suspiciousReasonText}
               <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">👤 ${escapeHtml(s.contributor_username)}</div>
               <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">${formatDate(s.uploaded_at)} · used ${s.times_used}×</div>
               <div style="display:flex;gap:6px;margin-bottom:6px;">
                 ${passBtn}
+                ${reviewedBtn}
                 <button onclick="categorizeOneScene('${s.id}')" style="flex:1;background:rgba(0,150,255,0.1);border:1px solid rgba(0,150,255,0.3);color:#5eb8ff;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;" title="Run camera-generation classification on just this photo">📷 Gen</button>
               </div>
               <button onclick="deleteScene('${s.id}')" style="width:100%;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;">Delete</button>
@@ -1737,6 +1749,18 @@ async function manualPassScene(id){
     toast('Marked as Passed.');
   } catch(e) {
     toast('Manual pass failed: ' + e.message, true);
+  }
+}
+
+async function clearSuspicious(id){
+  try {
+    const res = await fetch(`${API}/admin/scenes/clear_suspicious/${id}`, { method:'POST', headers: adminHeaders() });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error);
+    loadScenesList();
+    toast('Marked as reviewed.');
+  } catch(e) {
+    toast('Clear suspicious failed: ' + e.message, true);
   }
 }
 
