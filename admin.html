@@ -299,10 +299,8 @@
             <option value="">All</option>
             <option value="1">Gen 1</option>
             <option value="2">Gen 2</option>
-            <option value="3">Gen 3</option>
-            <option value="4">Gen 4</option>
-            <option value="3_or_4">Gen 3 or 4 (unsure which)</option>
             <option value="trekker">Trekker</option>
+            <option value="other">Other (normal modern coverage)</option>
             <option value="unknown">Unknown / not estimated</option>
           </select>
         </div>
@@ -1496,7 +1494,7 @@ function loadScenesList(){
               ? `<span style="color:#00c9a7;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);border-radius:6px;padding:2px 8px;font-size:10px;">✅ Passed</span>`
               : `<span style="color:#ff6b6b;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:6px;padding:2px 8px;font-size:10px;" title="${escapeHtml(s.quality_reason||'')}">❌ Failed</span>`;
           const genLabel = s.camera_generation && s.camera_generation !== 'unknown'
-            ? (s.camera_generation === 'trekker' ? 'Trekker' : s.camera_generation === '3_or_4' ? 'Gen 3 or 4' : `Gen ${s.camera_generation}`)
+            ? (s.camera_generation === 'trekker' ? 'Trekker' : s.camera_generation === 'other' ? 'Other/modern' : `Gen ${s.camera_generation}`)
             : null;
           const genBadge = genLabel
             ? `<span style="color:#a78bfa;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:6px;padding:2px 8px;font-size:10px;margin-left:4px;" title="AI best-guess estimate, not guaranteed accurate">📷 ${genLabel}</span>`
