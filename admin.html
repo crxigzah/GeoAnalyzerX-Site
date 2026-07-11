@@ -454,7 +454,17 @@
           <button onclick="toggleBulkResizeMenu()" id="bulk-resize-btn" style="width:100%;background:rgba(94,184,255,0.15);border:1px solid rgba(94,184,255,0.4);color:#5eb8ff;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📐 Resize ALL Images</button>
           <div id="bulk-resize-menu" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.4);white-space:nowrap;">
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Set every Image+Text block to:</div>
-            <div style="display:flex;gap:4px;flex-wrap:wrap;max-width:200px;">${['25','33','40','50','60','70','80','90','100'].map(w => `<button onclick="setAllImgWidths('${w}')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">${w}%</button>`).join('')}</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;max-width:200px;">
+              <button onclick="setAllImgWidths('25')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">25%</button>
+              <button onclick="setAllImgWidths('33')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">33%</button>
+              <button onclick="setAllImgWidths('40')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">40%</button>
+              <button onclick="setAllImgWidths('50')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">50%</button>
+              <button onclick="setAllImgWidths('60')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">60%</button>
+              <button onclick="setAllImgWidths('70')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">70%</button>
+              <button onclick="setAllImgWidths('80')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">80%</button>
+              <button onclick="setAllImgWidths('90')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">90%</button>
+              <button onclick="setAllImgWidths('100')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">100%</button>
+            </div>
           </div>
         </div>
       </div>
