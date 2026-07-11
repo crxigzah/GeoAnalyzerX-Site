@@ -450,6 +450,13 @@
         <div class="ge-meta-field" style="max-width:170px;">
           <button onclick="checkGuideCompleteness()" style="width:100%;background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.4);color:#ff6b6b;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✅ Check Completeness</button>
         </div>
+        <div class="ge-meta-field" style="max-width:220px;position:relative;">
+          <button onclick="toggleBulkResizeMenu()" id="bulk-resize-btn" style="width:100%;background:rgba(94,184,255,0.15);border:1px solid rgba(94,184,255,0.4);color:#5eb8ff;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📐 Resize ALL Images</button>
+          <div id="bulk-resize-menu" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.4);white-space:nowrap;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Set every Image+Text block to:</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;max-width:200px;">${['25','33','40','50','60','70','80','90','100'].map(w => `<button onclick="setAllImgWidths('${w}')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">${w}%</button>`).join('')}</div>
+          </div>
+        </div>
       </div>
 
       <!-- Block list -->
@@ -883,6 +890,11 @@ function mdToHtml(s) {
   let h = escapeHtml(s || '');
   h = h.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
   h = h.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
+  // [link text](url) — escapeHtml already ran above so h/href content is
+  // safe; only allow http(s)/mailto to avoid a javascript: URL slipping
+  // through as a clickable link.
+  h = h.replace(/\[([^\]]+?)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   return h;
 }
 
@@ -901,10 +913,33 @@ function wrapSelection(taId, blockId, key, marker) {
   ta.setSelectionRange(newStart, newStart + selected.length);
 }
 
+function insertLink(taId, blockId, key) {
+  const ta = document.getElementById(taId);
+  if (!ta) return;
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const val = ta.value;
+  const selected = val.slice(start, end) || 'link text';
+  const url = prompt('Link URL (must start with https:// or mailto:):', 'https://');
+  if (!url) { ta.focus(); return; }
+  if (!/^(https?:\/\/|mailto:)/i.test(url.trim())) {
+    toast('Link must start with https:// or mailto: — not added.', true);
+    ta.focus();
+    return;
+  }
+  const inserted = `[${selected}](${url.trim()})`;
+  const newVal = val.slice(0, start) + inserted + val.slice(end);
+  ta.value = newVal;
+  syncBlock(blockId, key, newVal);
+  autoResize(ta);
+  ta.focus();
+  ta.setSelectionRange(start + inserted.length, start + inserted.length);
+}
+
 function fmtToolbar(taId, blockId, key) {
   return `<div style="display:flex;gap:4px;margin-bottom:4px;">
     <button type="button" onmousedown="event.preventDefault()" onclick="wrapSelection('${taId}',${blockId},'${key}','**')" title="Bold (**text**)" style="width:22px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;font-size:11px;font-weight:800;">B</button>
     <button type="button" onmousedown="event.preventDefault()" onclick="wrapSelection('${taId}',${blockId},'${key}','*')" title="Italic (*text*)" style="width:22px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;font-size:11px;font-style:italic;">i</button>
+    <button type="button" onmousedown="event.preventDefault()" onclick="insertLink('${taId}',${blockId},'${key}')" title="Insert link ([text](url))" style="width:22px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;font-size:11px;">🔗</button>
   </div>`;
 }
 
@@ -2219,7 +2254,7 @@ function buildScaffoldBlocks(country, regions){
     `${country}'s warning signs are [shape] and [color].`,
     `${country}'s speed limit signs use [describe style].`
   ];
-  overallPrompts.forEach(text => blocks.push({ type:'img-text', data:{ text, imgWidth:'55' } }));
+  overallPrompts.forEach(text => blocks.push({ type:'img-text', data:{ text, imgWidth:'70' } }));
 
   (CONFUSE_WITH[country] || []).forEach(other => {
     blocks.push({ type:'warning', data:{ text: `${other} — [describe the specific visual difference from ${country}].` } });
@@ -2230,14 +2265,14 @@ function buildScaffoldBlocks(country, regions){
     blocks.push({ type:'region-tabs', data:{ buttons: regions } });
     regions.forEach(region => {
       blocks.push({ type:'heading', data:{ text: region } });
-      blocks.push({ type:'img-text', data:{ text: `${region} tell goes here...`, imgWidth:'55' } });
+      blocks.push({ type:'img-text', data:{ text: `${region} tell goes here...`, imgWidth:'70' } });
     });
   } else {
     blocks.push({ type:'text', data:{ text: `Couldn't auto-fetch a region list for ${country} — add region headings manually, or double-check the country name matches exactly.` } });
   }
 
   blocks.push({ type:'heading', data:{ text: 'Vegetation & Landscapes' } });
-  blocks.push({ type:'img-text', data:{ text: 'Describe a distinctive landscape/vegetation tell here...', imgWidth:'55' } });
+  blocks.push({ type:'img-text', data:{ text: 'Describe a distinctive landscape/vegetation tell here...', imgWidth:'70' } });
 
   blocks.push({ type:'heading', data:{ text: 'Documents & Links' } });
   blocks.push({ type:'links', data:{ items: [
@@ -2364,7 +2399,7 @@ function renderBlock(block) {
       </div>`;
       break;
     case 'img-text':
-      const imgW = block.data.imgWidth || '55';
+      const imgW = block.data.imgWidth || '70';
       const mapSrc = block.data.mapSrc;
       const mapBadgeSize = block.data.mapBadgeSize || '110';
       inner = `
@@ -2656,6 +2691,35 @@ function setImgWidth(id, w) {
   updatePreview();
 }
 
+function toggleBulkResizeMenu(){
+  const menu = document.getElementById('bulk-resize-menu');
+  if (!menu) return;
+  const isOpen = menu.style.display !== 'none';
+  menu.style.display = isOpen ? 'none' : 'block';
+}
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('bulk-resize-menu');
+  const btn = document.getElementById('bulk-resize-btn');
+  if (menu && menu.style.display !== 'none' && !menu.contains(e.target) && e.target !== btn) {
+    menu.style.display = 'none';
+  }
+});
+
+// Applies one width to every Image+Text block in the current guide at
+// once, reusing the same per-block update logic as the individual
+// width pickers so both stay perfectly in sync.
+function setAllImgWidths(w){
+  const targets = editorBlocks.filter(b => b.type === 'img-text');
+  if (!targets.length) {
+    toast('No Image + Text blocks in this guide yet.', true);
+    document.getElementById('bulk-resize-menu').style.display = 'none';
+    return;
+  }
+  targets.forEach(b => setImgWidth(b.id, w));
+  document.getElementById('bulk-resize-menu').style.display = 'none';
+  toast(`Set ${targets.length} image${targets.length===1?'':'s'} to ${w}%.`);
+}
+
 function setMapBadgeSize(id, s) {
   const b = editorBlocks.find(b => b.id === id);
   if (!b) return;
@@ -2798,7 +2862,7 @@ async function handleBulkUpload(fileList){
       targetId = emptySlots[i].id;
     } else {
       // Ran out of empty slots — create a fresh img-text block for this photo
-      addBlock('img-text', { text: '', imgWidth: '55' });
+      addBlock('img-text', { text: '', imgWidth: '70' });
       targetId = editorBlocks[editorBlocks.length - 1].id;
     }
     loadImageFile(targetId, files[i]);
@@ -2953,7 +3017,7 @@ function updatePreview() {
         html += `<div style="height:${b.data.height||32}px;"></div>`;
         break;
       case 'img-text': {
-        const itW = b.data.imgWidth || '55';
+        const itW = b.data.imgWidth || '70';
         const itMapSrc = b.data.mapSrc && b.data.mapSrc !== '__uploading__' ? b.data.mapSrc : null;
         const itMapSz = b.data.mapBadgeSize || '110';
         const mt = prevAttach ? '0' : '14px', mb = nextAttach ? '0' : '14px';
