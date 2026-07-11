@@ -467,6 +467,24 @@
             </div>
           </div>
         </div>
+        <div class="ge-meta-field" style="max-width:220px;position:relative;">
+          <button onclick="toggleBulkBadgeMenu()" id="bulk-badge-btn" style="width:100%;background:rgba(196,160,255,0.15);border:1px solid rgba(196,160,255,0.4);color:#c4a0ff;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🗺️ Resize ALL Map Badges</button>
+          <div id="bulk-badge-menu" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.4);white-space:nowrap;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Set every map badge to:</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;max-width:230px;">
+              <button onclick="setAllMapBadgeSizes('60')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">60px</button>
+              <button onclick="setAllMapBadgeSizes('80')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">80px</button>
+              <button onclick="setAllMapBadgeSizes('100')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">100px</button>
+              <button onclick="setAllMapBadgeSizes('110')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">110px</button>
+              <button onclick="setAllMapBadgeSizes('130')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">130px</button>
+              <button onclick="setAllMapBadgeSizes('150')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">150px</button>
+              <button onclick="setAllMapBadgeSizes('180')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">180px</button>
+              <button onclick="setAllMapBadgeSizes('220')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">220px</button>
+              <button onclick="setAllMapBadgeSizes('260')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">260px</button>
+              <button onclick="setAllMapBadgeSizes('300')" style="padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;">300px</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Block list -->
@@ -2411,7 +2429,7 @@ function renderBlock(block) {
     case 'img-text':
       const imgW = block.data.imgWidth || '70';
       const mapSrc = block.data.mapSrc;
-      const mapBadgeSize = block.data.mapBadgeSize || '110';
+      const mapBadgeSize = block.data.mapBadgeSize || '180';
       inner = `
         ${attachToggle(block)}
         <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
@@ -2707,11 +2725,22 @@ function toggleBulkResizeMenu(){
   const isOpen = menu.style.display !== 'none';
   menu.style.display = isOpen ? 'none' : 'block';
 }
+function toggleBulkBadgeMenu(){
+  const menu = document.getElementById('bulk-badge-menu');
+  if (!menu) return;
+  const isOpen = menu.style.display !== 'none';
+  menu.style.display = isOpen ? 'none' : 'block';
+}
 document.addEventListener('click', (e) => {
   const menu = document.getElementById('bulk-resize-menu');
   const btn = document.getElementById('bulk-resize-btn');
   if (menu && menu.style.display !== 'none' && !menu.contains(e.target) && e.target !== btn) {
     menu.style.display = 'none';
+  }
+  const bmenu = document.getElementById('bulk-badge-menu');
+  const bbtn = document.getElementById('bulk-badge-btn');
+  if (bmenu && bmenu.style.display !== 'none' && !bmenu.contains(e.target) && e.target !== bbtn) {
+    bmenu.style.display = 'none';
   }
 });
 
@@ -2728,6 +2757,22 @@ function setAllImgWidths(w){
   targets.forEach(b => setImgWidth(b.id, w));
   document.getElementById('bulk-resize-menu').style.display = 'none';
   toast(`Set ${targets.length} image${targets.length===1?'':'s'} to ${w}%.`);
+}
+
+// Same idea as setAllImgWidths, but for the small map-badge overlay —
+// applies to every Image+Text block regardless of whether it currently
+// has a map badge image uploaded, since the size still takes effect
+// whenever one is added later.
+function setAllMapBadgeSizes(s){
+  const targets = editorBlocks.filter(b => b.type === 'img-text');
+  if (!targets.length) {
+    toast('No Image + Text blocks in this guide yet.', true);
+    document.getElementById('bulk-badge-menu').style.display = 'none';
+    return;
+  }
+  targets.forEach(b => setMapBadgeSize(b.id, s));
+  document.getElementById('bulk-badge-menu').style.display = 'none';
+  toast(`Set ${targets.length} map badge${targets.length===1?'':'s'} to ${s}px.`);
 }
 
 function setMapBadgeSize(id, s) {
@@ -3029,7 +3074,7 @@ function updatePreview() {
       case 'img-text': {
         const itW = b.data.imgWidth || '70';
         const itMapSrc = b.data.mapSrc && b.data.mapSrc !== '__uploading__' ? b.data.mapSrc : null;
-        const itMapSz = b.data.mapBadgeSize || '110';
+        const itMapSz = b.data.mapBadgeSize || '180';
         const mt = prevAttach ? '0' : '14px', mb = nextAttach ? '0' : '14px';
         html += `<div style="display:grid;grid-template-columns:${itW==='100'?'1fr':itW+'% 1fr'};gap:18px;align-items:start;margin:${mt} 0 ${mb};">
           <div>
