@@ -449,6 +449,15 @@
   }
   .region-swatch:hover{ transform: scale(1.15); }
   .region-swatch.active{ border-color:#fff; box-shadow:0 0 0 1px rgba(0,0,0,0.4); }
+  .region-swatch-custom{
+    border:2px solid rgba(255,255,255,0.5);
+    -webkit-appearance:none; appearance:none;
+    overflow:hidden;
+    background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+  }
+  .region-swatch-custom::-webkit-color-swatch-wrapper{ padding:0; }
+  .region-swatch-custom::-webkit-color-swatch{ border:none; border-radius:50%; }
+  .region-swatch-custom::-moz-color-swatch{ border:none; border-radius:50%; }
 
   .subdivision.dimmed{
     fill: var(--map-land-nocode);
@@ -1039,6 +1048,17 @@ function setRegionColor(id, key){
   }
 }
 
+// Applies an arbitrary hex color picked from the color wheel input,
+// bypassing the fixed preset list entirely — this tool has no
+// persistence layer requiring a stable palette key, it just styles
+// the live SVG directly, so any color works with no extra bookkeeping.
+function setRegionCustomColor(id, hex){
+  const path  = countryLayer.select(`path[data-id="${id}"]`);
+  const label = labelLayer.select(`g[data-id="${id}"]`);
+  path.classed('dimmed', false).style('fill', hex);
+  label.style('display', '');
+}
+
 function buildCountryRegionsList(labelData){
   const listEl = document.getElementById('countryRegionsList');
   listEl.innerHTML = '';
@@ -1049,15 +1069,23 @@ function buildCountryRegionsList(labelData){
       <div class="region-toggle-name">${l.name}</div>
       <div class="region-swatch-row" data-id="${l.id}">
         ${REGION_PALETTE.map(p => `<button class="region-swatch${p.key==='default' ? ' active' : ''}" data-id="${l.id}" data-key="${p.key}" title="${p.label}" style="background:${p.swatchBg || p.color};">${p.key==='hide' ? '✕' : ''}</button>`).join('')}
+        <input type="color" class="region-swatch region-swatch-custom" data-id="${l.id}" title="Pick any color" value="#d1443a">
       </div>`;
     listEl.appendChild(item);
   });
-  listEl.querySelectorAll('.region-swatch').forEach(btn => {
+  listEl.querySelectorAll('.region-swatch:not(.region-swatch-custom)').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.id, key = btn.dataset.key;
       setRegionColor(id, key);
       document.querySelectorAll(`.region-swatch[data-id="${id}"]`).forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+    });
+  });
+  listEl.querySelectorAll('.region-swatch-custom').forEach(input => {
+    input.addEventListener('input', () => {
+      const id = input.dataset.id;
+      setRegionCustomColor(id, input.value);
+      document.querySelectorAll(`.region-swatch[data-id="${id}"]`).forEach(b => b.classList.remove('active'));
     });
   });
 }
