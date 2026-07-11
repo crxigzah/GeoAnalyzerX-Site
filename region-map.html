@@ -1623,6 +1623,17 @@ function showFallback(countryName, message){
   showCountriesPanel();
 }
 
+// Some countries are more useful/complete shown at a deeper
+// subdivision level than the default ADM1 (region/state) — e.g. the
+// Philippines' ADM1 regions dataset from geoBoundaries doesn't
+// reliably include newer groupings like the Bangsamoro Autonomous
+// Region, but the individual PROVINCES within it (Maguindanao, Sulu,
+// Basilan, Tawi-Tawi, etc.) are still tracked correctly at ADM2 level
+// regardless of which region they're grouped under.
+const ADMIN_LEVEL_OVERRIDE = {
+  "Philippines": "ADM2",
+};
+
 function drillIntoCountry(name){
   const iso3 = ISO3[name];
   if(!iso3){
@@ -1639,8 +1650,9 @@ function drillIntoCountry(name){
     return;
   }
 
-  showLoading(`Loading ${name} regions…`);
-  const url = `https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/releaseData/gbOpen/${iso3}/ADM1/geoBoundaries-${iso3}-ADM1_simplified.geojson`;
+  const admLevel = ADMIN_LEVEL_OVERRIDE[name] || 'ADM1';
+  showLoading(`Loading ${name} ${admLevel === 'ADM2' ? 'provinces' : 'regions'}…`);
+  const url = `https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/releaseData/gbOpen/${iso3}/${admLevel}/geoBoundaries-${iso3}-${admLevel}_simplified.geojson`;
 
   fetch(url)
     .then(res => { if(!res.ok) throw new Error('not found'); return res.json(); })
