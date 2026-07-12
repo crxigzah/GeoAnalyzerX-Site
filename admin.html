@@ -2504,14 +2504,20 @@ function renderBlock(block) {
       const rtBtns = block.data.buttons || [''];
       inner = `<div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">🗺️ Region Tabs — type each region name</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
+        <div id="rt-list-${block.id}" style="display:flex;flex-direction:column;gap:8px;">
           ${rtBtns.map((btn, i) => `
-            <div style="display:flex;gap:8px;align-items:center;">
+            <div class="rt-row" draggable="true" data-block-id="${block.id}" data-idx="${i}"
+                 ondragstart="rtDragStart(event)" ondragover="rtDragOver(event)" ondrop="rtDrop(event)" ondragend="rtDragEnd(event)"
+                 style="display:flex;gap:8px;align-items:center;">
+              <span style="cursor:grab;color:var(--muted);font-size:14px;user-select:none;flex-shrink:0;" title="Drag to reorder">⠿</span>
               <textarea class="be" rows="1" placeholder="e.g. New South Wales" style="flex:1;" oninput="updateRegionTab(${block.id},${i},this.value);autoResize(this)">${escapeHtml(btn)}</textarea>
               <button onclick="removeRegionTab(${block.id},${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px 8px;">✕</button>
             </div>`).join('')}
         </div>
-        <button onclick="addRegionTab(${block.id})" style="margin-top:10px;background:var(--bg2);border:1px dashed var(--border);color:var(--muted);padding:6px 16px;border-radius:7px;cursor:pointer;font-size:12px;width:100%;">+ Add Region</button>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button onclick="addRegionTab(${block.id})" style="flex:2;background:var(--bg2);border:1px dashed var(--border);color:var(--muted);padding:6px 16px;border-radius:7px;cursor:pointer;font-size:12px;">+ Add Region</button>
+          <button onclick="sortRegionTabsAZ(${block.id})" style="flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;" title="Sort alphabetically">🔤 Sort A-Z</button>
+        </div>
         <div style="margin-top:10px;font-size:11px;color:var(--muted);background:rgba(0,201,167,0.06);border:1px solid rgba(0,201,167,0.15);border-radius:6px;padding:8px 12px;">💡 Each region name must match a <strong style="color:#00c9a7">Heading block</strong> below it. Renders as styled tabs in the guide.</div>
       </div>`;
       break;
@@ -2850,6 +2856,52 @@ function removeRegionTab(blockId, index) {
   list.innerHTML = '';
   editorBlocks.forEach(x => renderBlock(x));
   updatePreview();
+}
+
+// Drag-to-reorder for region tabs, plus a one-click A-Z sort as a
+// faster alternative to dragging every row into place by hand.
+let _rtDragSrcIdx = null;
+function rtDragStart(e){
+  _rtDragSrcIdx = parseInt(e.currentTarget.dataset.idx, 10);
+  e.currentTarget.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+}
+function rtDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+function rtDrop(e){
+  e.preventDefault();
+  const blockId = parseInt(e.currentTarget.dataset.blockId, 10);
+  const targetIdx = parseInt(e.currentTarget.dataset.idx, 10);
+  if (_rtDragSrcIdx === null || _rtDragSrcIdx === targetIdx) return;
+  const b = editorBlocks.find(b => b.id === blockId);
+  if (!b || !b.data.buttons) return;
+  const [moved] = b.data.buttons.splice(_rtDragSrcIdx, 1);
+  b.data.buttons.splice(targetIdx, 0, moved);
+  _rtDragSrcIdx = null;
+  const list = document.getElementById('block-list');
+  const scrollPos = document.getElementById('editor-left')?.scrollTop || 0;
+  list.innerHTML = '';
+  editorBlocks.forEach(x => renderBlock(x));
+  if (document.getElementById('editor-left')) document.getElementById('editor-left').scrollTop = scrollPos;
+  updatePreview();
+}
+function rtDragEnd(e){
+  e.currentTarget.style.opacity = '';
+  _rtDragSrcIdx = null;
+}
+function sortRegionTabsAZ(blockId){
+  const b = editorBlocks.find(b => b.id === blockId);
+  if (!b || !b.data.buttons) return;
+  b.data.buttons.sort((a, z) => a.localeCompare(z, undefined, { sensitivity: 'base' }));
+  const list = document.getElementById('block-list');
+  const scrollPos = document.getElementById('editor-left')?.scrollTop || 0;
+  list.innerHTML = '';
+  editorBlocks.forEach(x => renderBlock(x));
+  if (document.getElementById('editor-left')) document.getElementById('editor-left').scrollTop = scrollPos;
+  updatePreview();
+  toast('Region tabs sorted A-Z.');
 }
 
 function updateNavBtn(blockId, index, value) {
