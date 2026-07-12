@@ -150,7 +150,8 @@
       radial-gradient(ellipse at 50% 40%, #0d131a 0%, var(--bg) 70%);
     overflow:hidden;
   }
-  .map-stage svg{ width:100%; height:100%; display:block; }
+  .map-stage canvas{ width:100%; height:100%; display:block; cursor:grab; }
+  .map-stage canvas.dragging{ cursor:grabbing; }
 
   .sphere{ fill:#0c1219; stroke: var(--line); stroke-width:1; }
 
@@ -418,7 +419,7 @@
       <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-text">Loading world map…</div>
       </div>
-      <svg id="map" viewBox="0 0 960 520"></svg>
+      <canvas id="globeCanvas"></canvas>
       <div class="zoom-controls">
         <button id="zoomIn">+</button>
         <button id="zoomOut">–</button>
@@ -452,6 +453,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script>
 /* Embedded ISO 3166-1 numeric ID -> country name table.
    Matches the IDs used by the world-atlas TopoJSON country shapes.
@@ -558,25 +560,234 @@ const PHONE_CODES = {
 const nameById = new Map(Object.entries(COUNTRY_ID_NAME).map(([id, name]) => [String(id), name]));
 function normalize(name){ return (name||'').trim().toLowerCase(); }
 
-const width = 960, height = 520;
-const svg = d3.select('#map').attr('viewBox', `0 0 ${width} ${height}`);
-const projection = d3.geoNaturalEarth1().scale(165).translate([width/2, height/2 + 10]);
-const path = d3.geoPath(projection);
+// ── Three.js globe setup ──────────────────────────────────────
+// Two off-screen canvases share the exact same equirectangular D3
+// projection: one is the actual visible texture painted onto the
+// sphere, the other is never shown at all — every country is filled
+// with a unique flat, unblended color that encodes its array index.
+// Clicking/hovering raycasts onto the sphere, reads the UV
+// intersection point, converts it to a pixel position on the hidden
+// ID canvas, and decodes the color back into a country index. This
+// is the standard technique for accurate per-country hit-testing on
+// a real 3D globe without needing to build actual 3D country meshes.
+const TEX_W = 2048, TEX_H = 1024;
+const geoProjection = d3.geoEquirectangular()
+  .scale(TEX_W / (2 * Math.PI))
+  .translate([TEX_W / 2, TEX_H / 2]);
+const geoPathVisible = d3.geoPath(geoProjection, (() => {
+  const c = document.createElement('canvas');
+  c.width = TEX_W; c.height = TEX_H;
+  return c.getContext('2d');
+})());
 
-const g = svg.append('g');
-g.append('path').attr('class','sphere').attr('d', path({type:'Sphere'}));
-const countryLayer = g.append('g').attr('class','country-layer');
+const visibleCanvas = document.createElement('canvas');
+visibleCanvas.width = TEX_W; visibleCanvas.height = TEX_H;
+const visibleCtx = visibleCanvas.getContext('2d');
 
-const zoom = d3.zoom()
-  .scaleExtent([1, 12])
-  .filter((event) => !(event.type === 'mousedown' || event.type === 'touchstart'))
-  .on('zoom', (event) => g.attr('transform', event.transform));
-svg.call(zoom);
-svg.style('cursor', 'default');
+const idCanvas = document.createElement('canvas');
+idCanvas.width = TEX_W; idCanvas.height = TEX_H;
+const idCtx = idCanvas.getContext('2d');
+idCtx.imageSmoothingEnabled = false;
 
-document.getElementById('zoomIn').onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1.5);
-document.getElementById('zoomOut').onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1/1.5);
-document.getElementById('resetBtn').onclick = () => svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+let countryFeatures = [];          // GeoJSON features, index-aligned with idColorFor()
+let countryStateById = new Map();  // id -> 'default' | 'nocode' | 'selected'
+
+function idColorFor(index){
+  // Encodes the array index directly into an RGB triple — plenty of
+  // headroom for ~250 countries. Index 0 is deliberately skipped so
+  // pure black (the ID canvas background) never collides with a real
+  // country's ID color.
+  const n = index + 1;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return `rgb(${r},${g},${b})`;
+}
+function indexFromIdColor(r, g, b){
+  const n = (r << 16) | (g << 8) | b;
+  return n === 0 ? -1 : n - 1;
+}
+
+function fillColorFor(state){
+  if (state === 'selected') return '#7c3aed';
+  if (state === 'nocode') return 'rgba(255,107,107,0.55)';
+  return 'rgba(0,201,167,0.82)';
+}
+
+function paintCountry(ctx, feature, color, isIdLayer){
+  ctx.beginPath();
+  geoPathVisible.context(ctx)(feature);
+  ctx.fillStyle = color;
+  ctx.fill();
+  if (!isIdLayer){
+    ctx.lineWidth = 0.6;
+    ctx.strokeStyle = '#1e1e35';
+    ctx.stroke();
+  }
+}
+
+function redrawCountry(id){
+  const idx = countryFeatures.findIndex(f => String(f.id) === String(id));
+  if (idx === -1) return;
+  const state = countryStateById.get(String(id)) || 'default';
+  paintCountry(visibleCtx, countryFeatures[idx], fillColorFor(state), false);
+  globeTexture.needsUpdate = true;
+}
+
+function paintOcean(ctx){
+  ctx.fillStyle = '#0c1219';
+  ctx.fillRect(0, 0, TEX_W, TEX_H);
+}
+
+// Scene / camera / renderer
+const canvasEl = document.getElementById('globeCanvas');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+let camDist = 2.6;
+camera.position.set(0, 0, camDist);
+
+const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+function resizeRenderer(){
+  const stage = document.getElementById('mapStage');
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resizeRenderer);
+
+// Soft lighting for genuine depth — a "sun" off to one side plus a
+// dim ambient fill so the dark side of the globe isn't pure black.
+scene.add(new THREE.AmbientLight(0x8888aa, 1.1));
+const sunLight = new THREE.DirectionalLight(0xffffff, 1.1);
+sunLight.position.set(4, 2, 3);
+scene.add(sunLight);
+
+const globeGroup = new THREE.Group();
+scene.add(globeGroup);
+
+const globeTexture = new THREE.CanvasTexture(visibleCanvas);
+globeTexture.minFilter = THREE.LinearFilter;
+const globeMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 96, 96),
+  new THREE.MeshPhongMaterial({ map: globeTexture, shininess: 6 })
+);
+globeGroup.add(globeMesh);
+
+// Subtle outer glow shell for a bit of atmosphere polish.
+const atmosphere = new THREE.Mesh(
+  new THREE.SphereGeometry(1.03, 64, 64),
+  new THREE.MeshBasicMaterial({ color: 0x00c9a7, transparent: true, opacity: 0.06, side: THREE.BackSide })
+);
+globeGroup.add(atmosphere);
+
+// ── Drag-to-rotate + gentle idle auto-rotate ──────────────────
+let isDragging = false, lastX = 0, lastY = 0, idleTimer = null, autoRotate = true;
+const ROT_SPEED = 0.005;
+function pauseAutoRotate(){
+  autoRotate = false;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => { autoRotate = true; }, 2500);
+}
+function pointerDown(x, y){
+  isDragging = true; lastX = x; lastY = y;
+  canvasEl.classList.add('dragging');
+  pauseAutoRotate();
+}
+function pointerMove(x, y){
+  if (!isDragging) return;
+  const dx = x - lastX, dy = y - lastY;
+  globeGroup.rotation.y += dx * ROT_SPEED;
+  globeGroup.rotation.x = Math.max(-1.4, Math.min(1.4, globeGroup.rotation.x + dy * ROT_SPEED));
+  lastX = x; lastY = y;
+}
+function pointerUp(){
+  isDragging = false;
+  canvasEl.classList.remove('dragging');
+  pauseAutoRotate();
+}
+canvasEl.addEventListener('mousedown', e => pointerDown(e.clientX, e.clientY));
+window.addEventListener('mousemove', e => pointerMove(e.clientX, e.clientY));
+window.addEventListener('mouseup', pointerUp);
+canvasEl.addEventListener('touchstart', e => { const t = e.touches[0]; pointerDown(t.clientX, t.clientY); }, { passive: true });
+canvasEl.addEventListener('touchmove', e => { const t = e.touches[0]; pointerMove(t.clientX, t.clientY); }, { passive: true });
+canvasEl.addEventListener('touchend', pointerUp);
+
+// ── Zoom (camera distance) ────────────────────────────────────
+const ZOOM_MIN = 1.4, ZOOM_MAX = 6;
+function setZoom(dist){
+  camDist = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, dist));
+  camera.position.z = camDist;
+}
+canvasEl.addEventListener('wheel', e => {
+  e.preventDefault();
+  setZoom(camDist + e.deltaY * 0.0025);
+}, { passive: false });
+document.getElementById('zoomIn').onclick = () => setZoom(camDist - 0.5);
+document.getElementById('zoomOut').onclick = () => setZoom(camDist + 0.5);
+document.getElementById('resetBtn').onclick = () => {
+  globeGroup.rotation.set(0, 0, 0);
+  setZoom(2.6);
+};
+
+// ── Raycasting for click + hover ──────────────────────────────
+const raycaster = new THREE.Raycaster();
+const mouseNDC = new THREE.Vector2();
+let hoveredIdx = -1;
+
+function uvToCountryIndex(uv){
+  const px = Math.floor(uv.x * TEX_W);
+  const py = Math.floor((1 - uv.y) * TEX_H);
+  const data = idCtx.getImageData(Math.max(0, Math.min(TEX_W - 1, px)), Math.max(0, Math.min(TEX_H - 1, py)), 1, 1).data;
+  return indexFromIdColor(data[0], data[1], data[2]);
+}
+function uvToLatLon(uv){
+  const lon = (uv.x - 0.5) * 360;
+  const lat = (0.5 - uv.y) * 180;
+  return [lat, lon];
+}
+function raycastAt(clientX, clientY){
+  const rect = canvasEl.getBoundingClientRect();
+  mouseNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  mouseNDC.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouseNDC, camera);
+  const hits = raycaster.intersectObject(globeMesh);
+  return hits.length ? hits[0] : null;
+}
+
+canvasEl.addEventListener('mousemove', e => {
+  if (isDragging) return;
+  const hit = raycastAt(e.clientX, e.clientY);
+  if (!hit){ hoveredIdx = -1; canvasEl.style.cursor = 'grab'; return; }
+  const [lat, lon] = uvToLatLon(hit.uv);
+  document.getElementById('hud').textContent = `LAT ${lat.toFixed(2)} · LON ${lon.toFixed(2)}`;
+  hoveredIdx = uvToCountryIndex(hit.uv);
+  canvasEl.style.cursor = hoveredIdx >= 0 ? 'pointer' : 'grab';
+});
+
+let downX = 0, downY = 0;
+canvasEl.addEventListener('mousedown', e => { downX = e.clientX; downY = e.clientY; });
+canvasEl.addEventListener('mouseup', e => {
+  // Only treat this as a click if the mouse barely moved — otherwise
+  // it was a drag-to-rotate gesture, not a country selection.
+  if (Math.abs(e.clientX - downX) > 4 || Math.abs(e.clientY - downY) > 4) return;
+  const hit = raycastAt(e.clientX, e.clientY);
+  if (!hit) return;
+  const idx = uvToCountryIndex(hit.uv);
+  if (idx < 0 || idx >= countryFeatures.length) return;
+  const feature = countryFeatures[idx];
+  const nm = nameById.get(String(feature.id));
+  if (!nm) return;
+  const code = PHONE_CODES[nm];
+  toggleCountry(feature.id, nm, code);
+  showCallout(nm, code);
+});
+
+function animate(){
+  requestAnimationFrame(animate);
+  if (autoRotate && !isDragging) globeGroup.rotation.y += 0.0009;
+  renderer.render(scene, camera);
+}
 
 const selected = new Map(); // id -> {name, code}
 
@@ -610,7 +821,9 @@ function showCallout(name, code){
 function toggleCountry(id, name, code, forceRemove){
   const key = String(id);
   const isSelected = selected.has(key);
-  countryLayer.select(`path[data-id="${key}"]`).classed('selected', !isSelected && !forceRemove);
+  const newlySelected = !isSelected && !forceRemove;
+  countryStateById.set(key, newlySelected ? 'selected' : (code ? 'default' : 'nocode'));
+  redrawCountry(key);
 
   if(isSelected || forceRemove){
     selected.delete(key);
@@ -654,42 +867,28 @@ panelToggle.addEventListener('click', () => {
 });
 scrim.addEventListener('click', closePanel);
 
-// mouse coordinate HUD
-svg.on('mousemove', (event) => {
-  const [mx, my] = d3.pointer(event, svg.node());
-  const t = d3.zoomTransform(svg.node());
-  const inv = projection.invert(t.invert([mx, my]));
-  if(inv){
-    const [lon, lat] = inv;
-    document.getElementById('hud').textContent = `LAT ${lat.toFixed(2)} · LON ${lon.toFixed(2)}`;
-  }
-});
-
 d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
   const worldFeatureCollection = topojson.feature(world, world.objects.countries);
+  countryFeatures = worldFeatureCollection.features;
   document.getElementById('loadingOverlay').style.display = 'none';
 
-  countryLayer.selectAll('path')
-    .data(worldFeatureCollection.features)
-    .join('path')
-    .attr('class', d => {
-      const nm = nameById.get(String(d.id));
-      if (!nm) return 'country nocode';
-      return PHONE_CODES[nm] ? 'country' : 'country nocode';
-    })
-    .attr('data-id', d => d.id)
-    .attr('d', path)
-    .on('click', (event, d) => {
-      const nm = nameById.get(String(d.id));
-      if (!nm) return;
-      const code = PHONE_CODES[nm];
-      toggleCountry(d.id, nm, code);
-      showCallout(nm, code);
-    });
+  paintOcean(visibleCtx);
+  countryFeatures.forEach((feature, i) => {
+    const nm = nameById.get(String(feature.id));
+    const state = !nm ? 'nocode' : (PHONE_CODES[nm] ? 'default' : 'nocode');
+    countryStateById.set(String(feature.id), state);
+    paintCountry(visibleCtx, feature, fillColorFor(state), false);
+    paintCountry(idCtx, feature, idColorFor(i), true);
+  });
+  globeTexture.needsUpdate = true;
 
-  const unmatched = worldFeatureCollection.features.filter(d => !nameById.get(String(d.id)));
+  const unmatched = countryFeatures.filter(d => !nameById.get(String(d.id)));
   if (unmatched.length) console.warn('[Phone Code Map] Unmatched shape IDs:', unmatched.map(d=>d.id));
+
+  resizeRenderer();
+  animate();
 });
+
 
 // search filter
 document.getElementById('searchInput').addEventListener('input', (e) => {
