@@ -797,6 +797,12 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
       <div class="hero-badge">🌍 114 Countries Supported · ⚡ Real-Time AI Analysis · 🎯 Train Smarter</div>
       <h1>Train Like a<br><span class="grad">GeoGuessr Pro</span></h1>
       <p>The world's first AI-powered GeoGuessr training assistant. Analyse scenes, learn from every mistake, and build a personal visual knowledge base automatically.</p>
+
+      <div id="globeBlock" style="width:100%;max-width:320px;aspect-ratio:1/1;position:relative;margin:8px auto 20px;">
+        <div style="position:absolute;inset:-15%;border-radius:50%;background:radial-gradient(circle,rgba(0,201,167,0.35) 0%,rgba(124,58,237,0.18) 45%,transparent 72%);filter:blur(18px);pointer-events:none;"></div>
+        <canvas id="heroGlobeCanvas" style="width:100%;height:100%;display:block;position:relative;"></canvas>
+      </div>
+
       <div class="hero-btns">
         <button class="btn btn-primary" onclick="getStarted()">Start Training Free</button>
         <button class="btn btn-outline" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">See How It Works</button>
@@ -813,25 +819,6 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     </div>
   </div>
 
-
-  <!-- Globe branding block — standalone section, separate from the hero above -->
-  <div class="globe-block" id="globeBlock" style="display:flex;flex-direction:column;align-items:center;padding:70px 20px 60px;">
-    <div style="width:100%;max-width:520px;aspect-ratio:1/1;position:relative;margin-bottom:24px;">
-      <canvas id="heroGlobeCanvas" style="width:100%;height:100%;display:block;"></canvas>
-    </div>
-    <div style="text-align:center;">
-      <div style="font-size:34px;font-weight:800;letter-spacing:-0.5px;margin-bottom:10px;background:linear-gradient(135deg,#00c9a7,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">GeoAnalyzerX</div>
-      <div style="color:var(--muted);font-size:15px;margin-bottom:26px;">AI-powered GeoGuessr training, built for people who want to actually get better.</div>
-      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-        <a href="https://discord.gg/NwyNrp9ZtG" target="_blank" class="btn" style="background:rgba(88,101,242,0.15);border:1px solid rgba(88,101,242,0.4);color:#8e9bff;padding:13px 28px;font-size:14px;font-weight:700;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
-          💬 Join Discord
-        </a>
-        <a href="#download" onclick="document.getElementById('download')?.scrollIntoView({behavior:'smooth'});return false;" class="btn" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.4);color:#00c9a7;padding:13px 28px;font-size:14px;font-weight:700;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
-          ⬇️ Download Script
-        </a>
-      </div>
-    </div>
-  </div>
 
   <!-- Stats -->
   <div class="stats">
@@ -2254,13 +2241,10 @@ function loadThreeJs(){
   return _gaxThreePromise;
 }
 
-// ── Globe branding block: a real Earth that cracks open into two
-// halves as the user scrolls through the block, revealing a glowing
-// core, with chunky particle fragments bursting outward from the seam
-// — not a subtle dust-scatter, a genuine "opening up" effect. Purely
-// decorative, no click/hover interactivity. Uses the same texture
-// resolution as the interactive map tools (2048x1024) for genuine
-// sharpness rather than a smaller/blurrier version.
+// ── Globe branding block: a clean, continuously-rotating Earth near
+// the top of the hero. No crack-open/particle-burst gimmick — just a
+// smooth, premium-looking sphere with proper lighting and a soft
+// atmosphere glow. Purely decorative, no click/hover interactivity.
 function initHeroGlobe(){
   const canvas = document.getElementById('heroGlobeCanvas');
   if (!canvas || !window.THREE || !window.d3 || !window.topojson) return;
@@ -2273,16 +2257,25 @@ function initHeroGlobe(){
   const heroPathGen = d3.geoPath(heroProj, heroTexCtx);
 
   function paintHeroTexture(features){
-    heroTexCtx.clearRect(0, 0, TEX_W, TEX_H);
-    heroTexCtx.fillStyle = 'rgba(10,12,24,0.55)';
+    // Fully opaque fills — the previous 55%-opacity ocean fill on a
+    // transparent canvas was very likely why the globe read as washed
+    // out/low-quality rather than solid. A subtle gradient (rather than
+    // flat fill) also fakes a bit of depth/shading on what's otherwise
+    // an unshaded texture.
+    const oceanGrad = heroTexCtx.createLinearGradient(0, 0, 0, TEX_H);
+    oceanGrad.addColorStop(0, '#0d1a2e');
+    oceanGrad.addColorStop(0.5, '#0a1420');
+    oceanGrad.addColorStop(1, '#0d1a2e');
+    heroTexCtx.fillStyle = oceanGrad;
     heroTexCtx.fillRect(0, 0, TEX_W, TEX_H);
+
     features.forEach(f => {
       heroTexCtx.beginPath();
       heroPathGen(f);
-      heroTexCtx.fillStyle = 'rgba(0,201,167,0.85)';
+      heroTexCtx.fillStyle = '#00c9a7';
       heroTexCtx.fill();
-      heroTexCtx.lineWidth = 0.6;
-      heroTexCtx.strokeStyle = 'rgba(0,60,50,0.6)';
+      heroTexCtx.lineWidth = 0.7;
+      heroTexCtx.strokeStyle = '#062a24';
       heroTexCtx.stroke();
     });
   }
@@ -2303,164 +2296,60 @@ function initHeroGlobe(){
   }
   window.addEventListener('resize', resizeHeroGlobe);
 
-  heroScene.add(new THREE.AmbientLight(0x8888aa, 1.1));
-  const heroSun = new THREE.DirectionalLight(0xffffff, 1.0);
-  heroSun.position.set(4, 2, 3);
-  heroScene.add(heroSun);
+  // Three-point-style lighting for a more premium, less flat look than
+  // a single ambient+directional pair: a soft ambient fill, a warm key
+  // light, and a dim brand-colored rim light from behind.
+  heroScene.add(new THREE.AmbientLight(0x8090a0, 0.7));
+  const heroKey = new THREE.DirectionalLight(0xffffff, 1.15);
+  heroKey.position.set(3, 2, 4);
+  heroScene.add(heroKey);
+  const heroRim = new THREE.DirectionalLight(0x7c3aed, 0.6);
+  heroRim.position.set(-3, -1, -3);
+  heroScene.add(heroRim);
 
   const heroGroup = new THREE.Group();
   heroScene.add(heroGroup);
 
   const heroTexture = new THREE.CanvasTexture(heroTexCanvas);
-  heroTexture.minFilter = THREE.LinearFilter;
+  heroTexture.minFilter = THREE.LinearMipmapLinearFilter;
+  heroTexture.magFilter = THREE.LinearFilter;
+  heroTexture.anisotropy = 4;
 
-  // Two hemispheres (phiLength = PI each) instead of one whole sphere —
-  // together they form a seamless globe when closed, and pull apart
-  // along X to "crack open" as the user scrolls, revealing the core
-  // sphere sitting inside.
-  const leftHalfGeo = new THREE.SphereGeometry(1, 64, 64, Math.PI / 2, Math.PI);
-  const rightHalfGeo = new THREE.SphereGeometry(1, 64, 64, -Math.PI / 2, Math.PI);
-  const halfMat = new THREE.MeshPhongMaterial({ map: heroTexture, shininess: 8, side: THREE.DoubleSide });
-  const leftHalf = new THREE.Mesh(leftHalfGeo, halfMat);
-  const rightHalf = new THREE.Mesh(rightHalfGeo, halfMat);
-  heroGroup.add(leftHalf, rightHalf);
-
-  // Glowing core, hidden inside the closed globe (the two halves
-  // together fully occlude it), revealed naturally as the gap widens.
-  const coreMat = new THREE.MeshBasicMaterial({ color: 0x00ffd5 });
-  const core = new THREE.Mesh(new THREE.SphereGeometry(0.55, 32, 32), coreMat);
-  heroGroup.add(core);
-  const coreGlow = new THREE.Mesh(
-    new THREE.SphereGeometry(0.8, 32, 32),
-    new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.35, side: THREE.BackSide })
-  );
-  heroGroup.add(coreGlow);
-  const coreLight = new THREE.PointLight(0x00ffd5, 2, 4);
-  heroGroup.add(coreLight);
-
-  // Small square sprite texture for the particles, instead of default
-  // round dots — reads as "chunks/fragments" rather than dust, closer
-  // to the reference look.
-  const spriteCanvas = document.createElement('canvas');
-  spriteCanvas.width = 16; spriteCanvas.height = 16;
-  const spriteCtx = spriteCanvas.getContext('2d');
-  spriteCtx.fillStyle = '#fff';
-  spriteCtx.fillRect(2, 2, 12, 12);
-  const chunkSprite = new THREE.CanvasTexture(spriteCanvas);
-
-  // Particles originate from along the seam where the two halves
-  // meet, then burst outward chaotically as the globe cracks open —
-  // reads as fragments erupting from the crack, not a uniform
-  // whole-sphere dust scatter.
-  const PARTICLE_COUNT = 900;
-  const restPositions = new Float32Array(PARTICLE_COUNT * 3);
-  const burstPositions = new Float32Array(PARTICLE_COUNT * 3);
-  const particleUVs = new Float32Array(PARTICLE_COUNT * 2);
-  const positions = new Float32Array(PARTICLE_COUNT * 3);
-  const colors = new Float32Array(PARTICLE_COUNT * 3);
-
-  for (let i = 0; i < PARTICLE_COUNT; i++){
-    // Points along the seam (the great circle at phi = +-90deg, i.e.
-    // x=0 plane), with a little randomness off the exact line so the
-    // burst looks organic rather than a perfectly thin ring.
-    const t = Math.random() * Math.PI * 2;
-    const wobble = (Math.random() - 0.5) * 0.06;
-    const x = wobble;
-    const y = Math.sin(t);
-    const z = Math.cos(t);
-    const len = Math.sqrt(x*x + y*y + z*z) || 1;
-
-    restPositions[i*3] = x / len; restPositions[i*3+1] = y / len; restPositions[i*3+2] = z / len;
-    positions[i*3] = restPositions[i*3]; positions[i*3+1] = restPositions[i*3+1]; positions[i*3+2] = restPositions[i*3+2];
-
-    const lat = Math.asin(Math.max(-1, Math.min(1, restPositions[i*3+1])));
-    const lon = Math.atan2(restPositions[i*3], -restPositions[i*3+2]);
-    particleUVs[i*2] = (lon / (2 * Math.PI)) + 0.5;
-    particleUVs[i*2+1] = 0.5 - (lat / Math.PI);
-
-    // Burst target: fly outward from the seam in a wide, chaotic
-    // spread — mostly along X (away from the crack) with some
-    // randomness in all directions for a genuine "explosion" feel.
-    const burstDist = 1.4 + Math.random() * 2.8;
-    const dirX = (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.6);
-    burstPositions[i*3]   = restPositions[i*3] + dirX * burstDist;
-    burstPositions[i*3+1] = restPositions[i*3+1] * burstDist + (Math.random() - 0.5) * 1.5;
-    burstPositions[i*3+2] = restPositions[i*3+2] * burstDist + (Math.random() - 0.5) * 1.5;
-
-    colors[i*3] = 0.5; colors[i*3+1] = 0.5; colors[i*3+2] = 0.5; // placeholder until texture data samples in
-  }
-
-  const particleGeo = new THREE.BufferGeometry();
-  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  const particleMat = new THREE.PointsMaterial({
-    size: 0.05, vertexColors: true, transparent: true, opacity: 0,
-    map: chunkSprite, alphaTest: 0.3, sizeAttenuation: true
+  const globeGeo = new THREE.SphereGeometry(1, 96, 96);
+  const globeMat = new THREE.MeshStandardMaterial({
+    map: heroTexture,
+    roughness: 0.65,
+    metalness: 0.1
   });
-  const heroParticles = new THREE.Points(particleGeo, particleMat);
-  heroGroup.add(heroParticles);
+  const globe = new THREE.Mesh(globeGeo, globeMat);
+  heroGroup.add(globe);
 
-  function resampleParticleColors(){
-    const imgData = heroTexCtx.getImageData(0, 0, TEX_W, TEX_H).data;
-    const colorAttr = particleGeo.attributes.color;
-    for (let i = 0; i < PARTICLE_COUNT; i++){
-      const px = Math.max(0, Math.min(TEX_W - 1, Math.floor(particleUVs[i*2] * TEX_W)));
-      const py = Math.max(0, Math.min(TEX_H - 1, Math.floor(particleUVs[i*2+1] * TEX_H)));
-      const idx = (py * TEX_W + px) * 4;
-      colorAttr.array[i*3]   = imgData[idx]   / 255;
-      colorAttr.array[i*3+1] = imgData[idx+1] / 255;
-      colorAttr.array[i*3+2] = imgData[idx+2] / 255;
-    }
-    colorAttr.needsUpdate = true;
-  }
+  // Soft atmosphere glow — a slightly larger back-facing sphere with an
+  // additive-blended teal/purple tint, the classic cheap-but-effective
+  // way to fake atmospheric scattering without a custom shader.
+  const atmosphereMat = new THREE.MeshBasicMaterial({
+    color: 0x00c9a7,
+    transparent: true,
+    opacity: 0.18,
+    side: THREE.BackSide,
+    blending: THREE.AdditiveBlending
+  });
+  const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(1.12, 64, 64), atmosphereMat);
+  heroGroup.add(atmosphere);
 
-  // 0 while the block is below the viewport / just entering it, 1 once
-  // scrolled through roughly its own height — drives how far the two
-  // halves have pulled apart, the core's visibility, and the particle
-  // burst/opacity.
-  let heroScrollProgress = 0;
-  function updateHeroScrollProgress(){
-    const blockEl = document.getElementById('globeBlock');
-    if (!blockEl) return;
-    const rect = blockEl.getBoundingClientRect();
-    const vh = window.innerHeight || 800;
-    // Progress climbs as the block moves from just below the viewport
-    // to scrolled past — centered on the block passing through view.
-    const raw = (vh - rect.top) / (vh + rect.height);
-    heroScrollProgress = Math.max(0, Math.min(1, raw));
-  }
-  window.addEventListener('scroll', updateHeroScrollProgress, { passive: true });
+  // Gentle continuous rotation, plus a very subtle mouse-driven tilt for
+  // a touch of premium interactivity — no scroll-tied animation at all.
+  let targetTiltX = 0, targetTiltY = 0;
+  window.addEventListener('mousemove', (e) => {
+    targetTiltY = ((e.clientX / window.innerWidth) - 0.5) * 0.25;
+    targetTiltX = ((e.clientY / window.innerHeight) - 0.5) * 0.15;
+  });
 
-  const GAP_MAX = 0.9;
   function animateHeroGlobe(){
     requestAnimationFrame(animateHeroGlobe);
-    heroGroup.rotation.y += 0.0015 + heroScrollProgress * 0.003;
-
-    const gap = heroScrollProgress * GAP_MAX;
-    leftHalf.position.x = -gap;
-    rightHalf.position.x = gap;
-
-    const coreVisible = heroScrollProgress > 0.08;
-    core.visible = coreVisible;
-    coreGlow.visible = coreVisible;
-    coreLight.visible = coreVisible;
-    const coreScale = 0.3 + heroScrollProgress * 0.9;
-    core.scale.setScalar(coreScale);
-    coreGlow.scale.setScalar(coreScale);
-
-    particleMat.opacity = Math.min(1, heroScrollProgress * 1.6);
-    heroParticles.visible = heroScrollProgress > 0.02;
-    if (heroParticles.visible){
-      const posAttr = particleGeo.attributes.position;
-      for (let i = 0; i < PARTICLE_COUNT; i++){
-        const ix = i*3, iy = i*3+1, iz = i*3+2;
-        posAttr.array[ix] = restPositions[ix] + (burstPositions[ix] - restPositions[ix]) * heroScrollProgress;
-        posAttr.array[iy] = restPositions[iy] + (burstPositions[iy] - restPositions[iy]) * heroScrollProgress;
-        posAttr.array[iz] = restPositions[iz] + (burstPositions[iz] - restPositions[iz]) * heroScrollProgress;
-      }
-      posAttr.needsUpdate = true;
-    }
-
+    heroGroup.rotation.y += 0.0025;
+    heroGroup.rotation.x += (targetTiltX - heroGroup.rotation.x) * 0.03;
+    heroGroup.rotation.y += (targetTiltY * 0.03);
     heroRenderer.render(heroScene, heroCamera);
   }
 
@@ -2468,9 +2357,7 @@ function initHeroGlobe(){
     const features = topojson.feature(world, world.objects.countries).features;
     paintHeroTexture(features);
     heroTexture.needsUpdate = true;
-    resampleParticleColors();
     resizeHeroGlobe();
-    updateHeroScrollProgress();
     animateHeroGlobe();
   }).catch(() => { /* hero globe just doesn't render if this fails — page still works fine */ });
 }
