@@ -90,7 +90,7 @@
   }
   .app{
     display:grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr;
     height:100vh;
   }
 
@@ -529,7 +529,9 @@
 
   <header>
     <div class="brand">
-      <span class="mark">GAX</span>
+      <a href="/" class="mark" title="Back to GeoAnalyzerX" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+      </a>
       <h1>Region Map</h1>
       <span class="sub">GeoGuessr world coverage reference</span>
     </div>
@@ -601,10 +603,7 @@
     </aside>
   </main>
 
-  <footer>
-    <span>GeoAnalyzerX · Region Map — country list is community-tracked, not an official source. Subdivision boundaries: <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (CC BY 4.0)</span>
-    <a href="/">← Back to GeoAnalyzerX</a>
-  </footer>
+  <!-- Footer removed per user request — home button in header replaces the "Back to GeoAnalyzerX" link -->
 
 </div>
 
@@ -803,7 +802,7 @@ function globePaintOcean(ctx){
 const globeCanvasEl = document.getElementById('globeCanvas');
 const globeScene = new THREE.Scene();
 const globeCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-let globeCamDist = 2.6;
+let globeCamDist = 4.2;
 globeCamera.position.set(0, 0, globeCamDist);
 
 const globeRenderer = new THREE.WebGLRenderer({ canvas: globeCanvasEl, antialias: true, alpha: true });

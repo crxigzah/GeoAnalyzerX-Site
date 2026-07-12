@@ -2331,19 +2331,9 @@ function initHeroGlobe(){
   // CSS radial-gradient blur behind the canvas (in the HTML) gives the
   // same soft-glow impression with no geometry edge to create a ring.
 
-  // Gentle continuous rotation, plus a very subtle mouse-driven tilt for
-  // a touch of premium interactivity — no scroll-tied animation at all.
-  let targetTiltX = 0, targetTiltY = 0;
-  window.addEventListener('mousemove', (e) => {
-    targetTiltY = ((e.clientX / window.innerWidth) - 0.5) * 0.25;
-    targetTiltX = ((e.clientY / window.innerHeight) - 0.5) * 0.15;
-  });
-
   function animateHeroGlobe(){
     requestAnimationFrame(animateHeroGlobe);
     heroGroup.rotation.y += 0.0025;
-    heroGroup.rotation.x += (targetTiltX - heroGroup.rotation.x) * 0.03;
-    heroGroup.rotation.y += (targetTiltY * 0.03);
     heroRenderer.render(heroScene, heroCamera);
   }
 
@@ -2464,9 +2454,7 @@ function copyToken() {
 function getStarted() {
   const token = getToken();
   if (token) {
-    // Already logged in scroll to dashboard section
-    document.getElementById('dashboard')?.scrollIntoView({ behavior: 'smooth' });
-    showPage('dashboard');
+    goToDashboard();
   } else {
     showModal('register');
   }
