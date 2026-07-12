@@ -793,6 +793,7 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     <div class="orb orb2"></div>
     <div class="orb orb3"></div>
     <div class="orb orb4"></div>
+    <canvas id="heroGlobeCanvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
     <div class="hero">
       <div class="hero-badge">🌍 114 Countries Supported · ⚡ Real-Time AI Analysis · 🎯 Train Smarter</div>
       <h1>Train Like a<br><span class="grad">GeoGuessr Pro</span></h1>
@@ -800,6 +801,14 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
       <div class="hero-btns">
         <button class="btn btn-primary" onclick="getStarted()">Start Training Free</button>
         <button class="btn btn-outline" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">See How It Works</button>
+      </div>
+      <div class="hero-btns" style="margin-top:12px;">
+        <a href="https://discord.gg/NwyNrp9ZtG" target="_blank" class="btn" style="background:rgba(88,101,242,0.12);border:1px solid rgba(88,101,242,0.35);color:#8e9bff;padding:12px 26px;font-size:14px;font-weight:700;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+          💬 Join Discord
+        </a>
+        <a href="#download" onclick="document.getElementById('download')?.scrollIntoView({behavior:'smooth'});return false;" class="btn" style="background:rgba(0,201,167,0.12);border:1px solid rgba(0,201,167,0.35);color:#00c9a7;padding:12px 26px;font-size:14px;font-weight:700;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+          ⬇️ Download Script
+        </a>
       </div>
       <div style="margin-top:16px;">
         <a href="/metas" class="btn" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:10px 24px;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s;" onmouseover="this.style.background='rgba(0,201,167,0.2)'" onmouseout="this.style.background='rgba(0,201,167,0.1)'">
@@ -2214,6 +2223,194 @@ function loadWorldMapLibs(){
   return _gaxWorldLibsPromise;
 }
 
+// Three.js is loaded separately from the D3/topojson pair above — the
+// hero globe needs both (D3 to build the world map texture, Three.js
+// to render it as a 3D sphere), but the Stats page's flat World
+// Progress Map only needs D3/topojson, so keeping them as two
+// independently-cacheable promises avoids Three's ~600KB weight for
+// visitors who only ever see the flat map.
+let _gaxThreePromise = null;
+function loadThreeJs(){
+  if (_gaxThreePromise) return _gaxThreePromise;
+  _gaxThreePromise = new Promise((resolve, reject) => {
+    if (window.THREE) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/three@0.128.0/build/three.min.js';
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return _gaxThreePromise;
+}
+
+// ── Hero globe: solid sphere that dissolves into a particle cloud as
+// the user scrolls past the hero section. Purely decorative — no
+// click/hover interactivity, just a slow auto-rotate and the scroll-
+// linked dissolve. Uses a smaller texture than the interactive map
+// tools (1024x512 vs 2048x1024) since there's no click-precision
+// requirement here, keeping this lighter for a page every visitor loads.
+function initHeroGlobe(){
+  const canvas = document.getElementById('heroGlobeCanvas');
+  if (!canvas || !window.THREE || !window.d3 || !window.topojson) return;
+
+  const TEX_W = 1024, TEX_H = 512;
+  const heroProj = d3.geoEquirectangular().scale(TEX_W / (2 * Math.PI)).translate([TEX_W / 2, TEX_H / 2]);
+  const heroTexCanvas = document.createElement('canvas');
+  heroTexCanvas.width = TEX_W; heroTexCanvas.height = TEX_H;
+  const heroTexCtx = heroTexCanvas.getContext('2d');
+  const heroPathGen = d3.geoPath(heroProj, heroTexCtx);
+
+  function paintHeroTexture(features){
+    heroTexCtx.clearRect(0, 0, TEX_W, TEX_H);
+    heroTexCtx.fillStyle = 'rgba(10,12,24,0.55)';
+    heroTexCtx.fillRect(0, 0, TEX_W, TEX_H);
+    features.forEach(f => {
+      heroTexCtx.beginPath();
+      heroPathGen(f);
+      heroTexCtx.fillStyle = 'rgba(0,201,167,0.85)';
+      heroTexCtx.fill();
+      heroTexCtx.lineWidth = 0.4;
+      heroTexCtx.strokeStyle = 'rgba(0,60,50,0.6)';
+      heroTexCtx.stroke();
+    });
+  }
+
+  const heroScene = new THREE.Scene();
+  const heroCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  heroCamera.position.set(0, 0, 2.5);
+  const heroRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  heroRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+  function resizeHeroGlobe(){
+    const wrap = canvas.parentElement;
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    if (!w || !h) return;
+    heroRenderer.setSize(w, h, false);
+    heroCamera.aspect = w / h;
+    heroCamera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resizeHeroGlobe);
+
+  heroScene.add(new THREE.AmbientLight(0x8888aa, 1.2));
+  const heroSun = new THREE.DirectionalLight(0xffffff, 1.0);
+  heroSun.position.set(4, 2, 3);
+  heroScene.add(heroSun);
+
+  const heroGroup = new THREE.Group();
+  heroScene.add(heroGroup);
+
+  const heroTexture = new THREE.CanvasTexture(heroTexCanvas);
+  heroTexture.minFilter = THREE.LinearFilter;
+  const heroSphereMat = new THREE.MeshPhongMaterial({ map: heroTexture, transparent: true, opacity: 1, shininess: 8 });
+  const heroSphereMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), heroSphereMat);
+  heroGroup.add(heroSphereMesh);
+
+  // Particle cloud representation of the same sphere, using a
+  // Fibonacci sphere distribution for even coverage. Each particle
+  // stores its own UV so its color can be sampled from the texture
+  // once real map data has loaded, plus a randomized "scatter" target
+  // position used to animate it flying apart on scroll.
+  const PARTICLE_COUNT = 3500;
+  const restPositions = new Float32Array(PARTICLE_COUNT * 3);
+  const scatterPositions = new Float32Array(PARTICLE_COUNT * 3);
+  const particleUVs = new Float32Array(PARTICLE_COUNT * 2);
+  const positions = new Float32Array(PARTICLE_COUNT * 3);
+  const colors = new Float32Array(PARTICLE_COUNT * 3);
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+
+  for (let i = 0; i < PARTICLE_COUNT; i++){
+    const y = 1 - (i / (PARTICLE_COUNT - 1)) * 2;
+    const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
+    const theta = goldenAngle * i;
+    const x = Math.cos(theta) * radiusAtY;
+    const z = Math.sin(theta) * radiusAtY;
+
+    restPositions[i*3] = x; restPositions[i*3+1] = y; restPositions[i*3+2] = z;
+    positions[i*3] = x; positions[i*3+1] = y; positions[i*3+2] = z;
+
+    const lat = Math.asin(Math.max(-1, Math.min(1, y)));
+    const lon = Math.atan2(x, -z);
+    particleUVs[i*2] = (lon / (2 * Math.PI)) + 0.5;
+    particleUVs[i*2+1] = 0.5 - (lat / Math.PI);
+
+    const scatterDist = 1.3 + Math.random() * 2.4;
+    scatterPositions[i*3] = x * scatterDist + (Math.random() - 0.5) * 0.7;
+    scatterPositions[i*3+1] = y * scatterDist + (Math.random() - 0.5) * 0.7;
+    scatterPositions[i*3+2] = z * scatterDist + (Math.random() - 0.5) * 0.7;
+
+    colors[i*3] = 0.5; colors[i*3+1] = 0.5; colors[i*3+2] = 0.5; // placeholder until real texture data samples in
+  }
+
+  const particleGeo = new THREE.BufferGeometry();
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const particleMat = new THREE.PointsMaterial({ size: 0.017, vertexColors: true, transparent: true, opacity: 0 });
+  const heroParticles = new THREE.Points(particleGeo, particleMat);
+  heroGroup.add(heroParticles);
+
+  function resampleParticleColors(){
+    const imgData = heroTexCtx.getImageData(0, 0, TEX_W, TEX_H).data;
+    const colorAttr = particleGeo.attributes.color;
+    for (let i = 0; i < PARTICLE_COUNT; i++){
+      const px = Math.max(0, Math.min(TEX_W - 1, Math.floor(particleUVs[i*2] * TEX_W)));
+      const py = Math.max(0, Math.min(TEX_H - 1, Math.floor(particleUVs[i*2+1] * TEX_H)));
+      const idx = (py * TEX_W + px) * 4;
+      colorAttr.array[i*3]   = imgData[idx]   / 255;
+      colorAttr.array[i*3+1] = imgData[idx+1] / 255;
+      colorAttr.array[i*3+2] = imgData[idx+2] / 255;
+    }
+    colorAttr.needsUpdate = true;
+  }
+
+  // 0 at the top of the page, 1 once scrolled roughly one hero-height
+  // down — drives the crossfade between solid sphere and particle
+  // cloud, the particles' scatter distance, and a slight rotation
+  // speed-up for extra motion as it "opens up".
+  let heroScrollProgress = 0;
+  function updateHeroScrollProgress(){
+    const heroEl = document.querySelector('.hero');
+    if (!heroEl) return;
+    const rect = heroEl.getBoundingClientRect();
+    const heroHeight = heroEl.offsetHeight || 600;
+    const scrolled = Math.max(0, -rect.top);
+    heroScrollProgress = Math.max(0, Math.min(1, scrolled / (heroHeight * 0.9)));
+  }
+  window.addEventListener('scroll', updateHeroScrollProgress, { passive: true });
+
+  function animateHeroGlobe(){
+    requestAnimationFrame(animateHeroGlobe);
+    heroGroup.rotation.y += 0.0015 + heroScrollProgress * 0.004;
+
+    heroSphereMat.opacity = 1 - heroScrollProgress;
+    heroSphereMesh.visible = heroSphereMat.opacity > 0.01;
+    particleMat.opacity = heroScrollProgress;
+    heroParticles.visible = heroScrollProgress > 0.01;
+
+    if (heroScrollProgress > 0.01){
+      const posAttr = particleGeo.attributes.position;
+      for (let i = 0; i < PARTICLE_COUNT; i++){
+        const ix = i*3, iy = i*3+1, iz = i*3+2;
+        posAttr.array[ix] = restPositions[ix] + (scatterPositions[ix] - restPositions[ix]) * heroScrollProgress;
+        posAttr.array[iy] = restPositions[iy] + (scatterPositions[iy] - restPositions[iy]) * heroScrollProgress;
+        posAttr.array[iz] = restPositions[iz] + (scatterPositions[iz] - restPositions[iz]) * heroScrollProgress;
+      }
+      posAttr.needsUpdate = true;
+    }
+
+    heroRenderer.render(heroScene, heroCamera);
+  }
+
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
+    const features = topojson.feature(world, world.objects.countries).features;
+    paintHeroTexture(features);
+    heroTexture.needsUpdate = true;
+    resampleParticleColors();
+    resizeHeroGlobe();
+    updateHeroScrollProgress();
+    animateHeroGlobe();
+  }).catch(() => { /* hero globe just doesn't render if this fails — page still works fine */ });
+}
+
 let _gaxWorldFeatures = null; // cached parsed features, fetched once per session
 async function loadWorldMap(token){
   const container = document.getElementById('stats-world-map');
@@ -3124,6 +3321,10 @@ window.addEventListener('load', () => {
       if (e.target === modal) closeModal();
     });
   }
+  // Hero globe — loads its own libraries independently of everything
+  // else on the page, so a slow/failed load here never blocks or
+  // breaks the rest of the site.
+  Promise.all([loadWorldMapLibs(), loadThreeJs()]).then(initHeroGlobe).catch(() => {});
 });
 </script>
 </body>
