@@ -799,7 +799,7 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
       <p>The world's first AI-powered GeoGuessr training assistant. Analyse scenes, learn from every mistake, and build a personal visual knowledge base automatically.</p>
 
       <div id="globeBlock" style="width:100%;max-width:320px;aspect-ratio:1/1;position:relative;margin:8px auto 20px;">
-        <div style="position:absolute;inset:-15%;border-radius:50%;background:radial-gradient(circle,rgba(0,201,167,0.35) 0%,rgba(124,58,237,0.18) 45%,transparent 72%);filter:blur(18px);pointer-events:none;"></div>
+        <div style="position:absolute;inset:-20%;border-radius:50%;background:radial-gradient(circle,rgba(0,201,167,0.4) 0%,rgba(124,58,237,0.2) 45%,transparent 70%);filter:blur(24px);pointer-events:none;"></div>
         <canvas id="heroGlobeCanvas" style="width:100%;height:100%;display:block;position:relative;"></canvas>
       </div>
 
@@ -2324,18 +2324,12 @@ function initHeroGlobe(){
   const globe = new THREE.Mesh(globeGeo, globeMat);
   heroGroup.add(globe);
 
-  // Soft atmosphere glow — a slightly larger back-facing sphere with an
-  // additive-blended teal/purple tint, the classic cheap-but-effective
-  // way to fake atmospheric scattering without a custom shader.
-  const atmosphereMat = new THREE.MeshBasicMaterial({
-    color: 0x00c9a7,
-    transparent: true,
-    opacity: 0.18,
-    side: THREE.BackSide,
-    blending: THREE.AdditiveBlending
-  });
-  const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(1.12, 64, 64), atmosphereMat);
-  heroGroup.add(atmosphere);
+  // Note: an earlier version added a second, larger back-facing sphere
+  // here for a WebGL "atmosphere" glow. Dropped it — a flat-opacity
+  // sphere has a hard silhouette edge with no soft falloff, which read
+  // as a visible ring/outline around the globe rather than a glow. The
+  // CSS radial-gradient blur behind the canvas (in the HTML) gives the
+  // same soft-glow impression with no geometry edge to create a ring.
 
   // Gentle continuous rotation, plus a very subtle mouse-driven tilt for
   // a touch of premium interactivity — no scroll-tied animation at all.
