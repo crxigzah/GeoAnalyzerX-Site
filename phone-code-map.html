@@ -232,6 +232,38 @@
   .click-callout .cc-code{ font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--covered-hover); }
   .click-callout.nocode .cc-code{ color:var(--danger); font-size:12px; font-weight:600; }
 
+  .region-map-panel{
+    position:absolute; left:16px; top:74px;
+    z-index:6;
+    width:320px; max-width:calc(100% - 32px);
+    background: var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
+    display:none;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .region-map-panel.show{ display:flex; }
+  .rmp-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px;
+    font-family:var(--font-display); font-weight:700; font-size:13px;
+    color:var(--text);
+    border-bottom:1px solid var(--line);
+  }
+  .rmp-header button{
+    background:none; border:none; color:var(--muted); cursor:pointer;
+    font-size:15px; line-height:1; padding:2px 6px;
+  }
+  .rmp-header button:hover{ color:var(--text); }
+  .rmp-body{ padding:12px; }
+  .rmp-body img{ width:100%; border-radius:6px; display:block; }
+  .rmp-empty{
+    text-align:center; padding:24px 12px;
+    color:var(--muted); font-size:12.5px; line-height:1.5;
+  }
+
   .loading-overlay{
     position:absolute; inset:0;
     display:flex; align-items:center; justify-content:center;
@@ -416,6 +448,13 @@
         <span class="cc-name" id="ccName"></span>
         <span class="cc-code" id="ccCode"></span>
       </div>
+      <div class="region-map-panel" id="regionMapPanel">
+        <div class="rmp-header">
+          <span id="rmpTitle"></span>
+          <button id="rmpClose" onclick="closeRegionMapPanel()">✕</button>
+        </div>
+        <div class="rmp-body" id="rmpBody"></div>
+      </div>
       <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-text">Loading world map…</div>
       </div>
@@ -502,6 +541,56 @@ const COUNTRY_ID_NAME = {
   "850":"United States Virgin Islands","16":"American Samoa","531":"Curacao",
   "999":"N. Cyprus"
 };
+
+// The exact set of countries GeoGuessr's official coverage includes —
+// everything else is treated as background/non-interactive on this
+// map, since it's meant as a GeoGuessr-specific reference tool, not a
+// general world phone-code atlas.
+//
+// NOTE: spellings here are matched to whatever COUNTRY_ID_NAME (the
+// topojson ID→name lookup) and PHONE_CODES actually use, which don't
+// always agree with the exact wording GeoGuessr itself uses — e.g.
+// "Czechia" not "Czech Republic", "Turkey" not "Türkiye", "United
+// States of America" not "United States". Also: Monaco, Hong Kong,
+// and North Macedonia are not present in the underlying map dataset
+// (world-atlas's 110m-resolution topojson only includes certain
+// countries at that zoom level, and appears to omit these three
+// entirely) — they're left out of this list since there's no shape
+// on the globe to attach them to; flagging this honestly rather than
+// silently guessing at a fix.
+const GEOGUESSR_COUNTRIES = new Set([
+  "Botswana","Eswatini","Ghana","Kenya","Lesotho","Madagascar","Namibia","Nigeria","Rwanda",
+  "Sao Tome and Principe","Senegal","South Africa","Tunisia","Uganda",
+  "Bangladesh","Bhutan","Cambodia","Christmas Island","Cyprus","Georgia","India",
+  "Indonesia","Israel","Japan","Jordan","Kazakhstan","Kyrgyzstan","Laos","Lebanon","Malaysia",
+  "Mongolia","Nepal","Oman","Philippines","Qatar","Russia","Singapore","South Korea","Sri Lanka",
+  "Taiwan","Thailand","United Arab Emirates","Vietnam",
+  "Albania","Andorra","Austria","Belgium","Bosnia and Herz.","Bulgaria","Croatia",
+  "Czechia","Denmark","Estonia","Faroe Islands","Finland","France","Germany","Gibraltar",
+  "Greece","Hungary","Iceland","Ireland","Isle of Man","Italy","Jersey","Latvia","Liechtenstein",
+  "Lithuania","Luxembourg","Malta","Montenegro","Netherlands","Norway",
+  "Poland","Portugal","Romania","San Marino","Serbia","Slovakia","Slovenia","Spain","Sweden",
+  "Switzerland","Turkey","Ukraine","United Kingdom",
+  "Canada","Costa Rica","Curacao","Dominican Republic","Greenland","Guatemala","Mexico","Panama",
+  "Puerto Rico","United States of America","United States Virgin Islands",
+  "American Samoa","Australia","Guam","New Zealand","Northern Mariana Islands",
+  "Argentina","Bolivia","Brazil","Chile","Colombia","Ecuador","Paraguay","Peru","Uruguay",
+]);
+
+// The internal matching above has to use whatever spelling the
+// topojson dataset and phone-code list actually use, but that's not
+// always the name GeoGuessr players expect to see — this translates
+// the internal name to the familiar one purely for display, wherever
+// a country name gets shown to the user (callout, side list, chips).
+const DISPLAY_NAME_OVERRIDE = {
+  "Czechia": "Czech Republic",
+  "Turkey": "Türkiye",
+  "United States of America": "United States",
+  "Curacao": "Curaçao",
+  "Bosnia and Herz.": "Bosnia and Herzegovina",
+  "Sao Tome and Principe": "São Tomé and Príncipe",
+};
+function displayName(name){ return DISPLAY_NAME_OVERRIDE[name] || name; }
 
 /* Calling codes per ITU-T E.164. Territories that share a parent country's
    code note that in parentheses. A small number of uninhabited / disputed
@@ -609,6 +698,7 @@ function indexFromIdColor(r, g, b){
 function fillColorFor(state){
   if (state === 'selected') return '#7c3aed';
   if (state === 'nocode') return 'rgba(255,107,107,0.55)';
+  if (state === 'excluded') return '#0c1219'; // blends into the ocean — not a GeoGuessr country
   return 'rgba(0,201,167,0.82)';
 }
 
@@ -762,7 +852,10 @@ canvasEl.addEventListener('mousemove', e => {
   const [lat, lon] = uvToLatLon(hit.uv);
   document.getElementById('hud').textContent = `LAT ${lat.toFixed(2)} · LON ${lon.toFixed(2)}`;
   hoveredIdx = uvToCountryIndex(hit.uv);
-  canvasEl.style.cursor = hoveredIdx >= 0 ? 'pointer' : 'grab';
+  const hoveredFeature = hoveredIdx >= 0 ? countryFeatures[hoveredIdx] : null;
+  const hoveredName = hoveredFeature ? nameById.get(String(hoveredFeature.id)) : null;
+  const isClickable = hoveredName && GEOGUESSR_COUNTRIES.has(hoveredName);
+  canvasEl.style.cursor = isClickable ? 'pointer' : 'grab';
 });
 
 let downX = 0, downY = 0;
@@ -777,10 +870,10 @@ canvasEl.addEventListener('mouseup', e => {
   if (idx < 0 || idx >= countryFeatures.length) return;
   const feature = countryFeatures[idx];
   const nm = nameById.get(String(feature.id));
-  if (!nm) return;
+  if (!nm || !GEOGUESSR_COUNTRIES.has(nm)) return; // not a GeoGuessr country — not selectable
   const code = PHONE_CODES[nm];
-  toggleCountry(feature.id, nm, code);
-  showCallout(nm, code);
+  toggleCountry(feature.id, displayName(nm), code);
+  showCallout(displayName(nm), code);
 });
 
 function animate(){
@@ -816,12 +909,42 @@ function showCallout(name, code){
   document.getElementById('ccName').textContent = name;
   document.getElementById('ccCode').textContent = code || 'No dedicated calling code';
   el.classList.add('show');
+  showRegionMapPanel(name);
+}
+
+let dialRegionMaps = {}; // country name -> image URL, fetched once on load
+function showRegionMapPanel(name){
+  const panel = document.getElementById('regionMapPanel');
+  document.getElementById('rmpTitle').textContent = `${name} — dialing regions`;
+  const body = document.getElementById('rmpBody');
+  const imgUrl = dialRegionMaps[name];
+  body.innerHTML = imgUrl
+    ? `<img src="${imgUrl}" alt="${name} dialing-code regions">`
+    : `<div class="rmp-empty">No regional dialing map added for ${name} yet.</div>`;
+  panel.classList.add('show');
+}
+function closeRegionMapPanel(){
+  document.getElementById('regionMapPanel').classList.remove('show');
 }
 
 function toggleCountry(id, name, code, forceRemove){
   const key = String(id);
   const isSelected = selected.has(key);
   const newlySelected = !isSelected && !forceRemove;
+
+  // Single-select: picking a new country clears any previously
+  // selected one first, rather than letting selections pile up and
+  // highlight several countries at once.
+  if (newlySelected) {
+    selected.forEach((info, otherKey) => {
+      if (otherKey === key) return;
+      const otherCode = info.code;
+      countryStateById.set(otherKey, otherCode ? 'default' : 'nocode');
+      redrawCountry(otherKey);
+    });
+    selected.clear();
+  }
+
   countryStateById.set(key, newlySelected ? 'selected' : (code ? 'default' : 'nocode'));
   redrawCountry(key);
 
@@ -838,18 +961,21 @@ function toggleCountry(id, name, code, forceRemove){
 function buildRegionList(){
   const listEl = document.getElementById('regionList');
   listEl.innerHTML = '';
-  const names = Object.keys(PHONE_CODES).sort((a,b)=>a.localeCompare(b));
+  const names = Object.keys(PHONE_CODES)
+    .filter(n => GEOGUESSR_COUNTRIES.has(n))
+    .sort((a,b) => displayName(a).localeCompare(displayName(b)));
   document.getElementById('countBadge').textContent = names.length;
   names.forEach(name => {
     const code = PHONE_CODES[name];
+    const shown = displayName(name);
     const chip = document.createElement('div');
     chip.className = 'region-chip';
-    chip.dataset.name = normalize(name);
-    chip.innerHTML = `<span class="rc-left"><span class="dot" style="${code ? '' : 'background:var(--danger)'}"></span><span>${name}</span></span><span class="rc-code">${code || '—'}</span>`;
+    chip.dataset.name = normalize(shown);
+    chip.innerHTML = `<span class="rc-left"><span class="dot" style="${code ? '' : 'background:var(--danger)'}"></span><span>${shown}</span></span><span class="rc-code">${code || '—'}</span>`;
     chip.onclick = () => {
       const entry = [...nameById.entries()].find(([id, nm]) => normalize(nm) === normalize(name));
-      if (entry) toggleCountry(entry[0], name, code);
-      showCallout(name, code);
+      if (entry) toggleCountry(entry[0], shown, code);
+      showCallout(shown, code);
     };
     listEl.appendChild(chip);
   });
@@ -867,6 +993,12 @@ panelToggle.addEventListener('click', () => {
 });
 scrim.addEventListener('click', closePanel);
 
+const API = 'https://geoanalyzerx.onrender.com';
+fetch(`${API}/dial_region_maps/list`)
+  .then(res => res.json())
+  .then(d => { dialRegionMaps = d.maps || {}; })
+  .catch(() => { /* fails quietly — panel just shows "no map yet" for everything */ });
+
 d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
   const worldFeatureCollection = topojson.feature(world, world.objects.countries);
   countryFeatures = worldFeatureCollection.features;
@@ -875,7 +1007,12 @@ d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(w
   paintOcean(visibleCtx);
   countryFeatures.forEach((feature, i) => {
     const nm = nameById.get(String(feature.id));
-    const state = !nm ? 'nocode' : (PHONE_CODES[nm] ? 'default' : 'nocode');
+    let state;
+    if (!nm || !GEOGUESSR_COUNTRIES.has(nm)) {
+      state = 'excluded';
+    } else {
+      state = PHONE_CODES[nm] ? 'default' : 'nocode';
+    }
     countryStateById.set(String(feature.id), state);
     paintCountry(visibleCtx, feature, fillColorFor(state), false);
     paintCountry(idCtx, feature, idColorFor(i), true);
