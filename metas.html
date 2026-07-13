@@ -513,7 +513,7 @@ function buildGlobeTextures(world){
 const globeCanvasEl = document.getElementById('globeCanvas');
 const globeScene = new THREE.Scene();
 const globeCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-let globeCamDist = 2.5;
+let globeCamDist = 3.0;
 globeCamera.position.set(0, 0, globeCamDist);
 
 const globeRenderer = new THREE.WebGLRenderer({ canvas: globeCanvasEl, antialias: true, alpha: true });
@@ -593,7 +593,7 @@ globeCanvasEl.addEventListener('wheel', e => {
 }, { passive: false });
 document.getElementById('zoom-in').addEventListener('click', () => setGlobeZoom(globeCamDist - 0.5));
 document.getElementById('zoom-out').addEventListener('click', () => setGlobeZoom(globeCamDist + 0.5));
-document.getElementById('zoom-reset').addEventListener('click', () => setGlobeZoom(2.5));
+document.getElementById('zoom-reset').addEventListener('click', () => setGlobeZoom(3.0));
 
 const globeRaycaster = new THREE.Raycaster();
 const globeMouseNDC = new THREE.Vector2();
