@@ -715,7 +715,6 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
         <a href="#features" onclick="goHome();setTimeout(()=>document.getElementById('features')?.scrollIntoView({behavior:'smooth'}),100);return false;">Features</a>
         <a href="#faq" onclick="goHome();setTimeout(()=>document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}),100);return false;">FAQ</a>
         <a href="#pricing" onclick="goHome();setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),100);return false;">Pricing</a>
-        <a onclick="goToForms()" style="cursor:pointer;">📝 Forms</a>
       </div>
     </div>
     <a href="#download" onclick="goHome();setTimeout(()=>document.getElementById('download')?.scrollIntoView({behavior:'smooth'}),100);return false;">⬇️ Download</a>
@@ -1301,60 +1300,6 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
   </div>
 </div>
 
-<div id="forms-page" style="display:none;min-height:80vh;">
-  <div style="padding:40px;max-width:800px;margin:0 auto;position:relative;z-index:1;">
-    <div class="dash-header">
-      <div>
-        <div class="dash-welcome">📝 Forms</div>
-        <div style="color:var(--muted);font-size:14px;margin-top:4px;">Report bugs, request features, correct a country meta, or send general feedback — straight to the team.</div>
-      </div>
-    </div>
-
-    <div id="forms-msg" style="display:none;padding:14px 18px;border-radius:10px;margin-bottom:20px;font-size:13px;font-weight:600;"></div>
-
-    <!-- Bug Report -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;">
-      <div style="font-weight:700;margin-bottom:4px;">🐛 Report a Bug</div>
-      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Found something broken? Tell us what happened and how to reproduce it.</div>
-      <input id="form-bug-name" type="text" placeholder="Your name (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
-      <input id="form-bug-email" type="email" placeholder="Email (optional, so we can follow up)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
-      <textarea id="form-bug-message" rows="4" placeholder="What went wrong? Include steps to reproduce, browser, and script version if you can." style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;"></textarea>
-      <button onclick="submitGaxForm('bug')" class="btn btn-primary" style="padding:9px 20px;font-size:13px;">Submit Bug Report</button>
-    </div>
-
-    <!-- Feature Request -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;">
-      <div style="font-weight:700;margin-bottom:4px;">💡 Feature Request</div>
-      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Got an idea for GeoAnalyzerX? We read every one of these.</div>
-      <input id="form-feature-name" type="text" placeholder="Your name (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
-      <input id="form-feature-email" type="email" placeholder="Email (optional, so we can follow up)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
-      <textarea id="form-feature-message" rows="4" placeholder="What would you like to see added or changed?" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;"></textarea>
-      <button onclick="submitGaxForm('feature')" class="btn btn-primary" style="padding:9px 20px;font-size:13px;">Submit Feature Request</button>
-    </div>
-
-    <!-- Meta Correction / Submission -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;">
-      <div style="font-weight:700;margin-bottom:4px;">🗺️ Meta Correction / Submission</div>
-      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Spotted something wrong in a country guide, or found a genuinely new learnable clue? Let us know — original research only, no copied text from other sites.</div>
-      <input id="form-meta_correction-name" type="text" placeholder="Your name (optional, credited in the guide if used)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
-      <input id="form-meta_correction-email" type="email" placeholder="Email (optional, so we can follow up)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
-      <input id="form-meta_correction-extra" type="text" placeholder="Country / region this relates to" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
-      <textarea id="form-meta_correction-message" rows="4" placeholder="Describe the correction or new meta, in your own words." style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;"></textarea>
-      <button onclick="submitGaxForm('meta_correction')" class="btn btn-primary" style="padding:9px 20px;font-size:13px;">Submit Meta Correction</button>
-    </div>
-
-    <!-- General Feedback -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:40px;">
-      <div style="font-weight:700;margin-bottom:4px;">💬 General Feedback</div>
-      <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Anything else on your mind — good or bad, we want to hear it.</div>
-      <input id="form-feedback-name" type="text" placeholder="Your name (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
-      <input id="form-feedback-email" type="email" placeholder="Email (optional, so we can follow up)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px;"/>
-      <textarea id="form-feedback-message" rows="4" placeholder="Your feedback" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;"></textarea>
-      <button onclick="submitGaxForm('feedback')" class="btn btn-primary" style="padding:9px 20px;font-size:13px;">Submit Feedback</button>
-    </div>
-  </div>
-</div>
-
 <!-- Auth Modal -->
 <div class="modal-overlay" id="auth-modal">
   <div class="modal">
@@ -1731,7 +1676,6 @@ function goHome() {
   document.getElementById('landing').style.display = '';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'none';
-  document.getElementById('forms-page').style.display = 'none';
   window.scrollTo(0, 0);
 }
 
@@ -1740,7 +1684,6 @@ function goToDashboard() {
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('stats-page').style.display = 'none';
-  document.getElementById('forms-page').style.display = 'none';
   window.scrollTo(0, 0);
   // Refresh stats every time the dashboard is opened, not just on
   // initial page load — previously only showDashboard() (called once
@@ -1760,7 +1703,6 @@ function goToStats() {
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'block';
-  document.getElementById('forms-page').style.display = 'none';
   window.scrollTo(0, 0);
   const token = getToken();
   if (token) {
@@ -1769,65 +1711,6 @@ function goToStats() {
     loadFullStats(token);
     loadStatsBadges(token);
     loadWorldMap(token);
-  }
-}
-
-function goToForms() {
-  closeUserMenu();
-  document.getElementById('landing').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('stats-page').style.display = 'none';
-  document.getElementById('forms-page').style.display = 'block';
-  window.scrollTo(0, 0);
-}
-
-async function submitGaxForm(type){
-  const nameEl = document.getElementById(`form-${type}-name`);
-  const emailEl = document.getElementById(`form-${type}-email`);
-  const messageEl = document.getElementById(`form-${type}-message`);
-  const extraEl = document.getElementById(`form-${type}-extra`);
-  const msgEl = document.getElementById('forms-msg');
-  const message = (messageEl?.value || '').trim();
-  if (!message) {
-    msgEl.style.display = 'block';
-    msgEl.style.background = 'rgba(255,107,107,0.1)';
-    msgEl.style.color = '#ff6b6b';
-    msgEl.textContent = 'Please fill in the message field before submitting.';
-    messageEl?.scrollIntoView({behavior:'smooth', block:'center'});
-    return;
-  }
-  const body = {
-    form_type: type,
-    name: nameEl?.value || '',
-    email: emailEl?.value || '',
-    message,
-    extra: extraEl?.value || '',
-    token: getToken() || '',
-  };
-  try {
-    const res = await fetch(API + '/forms/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    const data = await res.json();
-    if (!res.ok || data.error) {
-      msgEl.style.display = 'block';
-      msgEl.style.background = 'rgba(255,107,107,0.1)';
-      msgEl.style.color = '#ff6b6b';
-      msgEl.textContent = data.error || 'Could not submit. Please try again.';
-    } else {
-      msgEl.style.display = 'block';
-      msgEl.style.background = 'rgba(0,201,167,0.1)';
-      msgEl.style.color = 'var(--teal)';
-      msgEl.textContent = '✓ Thanks — your submission was sent!';
-      if (nameEl) nameEl.value = '';
-      if (emailEl) emailEl.value = '';
-      if (messageEl) messageEl.value = '';
-      if (extraEl) extraEl.value = '';
-    }
-    msgEl.scrollIntoView({behavior:'smooth', block:'center'});
-  } catch(e) {
-    msgEl.style.display = 'block';
-    msgEl.style.background = 'rgba(255,107,107,0.1)';
-    msgEl.style.color = '#ff6b6b';
-    msgEl.textContent = 'Could not connect to server. Please try again.';
   }
 }
 
@@ -1904,7 +1787,6 @@ function showDashboard(user, token) {
   document.getElementById('landing').style.display   = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('stats-page').style.display = 'none';
-  document.getElementById('forms-page').style.display = 'none';
   window.scrollTo(0,0);
   updateNav(user);
   updateNavAvatar();
@@ -2495,7 +2377,6 @@ function logout() {
   document.getElementById('landing').style.display   = '';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'none';
-  document.getElementById('forms-page').style.display = 'none';
   resetNav();
   closeUserMenu();
   if (token) {
