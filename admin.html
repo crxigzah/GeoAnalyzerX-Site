@@ -204,6 +204,29 @@
       </div>
     </div>
 
+    <!-- Meta Reports: submitted via the "Report a Meta Issue" button on
+         metas.html's public guide pages -->
+    <div class="card">
+      <div class="card-header">
+        <h2>🚩 Meta Reports</h2>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-sm" style="background:#1a1a2e;border:1px solid #2a2a3e;color:#8888aa;padding:6px 12px;" onclick="loadMetaReports()">↻ Refresh</button>
+          <span id="meta-report-count" style="color:#8888aa;font-size:12px;"></span>
+        </div>
+      </div>
+      <div class="tab-bar" style="padding:0 20px;margin-bottom:0;">
+        <button class="tab active" onclick="switchMetaReportTab('all', this)">All</button>
+        <button class="tab" onclick="switchMetaReportTab('open', this)">Open</button>
+        <button class="tab" onclick="switchMetaReportTab('resolved', this)">Resolved</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Country</th><th>Description</th><th>Reported By</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="meta-reports-tbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Camera Generation Quiz -->
     <div class="card">
       <div class="card-header">
@@ -827,6 +850,7 @@ function loadDashboard() {
       startPoll();
       resetInactivityTimer();
       loadGuides();
+      loadMetaReports();
       loadCameraQuizList();
       populateDialMapCountrySelect();
       loadDialRegionMapsList();
@@ -1404,6 +1428,64 @@ function loadGuides() {
           </td>
         </tr>`).join('');
     });
+}
+
+// ── Meta Reports (from the "Report a Meta Issue" button on metas.html) ──
+let allMetaReports = [];
+let metaReportFilter = 'all';
+
+function loadMetaReports(){
+  const statusParam = metaReportFilter !== 'all' ? `?status=${metaReportFilter}` : '';
+  fetch(`${API}/admin/meta_reports${statusParam}`, {headers: adminHeaders()})
+    .then(r => r.json())
+    .then(d => {
+      allMetaReports = d.reports || [];
+      document.getElementById('meta-report-count').textContent = `${allMetaReports.length} report${allMetaReports.length===1?'':'s'}`;
+      renderMetaReports();
+    });
+}
+
+function switchMetaReportTab(status, btnEl){
+  metaReportFilter = status;
+  const tabBar = btnEl.closest('.tab-bar');
+  tabBar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btnEl.classList.add('active');
+  loadMetaReports();
+}
+
+function renderMetaReports(){
+  const tbody = document.getElementById('meta-reports-tbody');
+  if (!allMetaReports.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">No reports' + (metaReportFilter !== 'all' ? ` (${metaReportFilter})` : '') + '.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allMetaReports.map(r => {
+    const reporter = r.username
+      ? `${escapeHtml(r.username)}${r.email ? ` <span style="color:var(--muted);font-size:11px;">(${escapeHtml(r.email)})</span>` : ''}`
+      : '<span style="color:var(--muted);">Anonymous</span>';
+    const isResolved = r.status === 'resolved';
+    return `
+        <tr>
+          <td style="font-weight:600">${escapeHtml(r.country)}</td>
+          <td style="max-width:360px;white-space:pre-wrap;color:#c0c0d8;font-size:13px;">${escapeHtml(r.description)}</td>
+          <td style="font-size:12px;">${reporter}</td>
+          <td style="color:var(--muted);font-size:12px">${formatDate(r.created_at)}</td>
+          <td><span style="color:${isResolved ? '#00c9a7' : '#f0a500'};font-size:12px;font-weight:600">${isResolved ? '✓ Resolved' : '● Open'}</span></td>
+          <td>
+            <button onclick="resolveMetaReport('${r.id}', ${!isResolved})" style="background:${isResolved ? 'rgba(240,165,0,0.1)' : 'rgba(0,201,167,0.1)'};border:1px solid ${isResolved ? 'rgba(240,165,0,0.3)' : 'rgba(0,201,167,0.3)'};color:${isResolved ? '#f0a500' : '#00c9a7'};padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">${isResolved ? 'Reopen' : 'Mark Resolved'}</button>
+          </td>
+        </tr>`;
+  }).join('');
+}
+
+function resolveMetaReport(id, resolved){
+  fetch(`${API}/admin/meta_reports/resolve`, {
+    method: 'POST',
+    headers: adminHeaders(),
+    body: JSON.stringify({id, resolved})
+  })
+    .then(r => r.json())
+    .then(() => loadMetaReports());
 }
 
 // ── Camera Generation Quiz management ─────────────────────
