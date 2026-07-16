@@ -632,12 +632,7 @@ const GEOGUESSR_COUNTRIES = [
   "Serbia","Singapore","Slovakia","Slovenia","South Africa","South Korea",
   "Spain","Sri Lanka","Sweden","Switzerland","Taiwan","Thailand","Tunisia",
   "Turkey","Uganda","Ukraine","United Arab Emirates","United Kingdom",
-  "United States of America","Uruguay","Vietnam",
-  // small territories some world-map tools also list separately —
-  // these may not render as distinct shapes at this map resolution:
-  "Bermuda","Curaçao","Faroe Islands","Guam","Isle of Man","Jersey",
-  "Northern Mariana Islands","American Samoa","Puerto Rico",
-  "United States Virgin Islands","Christmas Island","Réunion"
+  "United States of America","Uruguay","Vietnam"
 ];
 
 // aliases: list-name -> possible name(s) used in the map dataset
@@ -681,10 +676,7 @@ const ISO3 = {
   "Sweden":"SWE","Switzerland":"CHE","Taiwan":"TWN","Thailand":"THA","Tunisia":"TUN",
   "Turkey":"TUR","Uganda":"UGA","Ukraine":"UKR","United Arab Emirates":"ARE",
   "United Kingdom":"GBR","United States of America":"USA","Uruguay":"URY",
-  "Vietnam":"VNM","Bermuda":"BMU","Curaçao":"CUW","Faroe Islands":"FRO","Guam":"GUM",
-  "Isle of Man":"IMN","Jersey":"JEY","Northern Mariana Islands":"MNP",
-  "American Samoa":"ASM","Puerto Rico":"PRI","United States Virgin Islands":"VIR",
-  "Christmas Island":"CXR","Réunion":"REU"
+  "Vietnam":"VNM"
 };
 const subregionCache = new Map(); // iso3 -> GeoJSON features (or null if unavailable)
 
@@ -949,7 +941,7 @@ const COUNTRY_CENTRES = {
   'são tomé and príncipe': [0.2, 6.6], 'sao tome and principe': [0.2, 6.6],
   'senegal': [14.5, -14.5], 'south africa': [-29.0, 24.0], 'tunisia': [34.0, 9.0],
   'uganda': [1.0, 32.5], 'bangladesh': [23.7, 90.4], 'bhutan': [27.5, 90.5],
-  'cambodia': [12.6, 104.9], 'christmas island': [-10.5, 105.6], 'cyprus': [35.1, 33.4],
+  'cambodia': [12.6, 104.9], 'cyprus': [35.1, 33.4],
   'georgia': [42.3, 43.4], 'hong kong': [22.3, 114.2], 'india': [22.0, 79.0],
   'indonesia': [-2.5, 118.0], 'israel': [31.5, 34.8], 'japan': [36.2, 138.3],
   'jordan': [31.0, 36.5], 'kazakhstan': [48.0, 68.0], 'kyrgyzstan': [41.2, 74.8],
@@ -962,11 +954,11 @@ const COUNTRY_CENTRES = {
   'austria': [47.5, 14.5], 'belgium': [50.8, 4.5], 'bosnia and herzegovina': [44.0, 17.8],
   'bulgaria': [42.7, 25.5], 'croatia': [45.1, 16.4], 'czech republic': [49.8, 15.5],
   'czechia': [49.8, 15.5],
-  'denmark': [56.0, 9.5], 'estonia': [58.6, 25.0], 'faroe islands': [62.0, -6.8],
+  'denmark': [56.0, 9.5], 'estonia': [58.6, 25.0],
   'finland': [64.0, 26.0], 'france': [46.6, 2.2], 'germany': [51.2, 10.4],
   'gibraltar': [36.1, -5.35], 'greece': [39.0, 22.0], 'hungary': [47.2, 19.5],
-  'iceland': [65.0, -18.0], 'ireland': [53.4, -8.0], 'isle of man': [54.2, -4.5],
-  'italy': [42.8, 12.8], 'jersey': [49.2, -2.1], 'latvia': [56.9, 24.6],
+  'iceland': [65.0, -18.0], 'ireland': [53.4, -8.0],
+  'italy': [42.8, 12.8], 'latvia': [56.9, 24.6],
   'liechtenstein': [47.2, 9.5], 'lithuania': [55.2, 23.9], 'luxembourg': [49.8, 6.1],
   'malta': [35.9, 14.5], 'monaco': [43.7, 7.4], 'montenegro': [42.7, 19.3],
   'netherlands': [52.2, 5.3], 'north macedonia': [41.6, 21.7], 'norway': [60.5, 8.5],
@@ -975,18 +967,16 @@ const COUNTRY_CENTRES = {
   'slovenia': [46.1, 14.8], 'spain': [40.0, -3.7], 'sweden': [62.0, 15.0],
   'switzerland': [46.8, 8.2], 'türkiye': [39.0, 35.0], 'turkiye': [39.0, 35.0],
   'turkey': [39.0, 35.0], 'ukraine': [48.4, 31.2], 'united kingdom': [54.0, -2.5],
-  'canada': [56.1, -106.3], 'costa rica': [9.7, -84.0], 'curaçao': [12.2, -69.0],
-  'curacao': [12.2, -69.0], 'dominican republic': [18.7, -70.2], 'greenland': [71.7, -42.6],
+  'canada': [56.1, -106.3], 'costa rica': [9.7, -84.0],
+  'dominican republic': [18.7, -70.2], 'greenland': [71.7, -42.6],
   'guatemala': [15.8, -90.2], 'mexico': [23.6, -102.5], 'panama': [8.5, -80.8],
-  'puerto rico': [18.2, -66.5], 'united states': [39.8, -98.6],
-  'united states virgin islands': [18.3, -64.9], 'american samoa': [-14.3, -170.7],
-  'australia': [-25.0, 133.0], 'guam': [13.4, 144.8], 'new zealand': [-41.0, 174.0],
-  'northern mariana islands': [15.2, 145.7], 'argentina': [-38.4, -63.6],
+  'australia': [-25.0, 133.0], 'new zealand': [-41.0, 174.0],
+  'argentina': [-38.4, -63.6],
   'bolivia': [-16.3, -63.6], 'brazil': [-14.2, -51.9], 'chile': [-35.7, -71.5],
   'colombia': [4.6, -74.3], 'ecuador': [-1.8, -78.2], 'paraguay': [-23.4, -58.4],
-  'peru': [-9.2, -75.0], 'uruguay': [-32.5, -55.8], 'bermuda': [32.3, -64.75],
+  'peru': [-9.2, -75.0], 'uruguay': [-32.5, -55.8],
   'pakistan': [30.4, 69.3], 'palestine': [31.9, 35.2],
-  'united states of america': [39.8, -98.6], 'réunion': [-21.1, 55.5], 'reunion': [-21.1, 55.5],
+  'united states of america': [39.8, -98.6],
 };
 
 let globeDragging = false, globeLastX = 0, globeLastY = 0, globeIdleTimer = null, globeAutoRotate = true;
