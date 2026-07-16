@@ -2037,12 +2037,11 @@ function renderCountryView(countryName, geojson){
 // Returns false (and draws nothing) if this country isn't a distinct
 // shape at the world-atlas's resolution either — the caller should fall
 // back further in that case (e.g. to showFallback's globe+marker).
-function renderCountryOutlineOnly(countryName){
-  const entry = flyIndex[normalize(countryName)];
-  if(!entry) return false;
-  const feature = worldFeatureCollection.features.find(f => String(f.id) === String(entry.id));
-  if(!feature || !feature.geometry) return false;
-
+// Draws a single country/territory feature as a plain solid-fill shape
+// with no internal borders — shared by both the fast local world-atlas
+// lookup and the geoBoundaries ADM0 fetch below, so both tiers end up
+// looking identical regardless of which data source supplied the shape.
+function renderPlainCountryFeature(countryName, feature){
   const clone = JSON.parse(JSON.stringify(feature));
   rewindGeometry(clone.geometry);
   fixInvertedArea(clone);
@@ -2075,7 +2074,67 @@ function renderCountryOutlineOnly(countryName){
   );
 
   showCountryRegionsPanel(countryName, []);
+}
+
+// Fast, no-network path: uses the shape already loaded for the globe's
+// texture. Works for most countries but NOT for small territories that
+// are below this dataset's simplification threshold (Christmas Island,
+// American Samoa, etc. — those return false here and need the
+// geoBoundaries fetch below instead).
+function renderCountryOutlineOnly(countryName){
+  const entry = flyIndex[normalize(countryName)];
+  if(!entry) return false;
+  const feature = worldFeatureCollection.features.find(f => String(f.id) === String(entry.id));
+  if(!feature || !feature.geometry) return false;
+  renderPlainCountryFeature(countryName, feature);
   return true;
+}
+
+// iso3 -> fetched ADM0 (whole-country) feature, or null if unavailable.
+const countryOutlineCache = new Map();
+
+// The full "show me some outline of this country" fallback chain:
+//   1. Fast local world-atlas shape (renderCountryOutlineOnly)
+//   2. This country's own ADM0 boundary from geoBoundaries — the same
+//      reliable, per-country dataset already used for state/province
+//      data, which covers small territories the coarse world atlas
+//      leaves out entirely
+//   3. Last resort: rotate the globe + drop a named marker (showFallback)
+function tryRenderCountryOutline(name){
+  if(renderCountryOutlineOnly(name)) return;
+
+  const iso3 = ISO3[name];
+  if(!iso3){
+    showFallback(name, 'No shape data available for this country.');
+    return;
+  }
+  if(countryOutlineCache.has(iso3)){
+    const cached = countryOutlineCache.get(iso3);
+    if(cached){
+      renderPlainCountryFeature(name, cached);
+    } else {
+      showFallback(name, 'No shape data available for this country.');
+    }
+    return;
+  }
+
+  showLoading(`Loading ${name} outline…`);
+  const url = `https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/releaseData/gbOpen/${iso3}/ADM0/geoBoundaries-${iso3}-ADM0_simplified.geojson`;
+  fetch(url)
+    .then(res => { if(!res.ok) throw new Error('not found'); return res.json(); })
+    .then(geojson => {
+      const feature = (geojson && geojson.features && geojson.features[0]) || null;
+      countryOutlineCache.set(iso3, feature);
+      if(feature){
+        renderPlainCountryFeature(name, feature);
+      } else {
+        showFallback(name, 'No shape data available for this country.');
+      }
+    })
+    .catch(() => {
+      countryOutlineCache.set(iso3, null);
+      showFallback(name, 'No shape data available for this country.');
+    });
 }
 
 function showFallback(countryName, message){
@@ -2128,24 +2187,18 @@ const ADMIN_LEVEL_OVERRIDE = {
 function drillIntoCountry(name){
   showDrillDownView();
   if(OUTLINE_ONLY_COUNTRIES.has(normalize(name))){
-    if(!renderCountryOutlineOnly(name)){
-      showFallback(name, 'No shape data available for this country.');
-    }
+    tryRenderCountryOutline(name);
     return;
   }
   const iso3 = ISO3[name];
   if(!iso3){
-    if(!renderCountryOutlineOnly(name)){
-      showFallback(name, 'No subdivision data source is mapped for this country.');
-    }
+    tryRenderCountryOutline(name);
     return;
   }
   if(subregionCache.has(iso3)){
     const cached = subregionCache.get(iso3);
     if(cached === null){
-      if(!renderCountryOutlineOnly(name)){
-        showFallback(name, 'No subdivisions are available for this country.');
-      }
+      tryRenderCountryOutline(name);
     } else {
       renderCountryView(name, cached);
     }
@@ -2164,9 +2217,7 @@ function drillIntoCountry(name){
     })
     .catch(() => {
       subregionCache.set(iso3, null);
-      if(!renderCountryOutlineOnly(name)){
-        showFallback(name, 'No subdivisions are available for this country.');
-      }
+      tryRenderCountryOutline(name);
     });
 }
 
