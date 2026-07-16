@@ -2123,7 +2123,7 @@ function tryRenderCountryOutline(name){
 
   showLoading(`Loading ${name} outline…`);
   const url = `${API_BASE}/geo/country-outline?name=${encodeURIComponent(name)}`;
-  fetch(url)
+  fetch(url, { cache: 'no-store' })
     .then(res => { if(!res.ok) throw new Error('not found'); return res.json(); })
     .then(feature => {
       const valid = feature && feature.geometry ? feature : null;
