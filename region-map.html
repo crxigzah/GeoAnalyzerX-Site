@@ -883,18 +883,58 @@ function rotateGlobeToFace(lat, lon){
 }
 
 let fallbackMarker = null;
-function showFallbackMarker(lat, lon){
+let fallbackLabel = null;
+
+// A billboarded text sprite (always faces the camera, unlike a flat
+// texture painted on the sphere) — used to name the fallback marker.
+// Without this, the marker is just an unexplained red dot: for a country
+// too small to show its own landmass at this map's resolution, there's
+// nothing else on screen telling the user what they're looking at.
+function makeCountryLabelSprite(text){
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = 44;
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  const textWidth = ctx.measureText(text).width;
+  canvas.width = Math.ceil(textWidth) + 24;
+  canvas.height = fontSize + 20;
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.fillStyle = 'rgba(10,10,20,0.82)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#ffffff';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 12, canvas.height / 2 + 2);
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture, depthTest: true, transparent: true });
+  const sprite = new THREE.Sprite(material);
+  const aspect = canvas.width / canvas.height;
+  const height = 0.1;
+  sprite.scale.set(height * aspect, height, 1);
+  return sprite;
+}
+
+function showFallbackMarker(lat, lon, countryName){
   clearFallbackMarker();
   const pos = nearestVertexLocalPosition(lat, lon);
+  const surfacePos = pos.clone().multiplyScalar(1.015);
   fallbackMarker = new THREE.Mesh(
     new THREE.SphereGeometry(0.02, 16, 16),
     new THREE.MeshBasicMaterial({ color: 0xff5252 })
   );
-  fallbackMarker.position.copy(pos.clone().multiplyScalar(1.015));
+  fallbackMarker.position.copy(surfacePos);
   globeGroup.add(fallbackMarker);
+
+  if(countryName){
+    fallbackLabel = makeCountryLabelSprite(countryName);
+    // Offset up and slightly toward the camera so the label doesn't
+    // overlap the dot or get clipped by the sphere's own surface.
+    fallbackLabel.position.copy(pos.clone().multiplyScalar(1.09));
+    globeGroup.add(fallbackLabel);
+  }
 }
 function clearFallbackMarker(){
   if(fallbackMarker){ globeGroup.remove(fallbackMarker); fallbackMarker.geometry.dispose(); fallbackMarker.material.dispose(); fallbackMarker = null; }
+  if(fallbackLabel){ globeGroup.remove(fallbackLabel); fallbackLabel.material.map.dispose(); fallbackLabel.material.dispose(); fallbackLabel = null; }
 }
 
 // One approximate lat/lon centre per GeoGuessr-supported country, used to
@@ -1973,6 +2013,55 @@ function renderCountryView(countryName, geojson){
   showCountryRegionsPanel(countryName, labelData);
 }
 
+// For a country with no ADM1 subdivision data available, this draws just
+// the country's own plain outline in the same flat 2D view — the solid-
+// fill shape with no internal borders, same as any subdivision-less
+// single region would look. This reuses the world-atlas shape already
+// used for the globe texture, rather than fetching anything new.
+// Returns false (and draws nothing) if this country isn't a distinct
+// shape at the world-atlas's resolution either — the caller should fall
+// back further in that case (e.g. to showFallback's globe+marker).
+function renderCountryOutlineOnly(countryName){
+  const entry = flyIndex[normalize(countryName)];
+  if(!entry) return false;
+  const feature = worldFeatureCollection.features.find(f => String(f.id) === String(entry.id));
+  if(!feature || !feature.geometry) return false;
+
+  const clone = JSON.parse(JSON.stringify(feature));
+  rewindGeometry(clone.geometry);
+  fixInvertedArea(clone);
+
+  const localProjection = d3.geoMercator().fitExtent([[30,60],[width-30,height-30]], clone);
+  const localPath = d3.geoPath(localProjection);
+
+  hideLoading();
+  clearFallbackMarker();
+  activeProjection = localProjection;
+  document.getElementById('sphereBg').style.display = 'none';
+
+  svg.call(zoom.transform, d3.zoomIdentity);
+  countryLayer.selectAll('*').remove();
+  labelLayer.selectAll('*').remove();
+
+  countryLayer.selectAll('path')
+    .data([clone])
+    .join('path')
+    .attr('class', 'subdivision')
+    .attr('data-id', 'sub-0')
+    .attr('d', localPath);
+
+  document.getElementById('breadcrumb').style.display = 'flex';
+  document.getElementById('breadcrumbLabel').innerHTML =
+    `<b>${countryName}</b> — No subdivision data available. Showing country outline instead.`;
+
+  document.querySelectorAll('.region-chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.name === normalize(countryName))
+  );
+
+  showCountryRegionsPanel(countryName, []);
+  return true;
+}
+
 function showFallback(countryName, message){
   hideLoading();
   // Switch back to the interactive 3D globe. Without this, we stay in
@@ -2002,7 +2091,7 @@ function showFallback(countryName, message){
   const coords = COUNTRY_CENTRES[normalize(countryName)];
   if(coords){
     rotateGlobeToFace(coords[0], coords[1]);
-    showFallbackMarker(coords[0], coords[1]);
+    showFallbackMarker(coords[0], coords[1], countryName);
   } else {
     clearFallbackMarker();
   }
@@ -2024,13 +2113,17 @@ function drillIntoCountry(name){
   showDrillDownView();
   const iso3 = ISO3[name];
   if(!iso3){
-    showFallback(name, 'No subdivision data source is mapped for this country.');
+    if(!renderCountryOutlineOnly(name)){
+      showFallback(name, 'No subdivision data source is mapped for this country.');
+    }
     return;
   }
   if(subregionCache.has(iso3)){
     const cached = subregionCache.get(iso3);
     if(cached === null){
-      showFallback(name, 'No subdivisions are available for this country.');
+      if(!renderCountryOutlineOnly(name)){
+        showFallback(name, 'No subdivisions are available for this country.');
+      }
     } else {
       renderCountryView(name, cached);
     }
@@ -2049,7 +2142,9 @@ function drillIntoCountry(name){
     })
     .catch(() => {
       subregionCache.set(iso3, null);
-      showFallback(name, 'No subdivisions are available for this country.');
+      if(!renderCountryOutlineOnly(name)){
+        showFallback(name, 'No subdivisions are available for this country.');
+      }
     });
 }
 
