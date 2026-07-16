@@ -839,6 +839,116 @@ const globeAtmosphere = new THREE.Mesh(
 );
 globeGroup.add(globeAtmosphere);
 
+// ── Fallback rotate-to-country + marker ──────────────────────
+// Used when a country has no subdivision data (showFallback()) so the
+// globe actually rotates to show the country instead of leaving the
+// camera wherever it happened to be pointed, AND drops a marker for
+// countries too small to appear as their own shape at this map's
+// resolution (e.g. American Samoa isn't a distinct shape in the 110m
+// world-atlas dataset used to texture the globe, so nothing would ever
+// get highlighted there otherwise).
+//
+// Rather than deriving lat/lon → 3D position from scratch (risky to get
+// a sign/axis convention wrong with no way to visually test it here),
+// this finds the real vertex on the actual globeMesh geometry whose UV
+// matches the target lat/lon, using the exact same UV↔latlon convention
+// as globeUvToLatLon() (already verified correct, since hover/click
+// hit-testing depends on it). That guarantees the marker and rotation
+// always agree with how the sphere is actually textured, whatever the
+// underlying orientation convention turns out to be.
+function nearestVertexLocalPosition(lat, lon){
+  const targetU = (0.5 + lon / 360) % 1;
+  const wrappedU = targetU < 0 ? targetU + 1 : targetU;
+  const targetV = Math.max(0, Math.min(1, 0.5 - lat / 180));
+  const geom = globeMesh.geometry;
+  const posAttr = geom.attributes.position;
+  const uvAttr = geom.attributes.uv;
+  let bestIdx = -1, bestDist = Infinity;
+  for(let i = 0; i < uvAttr.count; i++){
+    let du = Math.abs(uvAttr.getX(i) - wrappedU);
+    du = Math.min(du, 1 - du); // wrap across the u=0/u=1 seam
+    const dv = uvAttr.getY(i) - targetV;
+    const d = du * du + dv * dv;
+    if(d < bestDist){ bestDist = d; bestIdx = i; }
+  }
+  return new THREE.Vector3(posAttr.getX(bestIdx), posAttr.getY(bestIdx), posAttr.getZ(bestIdx));
+}
+
+function rotateGlobeToFace(lat, lon){
+  const p = nearestVertexLocalPosition(lat, lon);
+  // Rotate about Y only (reset any pitch) so the point ends up centered
+  // facing the camera, which sits on the +Z axis looking at the origin.
+  const theta = Math.atan2(-p.x, p.z);
+  globeGroup.rotation.set(0, theta, 0);
+}
+
+let fallbackMarker = null;
+function showFallbackMarker(lat, lon){
+  clearFallbackMarker();
+  const pos = nearestVertexLocalPosition(lat, lon);
+  fallbackMarker = new THREE.Mesh(
+    new THREE.SphereGeometry(0.02, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xff5252 })
+  );
+  fallbackMarker.position.copy(pos.clone().multiplyScalar(1.015));
+  globeGroup.add(fallbackMarker);
+}
+function clearFallbackMarker(){
+  if(fallbackMarker){ globeGroup.remove(fallbackMarker); fallbackMarker.geometry.dispose(); fallbackMarker.material.dispose(); fallbackMarker = null; }
+}
+
+// One approximate lat/lon centre per GeoGuessr-supported country, used to
+// rotate the globe toward whichever country hit the fallback path. Kept
+// intentionally coarse (country-level, not state/region-level) — this is
+// only for orienting the camera and placing a marker, not for anything
+// that needs precision.
+const COUNTRY_CENTRES = {
+  'botswana': [-22.0, 24.0], 'eswatini': [-26.5, 31.5], 'ghana': [7.9, -1.0],
+  'kenya': [0.5, 37.9], 'lesotho': [-29.6, 28.2], 'madagascar': [-18.9, 46.9],
+  'namibia': [-22.5, 17.0], 'nigeria': [9.1, 8.7], 'rwanda': [-1.9, 29.9],
+  'são tomé and príncipe': [0.2, 6.6], 'sao tome and principe': [0.2, 6.6],
+  'senegal': [14.5, -14.5], 'south africa': [-29.0, 24.0], 'tunisia': [34.0, 9.0],
+  'uganda': [1.0, 32.5], 'bangladesh': [23.7, 90.4], 'bhutan': [27.5, 90.5],
+  'cambodia': [12.6, 104.9], 'christmas island': [-10.5, 105.6], 'cyprus': [35.1, 33.4],
+  'georgia': [42.3, 43.4], 'hong kong': [22.3, 114.2], 'india': [22.0, 79.0],
+  'indonesia': [-2.5, 118.0], 'israel': [31.5, 34.8], 'japan': [36.2, 138.3],
+  'jordan': [31.0, 36.5], 'kazakhstan': [48.0, 68.0], 'kyrgyzstan': [41.2, 74.8],
+  'laos': [18.0, 105.0], 'lebanon': [33.9, 35.9], 'malaysia': [4.2, 101.9],
+  'mongolia': [46.9, 103.8], 'nepal': [28.4, 84.1], 'oman': [21.0, 57.0],
+  'philippines': [12.9, 121.8], 'qatar': [25.3, 51.2], 'russia': [61.5, 105.3],
+  'singapore': [1.35, 103.8], 'south korea': [36.5, 127.9], 'sri lanka': [7.9, 80.7],
+  'taiwan': [23.7, 121.0], 'thailand': [15.9, 101.0], 'united arab emirates': [24.0, 54.0],
+  'vietnam': [16.0, 108.0], 'albania': [41.2, 20.2], 'andorra': [42.5, 1.5],
+  'austria': [47.5, 14.5], 'belgium': [50.8, 4.5], 'bosnia and herzegovina': [44.0, 17.8],
+  'bulgaria': [42.7, 25.5], 'croatia': [45.1, 16.4], 'czech republic': [49.8, 15.5],
+  'czechia': [49.8, 15.5],
+  'denmark': [56.0, 9.5], 'estonia': [58.6, 25.0], 'faroe islands': [62.0, -6.8],
+  'finland': [64.0, 26.0], 'france': [46.6, 2.2], 'germany': [51.2, 10.4],
+  'gibraltar': [36.1, -5.35], 'greece': [39.0, 22.0], 'hungary': [47.2, 19.5],
+  'iceland': [65.0, -18.0], 'ireland': [53.4, -8.0], 'isle of man': [54.2, -4.5],
+  'italy': [42.8, 12.8], 'jersey': [49.2, -2.1], 'latvia': [56.9, 24.6],
+  'liechtenstein': [47.2, 9.5], 'lithuania': [55.2, 23.9], 'luxembourg': [49.8, 6.1],
+  'malta': [35.9, 14.5], 'monaco': [43.7, 7.4], 'montenegro': [42.7, 19.3],
+  'netherlands': [52.2, 5.3], 'north macedonia': [41.6, 21.7], 'norway': [60.5, 8.5],
+  'poland': [52.0, 19.5], 'portugal': [39.6, -8.0], 'romania': [45.9, 25.0],
+  'san marino': [43.9, 12.4], 'serbia': [44.0, 21.0], 'slovakia': [48.7, 19.5],
+  'slovenia': [46.1, 14.8], 'spain': [40.0, -3.7], 'sweden': [62.0, 15.0],
+  'switzerland': [46.8, 8.2], 'türkiye': [39.0, 35.0], 'turkiye': [39.0, 35.0],
+  'turkey': [39.0, 35.0], 'ukraine': [48.4, 31.2], 'united kingdom': [54.0, -2.5],
+  'canada': [56.1, -106.3], 'costa rica': [9.7, -84.0], 'curaçao': [12.2, -69.0],
+  'curacao': [12.2, -69.0], 'dominican republic': [18.7, -70.2], 'greenland': [71.7, -42.6],
+  'guatemala': [15.8, -90.2], 'mexico': [23.6, -102.5], 'panama': [8.5, -80.8],
+  'puerto rico': [18.2, -66.5], 'united states': [39.8, -98.6],
+  'united states virgin islands': [18.3, -64.9], 'american samoa': [-14.3, -170.7],
+  'australia': [-25.0, 133.0], 'guam': [13.4, 144.8], 'new zealand': [-41.0, 174.0],
+  'northern mariana islands': [15.2, 145.7], 'argentina': [-38.4, -63.6],
+  'bolivia': [-16.3, -63.6], 'brazil': [-14.2, -51.9], 'chile': [-35.7, -71.5],
+  'colombia': [4.6, -74.3], 'ecuador': [-1.8, -78.2], 'paraguay': [-23.4, -58.4],
+  'peru': [-9.2, -75.0], 'uruguay': [-32.5, -55.8], 'bermuda': [32.3, -64.75],
+  'pakistan': [30.4, 69.3], 'palestine': [31.9, 35.2],
+  'united states of america': [39.8, -98.6], 'réunion': [-21.1, 55.5], 'reunion': [-21.1, 55.5],
+};
+
 let globeDragging = false, globeLastX = 0, globeLastY = 0, globeIdleTimer = null, globeAutoRotate = true;
 const GLOBE_ROT_SPEED = 0.005;
 function globePauseAutoRotate(){
@@ -1567,6 +1677,7 @@ function renderWorldView(){
   document.getElementById('breadcrumb').style.display = 'none';
   selected.clear();
   renderSelectedPanel();
+  clearFallbackMarker();
   svg.call(zoom.transform, d3.zoomIdentity);
   activeProjection = projection;
   showGlobeView();
@@ -1666,6 +1777,7 @@ function rewindGeometry(geom){
 
 function renderCountryView(countryName, geojson){
   hideLoading();
+  clearFallbackMarker();
 
   let features = (geojson.features || [])
     .filter(f => f.geometry)
@@ -1880,6 +1992,19 @@ function showFallback(countryName, message){
     `<b>${countryName}</b> — ${message} Showing country outline instead.`;
   if(entry){
     toggleCountry(entry.id, countryName, entry.centroid, selected.has(String(entry.id)));
+  }
+  // Rotate the globe to actually face the country, and drop a marker.
+  // The marker matters most for countries too small to render as their
+  // own shape at this map's resolution (American Samoa, Monaco, Jersey,
+  // etc.) — those are already invisible in the globe's texture even
+  // though they're "covered," so without a marker there's nothing on
+  // screen to indicate where they are at all.
+  const coords = COUNTRY_CENTRES[normalize(countryName)];
+  if(coords){
+    rotateGlobeToFace(coords[0], coords[1]);
+    showFallbackMarker(coords[0], coords[1]);
+  } else {
+    clearFallbackMarker();
   }
   showCountriesPanel();
 }
