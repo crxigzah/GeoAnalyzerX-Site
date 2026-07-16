@@ -742,7 +742,7 @@ document.getElementById('zoomOut').onclick = () => {
 document.getElementById('resetBtn').onclick = () => {
   if (isGlobeView) {
     globeGroup.rotation.set(0, 0, 0);
-    setGlobeZoom(2.6);
+    setGlobeZoom(4.2);
     return;
   }
   svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
@@ -1863,6 +1863,14 @@ function renderCountryView(countryName, geojson){
 
 function showFallback(countryName, message){
   hideLoading();
+  // Switch back to the interactive 3D globe. Without this, we stay in
+  // whatever view drillIntoCountry() switched to (showDrillDownView(),
+  // which hides the globe canvas and shows the flat SVG) — and since
+  // nothing ever gets drawn into that flat SVG in the fallback case, the
+  // user is left looking at just the raw whole-world sphere outline at a
+  // projection/viewport mismatch, which renders as a giant meaningless
+  // arc rather than a sensible "world map with this country highlighted."
+  showGlobeView();
   document.getElementById('sphereBg').style.display = '';
   renderWorldMap();
   activeProjection = projection;
