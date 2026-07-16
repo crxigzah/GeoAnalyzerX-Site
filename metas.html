@@ -111,6 +111,7 @@ nav { position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.92);backdrop-fi
     <span>GeoAnalyzerX</span>
   </a>
   <div class="nav-right">
+    <button id="nav-report-btn" onclick="openReportModal(currentCountryName)" style="display:none;background:transparent;border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;" onmouseover="this.style.borderColor='#ff6b6b';this.style.background='rgba(255,107,107,0.08)'" onmouseout="this.style.borderColor='rgba(255,107,107,0.3)';this.style.background='transparent'">⚠️ Report a Meta Issue</button>
     <a href="/" class="back-btn" title="Home">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </a>
@@ -748,14 +749,19 @@ function navigateTo(slug) {
 function showMap() {
   document.getElementById('map-view').style.display = 'block';
   document.getElementById('country-view').style.display = 'none';
+  document.getElementById('nav-report-btn').style.display = 'none';
   history.pushState({}, '', '/metas');
   globeIsVisible = true;
   resizeGlobeRenderer();
 }
 
+let currentCountryName = null;
+
 async function showCountry(c) {
   document.getElementById('map-view').style.display = 'none';
   globeIsVisible = false;
+  currentCountryName = c.name;
+  document.getElementById('nav-report-btn').style.display = 'inline-block';
   const cv = document.getElementById('country-view');
   cv.style.display = 'block';
   document.getElementById('cv-flag').innerHTML = flagImg(c.iso, 72);
@@ -888,9 +894,8 @@ function renderGuide(c, data) {
 
     document.getElementById('cv-body').innerHTML = `
       <div style="max-width:100%;">${html}</div>
-      <div style="text-align:center;margin-top:48px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <div style="text-align:center;margin-top:48px;">
         <button onclick="showMap()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:12px 24px;border-radius:10px;cursor:pointer;font-size:14px;transition:all .2s;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">← Back to World Map</button>
-        <button onclick="openReportModal('${c.name.replace(/'/g, "\\'")}')" style="background:var(--card);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:12px 24px;border-radius:10px;cursor:pointer;font-size:14px;transition:all .2s;" onmouseover="this.style.borderColor='#ff6b6b';this.style.background='rgba(255,107,107,0.08)'" onmouseout="this.style.borderColor='rgba(255,107,107,0.3)';this.style.background='var(--card)'">⚠️ Report a Meta Issue</button>
       </div>`;
     return;
   }
@@ -924,9 +929,8 @@ function renderGuide(c, data) {
     ${data.vehicles ? `<div class="guide-section"><h2>🚗 Vehicles & Infrastructure</h2><p>${data.vehicles}</p></div>` : ''}
     ${confuse ? `<div class="guide-section"><h2>⚠️ Easy to Confuse With</h2>${confuse}</div>` : ''}
     ${data.pro_tips ? `<div class="guide-section"><h2>⚡ Pro Tips</h2><p>${data.pro_tips}</p></div>` : ''}
-    <div style="text-align:center;margin-top:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <div style="text-align:center;margin-top:32px;">
       <button onclick="showMap()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:12px 24px;border-radius:10px;cursor:pointer;font-size:14px;transition:all .2s;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">← Back to World Map</button>
-      <button onclick="openReportModal('${c.name.replace(/'/g, "\\'")}')" style="background:var(--card);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:12px 24px;border-radius:10px;cursor:pointer;font-size:14px;transition:all .2s;" onmouseover="this.style.borderColor='#ff6b6b';this.style.background='rgba(255,107,107,0.08)'" onmouseout="this.style.borderColor='rgba(255,107,107,0.3)';this.style.background='var(--card)'">⚠️ Report a Meta Issue</button>
     </div>`;
 }
 
