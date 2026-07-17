@@ -25,8 +25,6 @@
     --covered-fill-hover: rgba(31,227,196,0.95);
     --uncovered-fill: #000000;
     --uncovered-stroke: #1e1e35;
-    --amber: #f0a500;
-    --amber-fill: rgba(240,165,0,0.85);
     --danger: #ff4c6a;
 
     /* Map-canvas colors — kept separate from the UI-chrome variables above
@@ -111,25 +109,23 @@
     gap:10px;
     font-family: var(--font-display);
   }
-  .brand .mark{
+  .home-link{
+    display:flex; align-items:center; gap:6px;
     color: var(--covered-hover);
-    font-size:11px;
-    letter-spacing:.18em;
-    font-family: var(--font-mono);
+    font-size:13px; font-weight:700;
+    font-family: var(--font-display);
     border:1px solid var(--covered);
-    padding:2px 6px;
-    border-radius:3px;
+    padding:6px 12px;
+    border-radius:8px;
+    text-decoration:none;
+    transition:background .15s, color .15s;
   }
+  .home-link:hover{ background:rgba(0,201,167,0.1); color:#fff; }
   .brand h1{
     font-size:18px;
     font-weight:600;
     margin:0;
     letter-spacing:.01em;
-  }
-  .brand .sub{
-    color: var(--muted);
-    font-size:12px;
-    letter-spacing:.02em;
   }
   .hdr-right{
     display:flex;
@@ -222,10 +218,6 @@
   .country.covered:hover{
     fill: var(--map-land-hover);
   }
-  .country.selected{
-    fill: var(--amber-fill) !important;
-    stroke: #3a2a0d;
-  }
 
   .label-layer text{
     font-family: var(--font-mono);
@@ -238,7 +230,7 @@
     stroke-linejoin: round;
     pointer-events:none;
   }
-  .label-layer circle{ fill: var(--amber); }
+  .label-layer circle{ fill: var(--covered); }
 
   /* zoom controls */
   .annotate-toolbar{
@@ -377,7 +369,7 @@
     gap:6px;
   }
   .panel-toggle-btn .badge{
-    background: var(--amber);
+    background: var(--covered);
     color:#0a0a14;
     font-weight:700;
     border-radius:10px;
@@ -483,8 +475,8 @@
     background: var(--covered);
     flex-shrink:0;
   }
-  .region-chip.active .dot{ background: var(--amber); }
-  .region-chip.active{ color: var(--amber); }
+  .region-chip.active .dot{ background: var(--covered); }
+  .region-chip.active{ color: var(--covered); }
   .region-chip.hidden{ display:none; }
 
   /* ---------- footer ---------- */
@@ -516,7 +508,6 @@
     }
     aside.open{ transform: translateX(0); }
     .panel-toggle-btn{ display:flex; }
-    .brand .sub{ display:none; }
   }
 </style>
 </head>
@@ -529,11 +520,11 @@
 
   <header>
     <div class="brand">
-      <a href="/" class="mark" title="Back to 5kable" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+      <a href="/" class="home-link" title="Back to 5kable">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Home</span>
       </a>
       <h1>Region Map</h1>
-      <span class="sub">GeoGuessr world coverage reference</span>
     </div>
     <div class="hdr-right">
       <div class="search-wrap">
@@ -577,7 +568,6 @@
       </div>
       <div class="legend">
         <div class="item"><span class="sw" style="background:var(--map-land)"></span> Covered</div>
-        <div class="item"><span class="sw" style="background:var(--amber)"></span> Selected</div>
         <div class="item"><span class="sw" style="background:var(--map-land-nocode);border:1px solid var(--map-land-nocode-stroke)"></span> No coverage</div>
       </div>
     </div>
