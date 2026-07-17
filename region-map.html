@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Region Map — GeoAnalyzerX</title>
+<title>Region Map — 5kable</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -23,10 +23,10 @@
     --covered-hover: #1fe3c4;
     --covered-fill: rgba(0,201,167,0.82);
     --covered-fill-hover: rgba(31,227,196,0.95);
-    --uncovered-fill: #14141f;
+    --uncovered-fill: #000000;
     --uncovered-stroke: #1e1e35;
-    --amber: #7c3aed;
-    --amber-fill: rgba(124,58,237,0.85);
+    --amber: #f0a500;
+    --amber-fill: rgba(240,165,0,0.85);
     --danger: #ff4c6a;
 
     /* Map-canvas colors — kept separate from the UI-chrome variables above
@@ -529,7 +529,7 @@
 
   <header>
     <div class="brand">
-      <a href="/" class="mark" title="Back to GeoAnalyzerX" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+      <a href="/" class="mark" title="Back to 5kable" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
       </a>
       <h1>Region Map</h1>
@@ -603,7 +603,7 @@
     </aside>
   </main>
 
-  <!-- Footer removed per user request — home button in header replaces the "Back to GeoAnalyzerX" link -->
+  <!-- Footer removed per user request — home button in header replaces the "Back to 5kable" link -->
 
 </div>
 
@@ -1135,24 +1135,24 @@ function applyMapStyle(style){
   document.body.classList.toggle('google-theme', style === 'google');
   const btn = document.getElementById('mapStyleBtn');
   btn.textContent = style === 'google' ? '🌙 DARK STYLE' : '🗺️ MAP STYLE';
-  localStorage.setItem('gax_region_map_style', style);
+  localStorage.setItem('kbl_region_map_style', style);
 }
 document.getElementById('mapStyleBtn').onclick = () => {
   const isGoogle = document.body.classList.contains('google-theme');
   applyMapStyle(isGoogle ? 'dark' : 'google');
 };
-applyMapStyle(localStorage.getItem('gax_region_map_style') === 'google' ? 'google' : 'dark');
+applyMapStyle(localStorage.getItem('kbl_region_map_style') === 'google' ? 'google' : 'dark');
 
 // ── Labels visibility toggle (for clean badge/screenshot crops) ──
 function applyLabelsVisibility(hidden){
   document.body.classList.toggle('labels-hidden', hidden);
   document.getElementById('labelsBtn').textContent = hidden ? '🏷️ SHOW LABELS' : '🏷️ HIDE LABELS';
-  localStorage.setItem('gax_region_map_labels_hidden', hidden ? '1' : '0');
+  localStorage.setItem('kbl_region_map_labels_hidden', hidden ? '1' : '0');
 }
 document.getElementById('labelsBtn').onclick = () => {
   applyLabelsVisibility(!document.body.classList.contains('labels-hidden'));
 };
-applyLabelsVisibility(localStorage.getItem('gax_region_map_labels_hidden') === '1');
+applyLabelsVisibility(localStorage.getItem('kbl_region_map_labels_hidden') === '1');
 
 // ── Annotation tool: select/drag, freehand pen, and click-to-fill ──
 // All drawing happens directly inside annotationLayer (a child of the
