@@ -1383,7 +1383,7 @@ buildRegionList();
 // Clicking a swatch immediately recolors that region on the map.
 const REGION_PALETTE = [
   { key:'hide',    label:'Hide',    color:null, swatchBg:'#3a3a4a' },
-  { key:'default', label:'Default', color:'',   swatchBg:'var(--map-land)' },
+  { key:'default', label:'Default', color:'#e3e2dc', swatchBg:'#e3e2dc' },
   { key:'red5',    label:'Very rare (palest red)',       color:'#f8ddd8' },
   { key:'red1',    label:'Rare (faint red)',        color:'#f1c4bd' },
   { key:'red2',    label:'Uncommon (light red)',    color:'#e8887a' },
@@ -1515,7 +1515,9 @@ document.getElementById('selectAllRegionsBtn').onclick = () => {
 };
 document.getElementById('selectNoneRegionsBtn').onclick = () => {
   document.querySelectorAll('.region-swatch-row').forEach(row => {
-    setRegionColor(row.dataset.id, 'hide');
+    const id = row.dataset.id;
+    if ((regionKeyById[id] || 'default') !== 'default') return; // leave anything you've deliberately colored alone
+    setRegionColor(id, 'hide');
     row.querySelectorAll('.region-swatch').forEach(b => b.classList.toggle('active', b.dataset.key === 'hide'));
   });
 };
