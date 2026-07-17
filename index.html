@@ -1146,10 +1146,10 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
         <h4>Email Support</h4>
         <p>For account issues, billing queries, or anything private. We aim to reply within 24 hours.</p>
       </a>
-      <a href="javascript:void(0)" onclick="openNewTicketModal('bug')" class="contact-card">
-        <div class="contact-card-icon">🐛</div>
-        <h4>Bug Reports</h4>
-        <p>Found something broken? Tell us what happened — it goes straight to our team's Discord.</p>
+      <a href="javascript:void(0)" onclick="openNewTicketModal()" class="contact-card">
+        <div class="contact-card-icon">🎫</div>
+        <h4>Submit a Ticket</h4>
+        <p>Bug, billing, account issue, or anything else — open a ticket and we'll get back to you.</p>
       </a>
 
     </div>
@@ -1496,7 +1496,8 @@ function closeModal() {
   document.getElementById('auth-modal').classList.remove('active');
 }
 
-// ── Bug report modal (public "Bug Reports" contact card) ───
+// ── Legacy bug report modal (orphaned — no longer linked from anywhere;
+// superseded by the ticket system's openNewTicketModal) ───
 function openBugReportModal() {
   document.getElementById('bugmodal-name').value = '';
   document.getElementById('bugmodal-email').value = '';
