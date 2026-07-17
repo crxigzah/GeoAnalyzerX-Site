@@ -1005,12 +1005,18 @@ async function submitMetaReport(){
   try {
     // Optional — same localStorage key index.html stores the auth token
     // under. Anonymous submissions are fine too; the backend just won't
-    // attach a user to those.
+    // attach a user to those (and they won't be able to track it under
+    // My Tickets, since there's no account to tie it to).
     const token = localStorage.getItem('gax_token') || '';
-    const res = await fetch(`${API}/meta/report`, {
+    const res = await fetch(`${API}/tickets/create`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ country: currentReportCountry, description: desc, token })
+      body: JSON.stringify({
+        category: 'meta',
+        subject: `Meta issue: ${currentReportCountry}`,
+        message: desc,
+        token,
+      })
     });
     const data = await res.json();
     if(!res.ok || data.error) throw new Error(data.error || 'Something went wrong');

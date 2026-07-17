@@ -706,6 +706,7 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
   <div class="nav-links" id="nav-links">
     <a id="nav-dashboard-link" onclick="goToDashboard()" style="display:none;cursor:pointer;">📊 Dashboard</a>
     <a id="nav-stats-link" onclick="goToStats()" style="display:none;cursor:pointer;">📈 Stats</a>
+    <a id="nav-tickets-link" onclick="goToTickets()" style="display:none;cursor:pointer;">🎫 Tickets</a>
     <div class="nav-dropdown-wrap" style="display:flex;align-items:center;">
       <a style="display:flex;align-items:center;gap:4px;">
         📜 Script
@@ -1300,6 +1301,66 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
   </div>
 </div>
 
+<div id="tickets-page" style="display:none;min-height:80vh;">
+  <div style="padding:40px;max-width:800px;margin:0 auto;position:relative;z-index:1;">
+    <div class="dash-header">
+      <div>
+        <div class="dash-welcome">🎫 My Tickets</div>
+        <div style="color:var(--muted);font-size:14px;margin-top:4px;">Questions, bugs, feature ideas, meta corrections — anything. We reply here.</div>
+      </div>
+      <button class="btn btn-primary" onclick="openNewTicketModal()">+ New Ticket</button>
+    </div>
+
+    <div id="tickets-list-view">
+      <div id="tickets-list" style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0;">Loading...</div>
+      </div>
+    </div>
+
+    <div id="ticket-thread-view" style="display:none;margin-top:20px;">
+      <button onclick="closeTicketThread()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;margin-bottom:16px;">← Back to all tickets</button>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+          <div>
+            <div id="ticket-thread-subject" style="font-weight:700;font-size:17px;"></div>
+            <div id="ticket-thread-meta" style="color:var(--muted);font-size:12px;margin-top:4px;"></div>
+          </div>
+          <div id="ticket-thread-status" style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap;"></div>
+        </div>
+        <div id="ticket-thread-messages" style="margin-top:20px;display:flex;flex-direction:column;gap:14px;"></div>
+        <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+          <textarea id="ticket-reply-text" placeholder="Write a reply…" rows="3" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+          <div id="ticket-reply-error" style="display:none;color:#ff6b6b;font-size:12px;margin-top:6px;"></div>
+          <button id="ticket-reply-btn" class="btn btn-primary" style="margin-top:10px;padding:9px 20px;font-size:13px;" onclick="submitTicketReply()">Send Reply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="new-ticket-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeNewTicketModal()">✕</button>
+    <h2>🎫 New Ticket</h2>
+    <div class="modal-sub">Bug, feature idea, billing question, meta correction — anything at all.</div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="new-ticket-category" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;">
+        <option value="bug">Bug</option>
+        <option value="feature">Feature Request</option>
+        <option value="meta">Meta Correction / Submission</option>
+        <option value="billing">Billing</option>
+        <option value="account">Account</option>
+        <option value="other" selected>Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Subject</label><input id="new-ticket-subject" type="text" placeholder="Short summary"/></div>
+    <div class="form-group"><label>Message</label><textarea id="new-ticket-message" rows="5" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea></div>
+    <button class="btn btn-primary form-btn" id="new-ticket-submit" onclick="submitNewTicket()">Submit Ticket</button>
+    <div class="form-error" id="new-ticket-error"></div>
+  </div>
+</div>
+
 <!-- Auth Modal -->
 <div class="modal-overlay" id="auth-modal">
   <div class="modal">
@@ -1466,14 +1527,15 @@ async function submitBugReportModal() {
   btn.textContent = 'Submitting…';
   errEl.style.display = 'none';
   try {
-    const res = await fetch(API + '/forms/submit', {
+    const name = document.getElementById('bugmodal-name').value.trim();
+    const res = await fetch(API + '/tickets/create', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        form_type: 'bug',
-        name: document.getElementById('bugmodal-name').value.trim(),
-        email: document.getElementById('bugmodal-email').value.trim(),
+        category: 'bug',
+        subject: name ? `Bug report from ${name}` : 'Bug report',
         message,
+        email: document.getElementById('bugmodal-email').value.trim(),
         token: getToken() || '',
       })
     });
@@ -1676,6 +1738,7 @@ function goHome() {
   document.getElementById('landing').style.display = '';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('tickets-page').style.display = 'none';
   window.scrollTo(0, 0);
 }
 
@@ -1684,6 +1747,7 @@ function goToDashboard() {
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('tickets-page').style.display = 'none';
   window.scrollTo(0, 0);
   // Refresh stats every time the dashboard is opened, not just on
   // initial page load — previously only showDashboard() (called once
@@ -1703,6 +1767,7 @@ function goToStats() {
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'block';
+  document.getElementById('tickets-page').style.display = 'none';
   window.scrollTo(0, 0);
   const token = getToken();
   if (token) {
@@ -1711,6 +1776,176 @@ function goToStats() {
     loadFullStats(token);
     loadStatsBadges(token);
     loadWorldMap(token);
+  }
+}
+
+function goToTickets() {
+  closeUserMenu();
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('tickets-page').style.display = 'block';
+  document.getElementById('ticket-thread-view').style.display = 'none';
+  document.getElementById('tickets-list-view').style.display = 'block';
+  window.scrollTo(0, 0);
+  loadMyTickets();
+}
+
+// ── Tickets ───────────────────────────────────────────────
+const TICKET_STATUS_STYLE = {
+  open:        { label: 'Open',        bg: 'rgba(240,165,0,0.15)',  color: '#f0a500' },
+  in_progress: { label: 'In Progress', bg: 'rgba(94,179,255,0.15)', color: '#5eb3ff' },
+  resolved:    { label: 'Resolved',    bg: 'rgba(0,201,167,0.15)',  color: '#00c9a7' },
+  closed:      { label: 'Closed',      bg: 'rgba(136,136,170,0.15)',color: '#8888aa' },
+};
+const TICKET_CATEGORY_LABEL = {
+  bug: '🐛 Bug', feature: '💡 Feature', meta: '🗺️ Meta', billing: '💳 Billing',
+  account: '👤 Account', other: '💬 Other',
+};
+
+let currentTicketId = null;
+
+async function loadMyTickets(){
+  const listEl = document.getElementById('tickets-list');
+  const token = getToken();
+  if (!token) { listEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0;">Please log in to view your tickets.</div>'; return; }
+  try {
+    const res = await fetch(`${API}/tickets/mine?token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Could not load tickets');
+    const tickets = data.tickets || [];
+    if (!tickets.length){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0;">No tickets yet — click "+ New Ticket" if you need anything.</div>';
+      return;
+    }
+    listEl.innerHTML = tickets.map(t => {
+      const s = TICKET_STATUS_STYLE[t.status] || TICKET_STATUS_STYLE.open;
+      const cat = TICKET_CATEGORY_LABEL[t.category] || t.category;
+      return `
+        <div onclick="openTicketThread('${t.id}')" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+            <div>
+              <div style="font-weight:600;font-size:14px;">${escapeHtmlIdx(t.subject)}</div>
+              <div style="color:var(--muted);font-size:12px;margin-top:4px;">${cat} · Updated ${formatTicketDate(t.updated_at)}</div>
+            </div>
+            <div style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;background:${s.bg};color:${s.color};">${s.label}</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div style="color:#ff6b6b;font-size:13px;text-align:center;padding:30px 0;">${e.message}</div>`;
+  }
+}
+
+function escapeHtmlIdx(s){
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+function formatTicketDate(iso){
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch(e) { return iso; }
+}
+
+async function openTicketThread(id){
+  currentTicketId = id;
+  document.getElementById('tickets-list-view').style.display = 'none';
+  document.getElementById('ticket-thread-view').style.display = 'block';
+  document.getElementById('ticket-thread-messages').innerHTML = '<div style="color:var(--muted);font-size:13px;">Loading…</div>';
+  const token = getToken();
+  try {
+    const res = await fetch(`${API}/tickets/${id}?token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Could not load ticket');
+    document.getElementById('ticket-thread-subject').textContent = data.subject;
+    const cat = TICKET_CATEGORY_LABEL[data.category] || data.category;
+    document.getElementById('ticket-thread-meta').textContent = `${cat} · Opened ${formatTicketDate(data.created_at)}`;
+    const s = TICKET_STATUS_STYLE[data.status] || TICKET_STATUS_STYLE.open;
+    const statusEl = document.getElementById('ticket-thread-status');
+    statusEl.textContent = s.label;
+    statusEl.style.background = s.bg;
+    statusEl.style.color = s.color;
+    document.getElementById('ticket-thread-messages').innerHTML = (data.messages || []).map(m => {
+      const isAdmin = m.sender_type === 'admin';
+      return `
+        <div style="align-self:${isAdmin ? 'flex-start' : 'flex-end'};max-width:80%;background:${isAdmin ? 'rgba(94,179,255,0.08)' : 'var(--bg)'};border:1px solid ${isAdmin ? 'rgba(94,179,255,0.25)' : 'var(--border)'};border-radius:12px;padding:12px 14px;">
+          <div style="font-size:11px;font-weight:600;color:${isAdmin ? '#5eb3ff' : 'var(--muted)'};margin-bottom:4px;">${isAdmin ? '🛟 ' + escapeHtmlIdx(m.sender_name || 'Support') : escapeHtmlIdx(m.sender_name || 'You')}</div>
+          <div style="font-size:13px;white-space:pre-wrap;">${escapeHtmlIdx(m.message)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:6px;">${formatTicketDate(m.created_at)}</div>
+        </div>`;
+    }).join('');
+    document.getElementById('ticket-thread-messages').style.display = 'flex';
+  } catch(e) {
+    document.getElementById('ticket-thread-messages').innerHTML = `<div style="color:#ff6b6b;font-size:13px;">${e.message}</div>`;
+  }
+}
+
+function closeTicketThread(){
+  currentTicketId = null;
+  document.getElementById('ticket-thread-view').style.display = 'none';
+  document.getElementById('tickets-list-view').style.display = 'block';
+  loadMyTickets();
+}
+
+async function submitTicketReply(){
+  const text = document.getElementById('ticket-reply-text').value.trim();
+  const errEl = document.getElementById('ticket-reply-error');
+  if (!text){ errEl.textContent = 'Please write a message.'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('ticket-reply-btn');
+  btn.disabled = true; btn.textContent = 'Sending…'; errEl.style.display = 'none';
+  try {
+    const res = await fetch(`${API}/tickets/${currentTicketId}/reply`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token: getToken(), message: text })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Could not send reply');
+    document.getElementById('ticket-reply-text').value = '';
+    openTicketThread(currentTicketId);
+  } catch(e) {
+    errEl.textContent = e.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Reply';
+  }
+}
+
+function openNewTicketModal(){
+  document.getElementById('new-ticket-category').value = 'other';
+  document.getElementById('new-ticket-subject').value = '';
+  document.getElementById('new-ticket-message').value = '';
+  document.getElementById('new-ticket-error').style.display = 'none';
+  document.getElementById('new-ticket-modal').classList.add('active');
+}
+function closeNewTicketModal(){
+  document.getElementById('new-ticket-modal').classList.remove('active');
+}
+async function submitNewTicket(){
+  const subject = document.getElementById('new-ticket-subject').value.trim();
+  const message = document.getElementById('new-ticket-message').value.trim();
+  const category = document.getElementById('new-ticket-category').value;
+  const errEl = document.getElementById('new-ticket-error');
+  if (!subject){ errEl.textContent = 'Please add a subject.'; errEl.style.display = 'block'; return; }
+  if (!message){ errEl.textContent = 'Please describe your issue.'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('new-ticket-submit');
+  btn.disabled = true; btn.textContent = 'Submitting…'; errEl.style.display = 'none';
+  try {
+    const res = await fetch(`${API}/tickets/create`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ category, subject, message, token: getToken() || '' })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Could not submit ticket');
+    btn.textContent = 'Submitted ✓';
+    setTimeout(() => {
+      closeNewTicketModal();
+      btn.disabled = false; btn.textContent = 'Submit Ticket';
+      if (getToken()) { goToTickets(); }
+    }, 900);
+  } catch(e) {
+    errEl.textContent = e.message; errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Submit Ticket';
   }
 }
 
@@ -1764,6 +1999,7 @@ function updateNav(user) {
   document.getElementById('nav-auth-user').style.display = 'block';
   document.getElementById('nav-dashboard-link').style.display = '';
   document.getElementById('nav-stats-link').style.display = '';
+  document.getElementById('nav-tickets-link').style.display = '';
   applyBadgeToUsernameEls(user);
   const du = document.getElementById('dropdown-username');
   const de = document.getElementById('dropdown-email');
@@ -1781,12 +2017,14 @@ function resetNav() {
   document.getElementById('nav-auth-user').style.display = 'none';
   document.getElementById('nav-dashboard-link').style.display = 'none';
   document.getElementById('nav-stats-link').style.display = 'none';
+  document.getElementById('nav-tickets-link').style.display = 'none';
 }
 
 function showDashboard(user, token) {
   document.getElementById('landing').style.display   = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('tickets-page').style.display = 'none';
   window.scrollTo(0,0);
   updateNav(user);
   updateNavAvatar();
@@ -2377,6 +2615,7 @@ function logout() {
   document.getElementById('landing').style.display   = '';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'none';
+  document.getElementById('tickets-page').style.display = 'none';
   resetNav();
   closeUserMenu();
   if (token) {
