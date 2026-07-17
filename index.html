@@ -12,13 +12,13 @@
   --card: #171310;
   --card2: #1d1812;
   --border: #2b2419;
-  --teal: #d4af37;
-  --teal2: #a8841c;
-  --purple: #8a6d1f;
+  --teal: #b8860b;
+  --teal2: #8a6510;
+  --purple: #6b4e12;
   --text: #f2ede0;
   --muted: #9a8f76;
   --red: #ff4c6a;
-  --gold: #f0a500;
+  --gold: #d4900a;
 }
 * { box-sizing:border-box;margin:0;padding:0; }
 body { background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;line-height:1.6;overflow-x:hidden; }
@@ -27,11 +27,11 @@ body { background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-
 body::before {
   content:'';position:fixed;inset:0;
   background:
-    radial-gradient(ellipse 70% 55% at 8% 18%, rgba(212,175,55,0.09) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 45% at 92% 8%, rgba(138,109,31,0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 8% 18%, rgba(184,134,11,0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 92% 8%, rgba(107,78,18,0.09) 0%, transparent 55%),
     radial-gradient(ellipse 45% 38% at 50% 85%, rgba(0,168,125,0.06) 0%, transparent 58%),
-    radial-gradient(ellipse 38% 30% at 78% 62%, rgba(138,109,31,0.05) 0%, transparent 50%),
-    radial-gradient(ellipse 30% 25% at 25% 60%, rgba(212,175,55,0.04) 0%, transparent 45%);
+    radial-gradient(ellipse 38% 30% at 78% 62%, rgba(107,78,18,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 30% 25% at 25% 60%, rgba(184,134,11,0.04) 0%, transparent 45%);
   pointer-events:none;z-index:0;animation:bgShift 22s ease-in-out infinite alternate;
 }
 @keyframes bgShift {
@@ -44,8 +44,8 @@ body::before {
 body::after {
   content:'';position:fixed;inset:0;
   background-image:
-    linear-gradient(rgba(212,175,55,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212,175,55,0.025) 1px, transparent 1px),
+    linear-gradient(rgba(184,134,11,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,134,11,0.025) 1px, transparent 1px),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   background-size: 48px 48px, 48px 48px, 200px 200px;
   pointer-events:none;z-index:0;
@@ -59,7 +59,7 @@ body::after {
 .aurora-lines::before {
   content:'';position:absolute;
   width:200%;height:3px;
-  background:linear-gradient(90deg, transparent, rgba(212,175,55,0.08), rgba(138,109,31,0.06), transparent);
+  background:linear-gradient(90deg, transparent, rgba(184,134,11,0.08), rgba(107,78,18,0.06), transparent);
   top:30%;left:-50%;
   animation:auroraSweep 14s ease-in-out infinite;
   filter:blur(2px);
@@ -67,7 +67,7 @@ body::after {
 .aurora-lines::after {
   content:'';position:absolute;
   width:200%;height:2px;
-  background:linear-gradient(90deg, transparent, rgba(138,109,31,0.06), rgba(212,175,55,0.08), transparent);
+  background:linear-gradient(90deg, transparent, rgba(107,78,18,0.06), rgba(184,134,11,0.08), transparent);
   top:65%;left:-50%;
   animation:auroraSweep 20s ease-in-out infinite reverse;
   filter:blur(2px);
@@ -89,16 +89,16 @@ nav {
   color:var(--text);font-size:17px;font-weight:700;letter-spacing:0.5px;text-decoration:none;
 }
 .nav-logo img { width:38px;height:38px;object-fit:contain; }
-.nav-logo span { background:linear-gradient(135deg,#d4af37,#8a6d1f);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+.nav-logo span { background:linear-gradient(135deg,#b8860b,#6b4e12);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
 .nav-links { display:flex;gap:20px;align-items:center; }
 .nav-links a { color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s; }
 .nav-links a:hover { color:var(--text); }
 .nav-discord { color:var(--muted);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:5px;transition:color .2s; }
 .nav-discord:hover { color:#5865F2; }
 .btn { padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s; }
-.btn-outline { background:transparent;border:1px solid rgba(212,175,55,0.4);color:var(--teal); }
+.btn-outline { background:transparent;border:1px solid rgba(184,134,11,0.4);color:var(--teal); }
 .btn-outline:hover { background:var(--teal);color:#0b0a08; }
-.btn-primary { background:linear-gradient(135deg,#d4af37,#a8841c);color:#0b0a08;font-weight:700; }
+.btn-primary { background:linear-gradient(135deg,#b8860b,#8a6510);color:#0b0a08;font-weight:700; }
 .btn-primary:hover { opacity:0.9;transform:translateY(-1px); }
 
 /* Currency selector */
@@ -115,21 +115,21 @@ nav {
 .hero { text-align:center;padding:120px 40px 80px;max-width:860px;margin:0 auto;position:relative;z-index:1; }
 .hero-badge {
   display:inline-flex;align-items:center;gap:6px;
-  background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);
+  background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.25);
   color:var(--teal);padding:5px 16px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:28px;
 }
 .hero h1 { font-size:58px;font-weight:800;line-height:1.1;margin-bottom:22px;letter-spacing:-1px; }
-.hero h1 .grad { background:linear-gradient(135deg,#d4af37,#8a6d1f);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+.hero h1 .grad { background:linear-gradient(135deg,#b8860b,#6b4e12);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
 .hero p { font-size:18px;color:var(--muted);margin-bottom:40px;max-width:600px;margin-left:auto;margin-right:auto; }
 .hero-btns { display:flex;gap:12px;justify-content:center;flex-wrap:wrap; }
 .hero-btns .btn { padding:13px 30px;font-size:15px; }
 
 /* Glow orbs */
 .orb { position:absolute;border-radius:50%;filter:blur(80px);opacity:0.18;pointer-events:none; }
-.orb1 { width:500px;height:500px;background:#d4af37;top:-80px;left:-160px; }
-.orb2 { width:420px;height:420px;background:#8a6d1f;top:20px;right:-140px; }
-.orb3 { width:320px;height:320px;background:#d4af37;top:200px;left:-80px;opacity:0.08;filter:blur(120px); }
-.orb4 { width:280px;height:280px;background:#8a6d1f;top:160px;right:-60px;opacity:0.08;filter:blur(120px); }
+.orb1 { width:500px;height:500px;background:#b8860b;top:-80px;left:-160px; }
+.orb2 { width:420px;height:420px;background:#6b4e12;top:20px;right:-140px; }
+.orb3 { width:320px;height:320px;background:#b8860b;top:200px;left:-80px;opacity:0.08;filter:blur(120px); }
+.orb4 { width:280px;height:280px;background:#6b4e12;top:160px;right:-60px;opacity:0.08;filter:blur(120px); }
 
 /* Stats */
 .stats {
@@ -139,7 +139,7 @@ nav {
 }
 .stat { padding:28px 48px;text-align:center;border-right:1px solid var(--border); }
 .stat:last-child { border-right:none; }
-.stat-num { font-size:36px;font-weight:800;background:linear-gradient(135deg,#d4af37,#8a6d1f);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+.stat-num { font-size:36px;font-weight:800;background:linear-gradient(135deg,#b8860b,#6b4e12);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
 .stat-label { font-size:12px;color:var(--muted);margin-top:2px;font-weight:500; }
 
 /* Countries marquee */
@@ -153,7 +153,7 @@ nav {
 @keyframes scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
 .country-tag {
   display:inline-flex;align-items:center;gap:6px;
-  background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.15);
+  background:rgba(184,134,11,0.06);border:1px solid rgba(184,134,11,0.15);
   border-radius:20px;padding:4px 14px;font-size:12px;color:var(--muted);white-space:nowrap;
 }
 
@@ -178,10 +178,10 @@ nav {
 }
 .feature-card::before {
   content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(212,175,55,0.04),transparent);
+  background:linear-gradient(135deg,rgba(184,134,11,0.04),transparent);
   opacity:0;transition:opacity .3s;
 }
-.feature-card:hover { border-color:rgba(212,175,55,0.3);transform:translateY(-2px); }
+.feature-card:hover { border-color:rgba(184,134,11,0.3);transform:translateY(-2px); }
 .feature-card:hover::before { opacity:1; }
 .feature-icon { font-size:30px;margin-bottom:14px; }
 .feature-card h3 { font-size:16px;font-weight:700;margin-bottom:8px; }
@@ -190,15 +190,15 @@ nav {
 /* How it works */
 .how-section {
   padding:80px 40px;
-  background:linear-gradient(180deg,transparent,rgba(138,109,31,0.04),transparent);
+  background:linear-gradient(180deg,transparent,rgba(107,78,18,0.04),transparent);
   position:relative;z-index:1;
 }
 .steps { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:32px;max-width:1200px;margin:0 auto; }
 .step { text-align:center;padding:0 16px; }
 .step-num {
   width:60px;height:60px;
-  background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(138,109,31,0.15));
-  border:1px solid rgba(212,175,55,0.3);border-radius:50%;
+  background:linear-gradient(135deg,rgba(184,134,11,0.15),rgba(107,78,18,0.15));
+  border:1px solid rgba(184,134,11,0.3);border-radius:50%;
   display:flex;align-items:center;justify-content:center;margin:0 auto 18px;
   font-size:22px;font-weight:800;color:var(--teal);
 }
@@ -212,13 +212,13 @@ nav {
   width:300px;position:relative;transition:all .3s;
 }
 .price-card.featured {
-  border-color:rgba(212,175,55,0.4);
-  background:linear-gradient(135deg,rgba(212,175,55,0.06),rgba(138,109,31,0.06));
+  border-color:rgba(184,134,11,0.4);
+  background:linear-gradient(135deg,rgba(184,134,11,0.06),rgba(107,78,18,0.06));
 }
 .price-card:hover { transform:translateY(-3px); }
 .price-badge {
   position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-  background:linear-gradient(135deg,#d4af37,#8a6d1f);color:#0b0a08;
+  background:linear-gradient(135deg,#b8860b,#6b4e12);color:#0b0a08;
   padding:3px 18px;border-radius:20px;font-size:11px;font-weight:700;
 }
 .price-name { font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px; }
@@ -293,13 +293,13 @@ nav {
   border-top:1px solid var(--border);
 }
 .download-box {
-  background:linear-gradient(135deg,rgba(212,175,55,0.06),rgba(138,109,31,0.06));
-  border:1px solid rgba(212,175,55,0.2);border-radius:24px;
+  background:linear-gradient(135deg,rgba(184,134,11,0.06),rgba(107,78,18,0.06));
+  border:1px solid rgba(184,134,11,0.2);border-radius:24px;
   padding:56px 40px;max-width:720px;margin:0 auto;position:relative;overflow:hidden;
 }
 .download-box::before {
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(212,175,55,0.08),transparent);
+  background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(184,134,11,0.08),transparent);
   pointer-events:none;
 }
 .download-steps {
@@ -312,7 +312,7 @@ nav {
 }
 .dl-step-num {
   width:26px;height:26px;border-radius:50%;
-  background:linear-gradient(135deg,var(--teal),#8a6d1f);
+  background:linear-gradient(135deg,var(--teal),#6b4e12);
   display:flex;align-items:center;justify-content:center;
   font-size:12px;font-weight:800;color:#000;margin-bottom:10px;
 }
@@ -320,19 +320,19 @@ nav {
 .dl-step p { font-size:12px;color:var(--muted);line-height:1.5; }
 .download-btn {
   display:inline-flex;align-items:center;gap:10px;
-  background:linear-gradient(135deg,var(--teal),#a8841c);
+  background:linear-gradient(135deg,var(--teal),#8a6510);
   color:#000;font-weight:800;font-size:15px;
   padding:14px 32px;border-radius:12px;text-decoration:none;
   transition:all .2s;border:none;cursor:pointer;
 }
-.download-btn:hover { transform:translateY(-2px);box-shadow:0 12px 32px rgba(212,175,55,0.35); }
+.download-btn:hover { transform:translateY(-2px);box-shadow:0 12px 32px rgba(184,134,11,0.35); }
 .download-note { font-size:12px;color:var(--muted);margin-top:14px; }
 .faq-section { padding:80px 40px;max-width:860px;margin:0 auto;position:relative;z-index:1; }
 .faq-item {
   border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;
   transition:border-color .2s;
 }
-.faq-item:hover { border-color:rgba(212,175,55,0.3); }
+.faq-item:hover { border-color:rgba(184,134,11,0.3); }
 .faq-q {
   padding:18px 22px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
   font-size:15px;font-weight:600;user-select:none;line-height:1.4;
@@ -345,7 +345,7 @@ nav {
 /* Contact section */
 .contact-section {
   padding:80px 40px;position:relative;z-index:1;
-  background:linear-gradient(180deg,transparent,rgba(212,175,55,0.03),transparent);
+  background:linear-gradient(180deg,transparent,rgba(184,134,11,0.03),transparent);
   border-top:1px solid var(--border);
 }
 .contact-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:900px;margin:0 auto; }
@@ -353,18 +353,18 @@ nav {
   background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;
   text-align:center;transition:all .3s;text-decoration:none;display:block;
 }
-.contact-card:hover { border-color:rgba(212,175,55,0.35);transform:translateY(-3px);box-shadow:0 12px 32px rgba(212,175,55,0.07); }
+.contact-card:hover { border-color:rgba(184,134,11,0.35);transform:translateY(-3px);box-shadow:0 12px 32px rgba(184,134,11,0.07); }
 .contact-card-icon { font-size:28px;margin-bottom:12px; }
 .contact-card h4 { font-size:14px;font-weight:700;margin-bottom:6px;color:var(--text); }
 .contact-card p { font-size:12px;color:var(--muted);line-height:1.5; }
 #dashboard { display:none;padding:40px;max-width:900px;margin:0 auto;position:relative;z-index:1; }
 .dash-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:16px; }
 .dash-welcome { font-size:24px;font-weight:800; }
-.dash-tier { display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(212,175,55,0.12);border:1px solid var(--teal);color:var(--teal); }
-.dash-tier.pro { background:rgba(240,165,0,0.12);border-color:var(--gold);color:var(--gold); }
+.dash-tier { display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(184,134,11,0.12);border:1px solid var(--teal);color:var(--teal); }
+.dash-tier.pro { background:rgba(212,144,10,0.12);border-color:var(--gold);color:var(--gold); }
 .dash-cards { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px; }
 .dash-card { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px; }
-.dash-card-num { font-size:28px;font-weight:800;background:linear-gradient(135deg,#d4af37,#8a6d1f);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+.dash-card-num { font-size:28px;font-weight:800;background:linear-gradient(135deg,#b8860b,#6b4e12);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
 .dash-card-label { font-size:12px;color:var(--muted);margin-top:4px; }
 
 /* Auth modal */
@@ -399,15 +399,15 @@ footer {
 /* Pulse on CTA button */
 .btn-primary { animation: pulse-glow 3s ease-in-out infinite; }
 @keyframes pulse-glow {
-  0%,100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
-  50% { box-shadow: 0 0 20px 4px rgba(212,175,55,0.25); }
+  0%,100% { box-shadow: 0 0 0 0 rgba(184,134,11,0); }
+  50% { box-shadow: 0 0 20px 4px rgba(184,134,11,0.25); }
 }
 
 /* Feature cards - lift + glow on hover */
 .feature-card:hover {
-  border-color: rgba(212,175,55,0.4) !important;
+  border-color: rgba(184,134,11,0.4) !important;
   transform: translateY(-4px) !important;
-  box-shadow: 0 16px 40px rgba(212,175,55,0.08);
+  box-shadow: 0 16px 40px rgba(184,134,11,0.08);
 }
 
 /* Step numbers - spin on hover */
@@ -415,15 +415,15 @@ footer {
   transform: rotate(360deg) scale(1.1);
   transition: transform 0.5s ease;
   border-color: var(--teal);
-  background: rgba(212,175,55,0.2);
+  background: rgba(184,134,11,0.2);
 }
 
 /* Price cards */
 .price-card:hover {
-  box-shadow: 0 20px 60px rgba(212,175,55,0.1);
+  box-shadow: 0 20px 60px rgba(184,134,11,0.1);
 }
 .price-card.featured:hover {
-  box-shadow: 0 20px 60px rgba(212,175,55,0.2);
+  box-shadow: 0 20px 60px rgba(184,134,11,0.2);
 }
 
 /* Nav links underline animation */
@@ -448,7 +448,7 @@ footer {
   cursor: default;
 }
 .stat:hover {
-  background: rgba(212,175,55,0.04);
+  background: rgba(184,134,11,0.04);
 }
 .stat:hover .stat-num {
   transform: scale(1.05);
@@ -462,8 +462,8 @@ footer {
   cursor: default;
 }
 .country-tag:hover {
-  background: rgba(212,175,55,0.15) !important;
-  border-color: rgba(212,175,55,0.4) !important;
+  background: rgba(184,134,11,0.15) !important;
+  border-color: rgba(184,134,11,0.4) !important;
   color: var(--text) !important;
   transform: scale(1.05);
 }
@@ -501,15 +501,15 @@ html { scroll-behavior: smooth; }
   transition: all .25s;
 }
 .dash-card:hover {
-  border-color: rgba(212,175,55,0.3);
+  border-color: rgba(184,134,11,0.3);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(212,175,55,0.08);
+  box-shadow: 0 8px 24px rgba(184,134,11,0.08);
 }
 
 /* Form inputs glow on focus */
 .form-group input:focus {
   border-color: var(--teal) !important;
-  box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
+  box-shadow: 0 0 0 3px rgba(184,134,11,0.1);
 }
 
 /* Discord link hover */
@@ -652,14 +652,14 @@ html { scroll-behavior: smooth; }
 <div id="gate" style="position:fixed;inset:0;background:#0b0a08;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;">
   <div style="background:#171310;border:1px solid #241f14;border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.6);">
     <div style="font-size:36px;margin-bottom:16px;">🔒</div>
-    <h1 style="font-size:22px;font-weight:800;margin-bottom:6px;background:linear-gradient(135deg,#d4af37,#8a6d1f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">5kable</h1>
+    <h1 style="font-size:22px;font-weight:800;margin-bottom:6px;background:linear-gradient(135deg,#b8860b,#6b4e12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">5kable</h1>
     <p style="color:#8a806c;font-size:14px;margin-bottom:32px;font-family:-apple-system,sans-serif;">Site under construction — come back soon</p>
     <input id="gate-pw" type="password" placeholder="Enter password..." autocomplete="off"
       style="width:100%;background:#0b0a08;border:1px solid #241f14;border-radius:10px;padding:13px 16px;color:#efeade;font-size:15px;font-family:-apple-system,sans-serif;outline:none;margin-bottom:12px;text-align:center;"
       onkeydown="if(event.key==='Enter')checkGate()"
-      onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#241f14'">
+      onfocus="this.style.borderColor='#b8860b'" onblur="this.style.borderColor='#241f14'">
     <button onclick="checkGate()"
-      style="width:100%;background:linear-gradient(135deg,#d4af37,#b8860b);border:none;color:#0b0a08;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;font-size:15px;font-family:-apple-system,sans-serif;transition:opacity .2s;"
+      style="width:100%;background:linear-gradient(135deg,#b8860b,#b8860b);border:none;color:#0b0a08;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;font-size:15px;font-family:-apple-system,sans-serif;transition:opacity .2s;"
       onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Enter Site</button>
     <div id="gate-err" style="color:#ff6b6b;font-size:13px;margin-top:12px;display:none;font-family:-apple-system,sans-serif;">Incorrect password</div>
   </div>
@@ -728,7 +728,7 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
       </div>
     </div>
     <a href="#rules" onclick="goHome();setTimeout(()=>document.getElementById('rules')?.scrollIntoView({behavior:'smooth'}),100);return false;">📋 Rules</a>
-    <a href="/metas" style="color:#d4af37;font-weight:700;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);padding:4px 12px;border-radius:20px;font-size:12px;text-decoration:none;transition:background .2s;" onmouseover="this.style.background='rgba(212,175,55,0.2)'" onmouseout="this.style.background='rgba(212,175,55,0.1)'">🗺️ Metas</a>
+    <a href="/metas" style="color:#b8860b;font-weight:700;background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.25);padding:4px 12px;border-radius:20px;font-size:12px;text-decoration:none;transition:background .2s;" onmouseover="this.style.background='rgba(184,134,11,0.2)'" onmouseout="this.style.background='rgba(184,134,11,0.1)'">🗺️ Metas</a>
 
     <a href="https://discord.gg/YAmvxvXmw8" target="_blank" class="nav-discord" title="Discord">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.079.11 18.1.128 18.114a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
@@ -761,7 +761,7 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
         <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
           <div id="dropdown-username" style="font-weight:700;color:var(--text);font-size:13px;"></div>
           <div id="dropdown-email" style="color:var(--muted);font-size:11px;margin-top:2px;"></div>
-          <div id="dropdown-tier" style="display:inline-block;margin-top:6px;padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(212,175,55,0.12);border:1px solid var(--teal);color:var(--teal);"></div>
+          <div id="dropdown-tier" style="display:inline-block;margin-top:6px;padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(184,134,11,0.12);border:1px solid var(--teal);color:var(--teal);"></div>
         </div>
         <a onclick="goToDashboard()" style="display:block;padding:11px 16px;color:var(--text);font-size:13px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''">📊 Dashboard</a>
         <a onclick="goToStats()" style="display:block;padding:11px 16px;color:var(--text);font-size:13px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''">📈 Stats</a>
@@ -791,7 +791,7 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
       <p>The world's first AI-powered GeoGuessr training assistant. Analyse scenes, learn from every mistake, and build a personal visual knowledge base automatically.</p>
 
       <div id="globeBlock" style="width:100%;max-width:320px;aspect-ratio:1/1;position:relative;margin:8px auto 20px;">
-        <div style="position:absolute;inset:-20%;border-radius:50%;background:radial-gradient(circle,rgba(212,175,55,0.4) 0%,rgba(138,109,31,0.2) 45%,transparent 70%);filter:blur(24px);pointer-events:none;"></div>
+        <div style="position:absolute;inset:-20%;border-radius:50%;background:radial-gradient(circle,rgba(184,134,11,0.4) 0%,rgba(107,78,18,0.2) 45%,transparent 70%);filter:blur(24px);pointer-events:none;"></div>
         <canvas id="heroGlobeCanvas" style="width:100%;height:100%;display:block;position:relative;"></canvas>
       </div>
 
@@ -800,12 +800,12 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
         <button class="btn btn-outline" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">See How It Works</button>
       </div>
       <div style="margin-top:16px;">
-        <a href="/metas" class="btn" style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);color:#d4af37;padding:10px 24px;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s;" onmouseover="this.style.background='rgba(212,175,55,0.2)'" onmouseout="this.style.background='rgba(212,175,55,0.1)'">
+        <a href="/metas" class="btn" style="background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:10px 24px;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s;" onmouseover="this.style.background='rgba(184,134,11,0.2)'" onmouseout="this.style.background='rgba(184,134,11,0.1)'">
           🗺️ Country Metas
         </a>
       </div>
       <div class="flag-strip" style="margin-top:32px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;max-width:600px;margin-left:auto;margin-right:auto;">
-<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Australia"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1e6-1f1fa.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="AU"/>Australia</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Brazil"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1e7-1f1f7.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="BR"/>Brazil</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="United States"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1fa-1f1f8.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="US"/>United States</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Japan"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1ef-1f1f5.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="JP"/>Japan</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="India"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1ee-1f1f3.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="IN"/>India</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="South Africa"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1ff-1f1e6.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="ZA"/>South Africa</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="France"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1eb-1f1f7.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="FR"/>France</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Argentina"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1e6-1f1f7.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="AR"/>Argentina</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Norway"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1f3-1f1f4.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="NO"/>Norway</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Thailand"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1f9-1f1ed.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="TH"/>Thailand</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Portugal"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1f5-1f1f9.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="PT"/>Portugal</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(212,175,55,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(212,175,55,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="New Zealand"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1f3-1f1ff.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="NZ"/>New Zealand</span>
+<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Australia"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1e6-1f1fa.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="AU"/>Australia</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Brazil"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1e7-1f1f7.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="BR"/>Brazil</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="United States"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1fa-1f1f8.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="US"/>United States</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Japan"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1ef-1f1f5.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="JP"/>Japan</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="India"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1ee-1f1f3.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="IN"/>India</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="South Africa"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1ff-1f1e6.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="ZA"/>South Africa</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="France"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1eb-1f1f7.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="FR"/>France</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Argentina"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1e6-1f1f7.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="AR"/>Argentina</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Norway"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1f3-1f1f4.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="NO"/>Norway</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Thailand"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1f9-1f1ed.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="TH"/>Thailand</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="Portugal"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1f5-1f1f9.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="PT"/>Portugal</span><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--muted);transition:all .2s;cursor:default;" onmouseover="this.style.background='rgba(184,134,11,0.18)';this.style.color='#fff';this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(184,134,11,0.08)';this.style.color='var(--muted)';this.style.transform='scale(1)'" title="New Zealand"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1f3-1f1ff.svg" width="20" height="15" style="border-radius:2px;vertical-align:middle;margin-right:5px;" onerror="this.style.display='none'" alt="NZ"/>New Zealand</span>
 </div>
 <div style="color:var(--muted);font-size:12px;margin-top:10px;">+ 100 more countries supported</div>
     </div>
@@ -898,11 +898,11 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
     <h2 style="font-size:30px;font-weight:800;margin-bottom:12px;">Learn Every Country</h2>
     <p style="color:var(--muted);margin-bottom:36px;max-width:520px;margin-left:auto;margin-right:auto;">In-depth visual guides for every GeoGuessr country — dead giveaways, road meta, regional breakdowns, and more.</p>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:36px;">
-      <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);color:#d4af37;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🗺️ 114 Countries</span>
-      <span style="background:rgba(138,109,31,0.1);border:1px solid rgba(138,109,31,0.25);color:#d9c07a;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">📸 Visual Clue Guides</span>
-      <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);color:#d4af37;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🔑 Dead Giveaways</span>
-      <span style="background:rgba(138,109,31,0.1);border:1px solid rgba(138,109,31,0.25);color:#d9c07a;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🛣️ Road Meta</span>
-      <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);color:#d4af37;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🌍 Regional Breakdowns</span>
+      <span style="background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.25);color:#b8860b;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🗺️ 114 Countries</span>
+      <span style="background:rgba(107,78,18,0.1);border:1px solid rgba(107,78,18,0.25);color:#d9c07a;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">📸 Visual Clue Guides</span>
+      <span style="background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.25);color:#b8860b;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🔑 Dead Giveaways</span>
+      <span style="background:rgba(107,78,18,0.1);border:1px solid rgba(107,78,18,0.25);color:#d9c07a;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🛣️ Road Meta</span>
+      <span style="background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.25);color:#b8860b;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;">🌍 Regional Breakdowns</span>
     </div>
     <a href="/metas" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:15px;padding:14px 32px;">
       🗺️ Explore Country Metas
@@ -960,19 +960,19 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
           <tr>
             <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;border-bottom:1px solid #2e2717;">Feature</th>
             <th style="text-align:center;padding:12px 16px;color:var(--teal);font-weight:700;border-bottom:1px solid #2e2717;">Free</th>
-            <th style="text-align:center;padding:12px 16px;color:#f0a500;font-weight:700;border-bottom:1px solid #2e2717;">⭐ Pro</th>
+            <th style="text-align:center;padding:12px 16px;color:#d4900a;font-weight:700;border-bottom:1px solid #2e2717;">⭐ Pro</th>
           </tr>
         </thead>
         <tbody>
           <tr style="border-bottom:1px solid #1e1a12;">
             <td style="padding:12px 16px;">F7 Scene Captures</td>
             <td style="text-align:center;padding:12px 16px;color:var(--muted);">10 / day</td>
-            <td style="text-align:center;padding:12px 16px;color:#f0a500;font-weight:700;">Unlimited</td>
+            <td style="text-align:center;padding:12px 16px;color:#d4900a;font-weight:700;">Unlimited</td>
           </tr>
           <tr style="border-bottom:1px solid #1e1a12;background:rgba(255,255,255,0.02);">
             <td style="padding:12px 16px;">Training Guides</td>
             <td style="text-align:center;padding:12px 16px;color:var(--muted);">10 / day</td>
-            <td style="text-align:center;padding:12px 16px;color:#f0a500;font-weight:700;">Unlimited</td>
+            <td style="text-align:center;padding:12px 16px;color:#d4900a;font-weight:700;">Unlimited</td>
           </tr>
           <tr style="border-bottom:1px solid #1e1a12;">
             <td style="padding:12px 16px;">114 Countries</td>
@@ -1036,7 +1036,7 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
         <li>5kable is designed exclusively for solo practice maps, single-player exploration, and offline training sessions to improve your genuine geographic knowledge.</li>
         <li>The goal of this tool is to make you genuinely better at GeoGuessr not to replace skill with automation. Use it to learn, not to cheat.</li>
       </ul>
-      <div style="margin-top:20px;padding:14px 18px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:10px;font-size:13px;color:var(--muted);">
+      <div style="margin-top:20px;padding:14px 18px;background:rgba(184,134,11,0.06);border:1px solid rgba(184,134,11,0.2);border-radius:10px;font-size:13px;color:var(--muted);">
         By using 5kable you agree to these rules. Violation detection may involve automated monitoring. If you believe an account action was taken in error, contact us on <a href="https://discord.gg/YAmvxvXmw8" style="color:var(--teal);">Discord</a>.
       </div>
     </div>
@@ -1202,7 +1202,7 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
     </div>
 
     <!-- Badges -->
-    <div style="background:linear-gradient(135deg,rgba(138,109,31,0.08),rgba(212,175,55,0.08));border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
+    <div style="background:linear-gradient(135deg,rgba(107,78,18,0.08),rgba(184,134,11,0.08));border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:16px;">
       <div style="font-weight:700;">🏆 Country Badges</div>
       <div style="color:var(--muted);font-size:13px;margin-top:4px;margin-bottom:16px;">Get 1000 region guesses correct in a country to reach Diamond status and earn its flag as a badge next to your name. Manage your active badge in Account Settings.</div>
       <div id="stats-badges"><div style="color:var(--muted);font-size:13px;text-align:center;padding:10px 0;">Loading...</div></div>
@@ -1232,7 +1232,7 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
 
     <!-- Best/Worst Country + Region -->
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;">
-      <div style="flex:1;min-width:200px;background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:20px;">
+      <div style="flex:1;min-width:200px;background:var(--card);border:1px solid rgba(184,134,11,0.3);border-radius:14px;padding:20px;">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🏆 Best Country</div>
         <div id="stats-best-country" style="font-size:18px;font-weight:700;">—</div>
       </div>
@@ -1240,7 +1240,7 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">📉 Worst Country</div>
         <div id="stats-worst-country" style="font-size:18px;font-weight:700;">—</div>
       </div>
-      <div style="flex:1;min-width:200px;background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:20px;">
+      <div style="flex:1;min-width:200px;background:var(--card);border:1px solid rgba(184,134,11,0.3);border-radius:14px;padding:20px;">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🌟 Best Region</div>
         <div id="stats-best-region" style="font-size:18px;font-weight:700;">—</div>
       </div>
@@ -1434,7 +1434,7 @@ if (sessionStorage.getItem('kbl_unlocked') === '1') {
     <a onclick="showPolicy('refund')" style="cursor:pointer;">Refunds</a>
     <a href="https://discord.gg/YAmvxvXmw8" target="_blank">Discord</a>
   </div>
-  <div style="margin-bottom:8px;font-size:16px;font-weight:700;background:linear-gradient(135deg,#d4af37,#8a6d1f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">5kable</div>
+  <div style="margin-bottom:8px;font-size:16px;font-weight:700;background:linear-gradient(135deg,#b8860b,#6b4e12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">5kable</div>
   <div>AI-powered GeoGuessr training · Learning · Accuracy · Training · Perfection</div>
   <div style="margin-top:8px;font-size:11px;opacity:0.5;">© 2026 5kable</div>
 </footer>
@@ -1628,7 +1628,7 @@ async function resendVerifyCode() {
     const res  = await fetch(API + '/auth/resend_code', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token: pendingVerifyToken}) });
     const data = await res.json();
     if (!res.ok || !data.success) { errEl.textContent = data.error || 'Could not resend code'; errEl.style.color='#ff6b6b'; errEl.style.display='block'; return; }
-    errEl.textContent = 'New code sent — check your inbox'; errEl.style.color='#d4af37'; errEl.style.display='block';
+    errEl.textContent = 'New code sent — check your inbox'; errEl.style.color='#b8860b'; errEl.style.display='block';
   } catch(e) { errEl.textContent = 'Could not connect to server. Try again.'; errEl.style.color='#ff6b6b'; errEl.style.display='block'; }
 }
 
@@ -1660,7 +1660,7 @@ async function resendPhoneCode() {
     const res  = await fetch(API + '/auth/resend_phone_code', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token: pendingVerifyToken}) });
     const data = await res.json();
     if (!res.ok || !data.success) { errEl.textContent = data.error || 'Could not resend code'; errEl.style.color='#ff6b6b'; errEl.style.display='block'; return; }
-    errEl.textContent = 'New code sent — check your phone'; errEl.style.color='#d4af37'; errEl.style.display='block';
+    errEl.textContent = 'New code sent — check your phone'; errEl.style.color='#b8860b'; errEl.style.display='block';
   } catch(e) { errEl.textContent = 'Could not connect to server. Try again.'; errEl.style.color='#ff6b6b'; errEl.style.display='block'; }
 }
 
@@ -1793,7 +1793,7 @@ function goToTickets() {
 
 // ── Tickets ───────────────────────────────────────────────
 const TICKET_STATUS_STYLE = {
-  open:        { label: 'Open',        bg: 'rgba(240,165,0,0.15)',  color: '#f0a500' },
+  open:        { label: 'Open',        bg: 'rgba(212,144,10,0.15)',  color: '#d4900a' },
   in_progress: { label: 'In Progress', bg: 'rgba(232,197,107,0.15)',color: '#e8c56b' },
   resolved:    { label: 'Resolved',    bg: 'rgba(201,162,39,0.15)', color: '#c9a227' },
   closed:      { label: 'Closed',      bg: 'rgba(168,159,138,0.15)',color: '#a89f8a' },
@@ -1856,8 +1856,8 @@ function renderTicketThreadMessages(messages){
   return (messages || []).map(m => {
     const isAdmin = m.sender_type === 'admin';
     return `
-      <div style="align-self:${isAdmin ? 'flex-start' : 'flex-end'};max-width:80%;background:${isAdmin ? 'rgba(212,175,55,0.08)' : 'var(--bg)'};border:1px solid ${isAdmin ? 'rgba(212,175,55,0.25)' : 'var(--border)'};border-radius:12px;padding:12px 14px;">
-        <div style="font-size:11px;font-weight:600;color:${isAdmin ? '#d4af37' : 'var(--muted)'};margin-bottom:4px;">${isAdmin ? '🛟 ' + escapeHtmlIdx(m.sender_name || 'Support') : escapeHtmlIdx(m.sender_name || 'You')}</div>
+      <div style="align-self:${isAdmin ? 'flex-start' : 'flex-end'};max-width:80%;background:${isAdmin ? 'rgba(184,134,11,0.08)' : 'var(--bg)'};border:1px solid ${isAdmin ? 'rgba(184,134,11,0.25)' : 'var(--border)'};border-radius:12px;padding:12px 14px;">
+        <div style="font-size:11px;font-weight:600;color:${isAdmin ? '#b8860b' : 'var(--muted)'};margin-bottom:4px;">${isAdmin ? '🛟 ' + escapeHtmlIdx(m.sender_name || 'Support') : escapeHtmlIdx(m.sender_name || 'You')}</div>
         <div style="font-size:13px;white-space:pre-wrap;">${escapeHtmlIdx(m.message)}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:6px;">${formatTicketDate(m.created_at)}</div>
       </div>`;
@@ -2049,7 +2049,7 @@ function updateNav(user) {
   if (de) de.textContent = user.email || '';
   if (dt) {
     dt.textContent = user.tier === 'pro' ? '⭐ Pro' : 'Free';
-    if (user.tier === 'pro') { dt.style.background='rgba(240,165,0,0.15)'; dt.style.borderColor='#f0a500'; dt.style.color='#f0a500'; }
+    if (user.tier === 'pro') { dt.style.background='rgba(212,144,10,0.15)'; dt.style.borderColor='#d4900a'; dt.style.color='#d4900a'; }
   }
 }
 
@@ -2102,7 +2102,7 @@ async function loadRegionAccuracy(token){
     // actually work on next.
     const sorted = data.stats.slice().sort((a,b) => a.pct - b.pct);
     listEl.innerHTML = sorted.map((s, i) => {
-      const color = s.pct >= 80 ? 'var(--teal)' : s.pct >= 50 ? '#f0a500' : '#ff6b6b';
+      const color = s.pct >= 80 ? 'var(--teal)' : s.pct >= 50 ? '#d4900a' : '#ff6b6b';
       const rowId = `stats-country-row-${i}`;
       return `<div>
         <div onclick="toggleCountryRegions('${rowId}', ${JSON.stringify(s.country)})" style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
@@ -2130,7 +2130,7 @@ function toggleCountryRegions(rowId, country){
   } else {
     const sortedRegions = regions.slice().sort((a,b) => a.pct - b.pct);
     el.innerHTML = sortedRegions.map(r => {
-      const color = r.pct >= 80 ? 'var(--teal)' : r.pct >= 50 ? '#f0a500' : '#ff6b6b';
+      const color = r.pct >= 80 ? 'var(--teal)' : r.pct >= 50 ? '#d4900a' : '#ff6b6b';
       return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12px;">
         <div style="width:130px;flex-shrink:0;color:var(--muted);">${escapeHtmlLocal(r.region)}</div>
         <div style="flex:1;background:var(--bg2);border-radius:5px;height:6px;overflow:hidden;">
@@ -2162,7 +2162,7 @@ async function loadGuessInsights(token){
     fiftyEl.innerHTML = (data.fifty_fifty && data.fifty_fifty.length)
       ? data.fifty_fifty.map(c => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">
           <span>${escapeHtmlLocal(c.country)}</span>
-          <span style="color:#f0a500;">${c.pct}% <span style="color:var(--muted);">(${c.correct}/${c.total})</span></span>
+          <span style="color:#d4900a;">${c.pct}% <span style="color:var(--muted);">(${c.correct}/${c.total})</span></span>
         </div>`).join('')
       : `<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>`;
   } catch(e) {
@@ -2199,7 +2199,7 @@ async function loadFullStats(token){
         ['📅', o.sessions, 'Sessions Played'],
       ];
       overviewEl.innerHTML = cards.map(([icon, num, label]) => `
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;transition:transform .15s,border-color .15s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='rgba(212,175,55,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.borderColor='var(--border)'">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;transition:transform .15s,border-color .15s;cursor:default;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='rgba(184,134,11,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.borderColor='var(--border)'">
           <div style="font-size:20px;">${icon}</div>
           <div style="font-size:22px;font-weight:800;margin-top:4px;">${num}</div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px;">${label}</div>
@@ -2234,7 +2234,7 @@ async function loadFullStats(token){
       const maxTotal = Math.max(1, ...days.map(d => d.total));
       trendEl.innerHTML = days.map(d => {
         const played = d.total > 0;
-        const color = !played ? 'var(--border)' : (d.pct >= 80 ? 'var(--teal)' : d.pct >= 50 ? '#f0a500' : '#ff6b6b');
+        const color = !played ? 'var(--border)' : (d.pct >= 80 ? 'var(--teal)' : d.pct >= 50 ? '#d4900a' : '#ff6b6b');
         const h = played ? Math.max(8, Math.round((d.total / maxTotal) * 100)) : 3;
         const dateLabel = new Date(d.date).toLocaleDateString('en-AU', {month:'short', day:'numeric'});
         const tip = played ? `${dateLabel}: ${d.pct}% (${d.correct}/${d.total})` : `${dateLabel}: no games`;
@@ -2247,7 +2247,7 @@ async function loadFullStats(token){
       dowEl.innerHTML = '<div style="color:var(--muted);font-size:13px;">⏳ Awaiting games played</div>';
     } else {
       dowEl.innerHTML = data.day_of_week.map(d => {
-        const color = d.pct >= 80 ? 'var(--teal)' : d.pct >= 50 ? '#f0a500' : '#ff6b6b';
+        const color = d.pct >= 80 ? 'var(--teal)' : d.pct >= 50 ? '#d4900a' : '#ff6b6b';
         return `<div style="display:flex;align-items:center;gap:12px;padding:5px 0;font-size:13px;">
           <div style="width:90px;flex-shrink:0;color:var(--muted);">${d.day}</div>
           <div style="flex:1;background:var(--bg2);border-radius:6px;height:8px;overflow:hidden;">
@@ -2493,7 +2493,7 @@ function initHeroGlobe(){
     features.forEach(f => {
       heroTexCtx.beginPath();
       heroPathGen(f);
-      heroTexCtx.fillStyle = '#d4af37';
+      heroTexCtx.fillStyle = '#b8860b';
       heroTexCtx.fill();
       heroTexCtx.lineWidth = 0.7;
       heroTexCtx.strokeStyle = '#4a3a12';
@@ -2624,7 +2624,7 @@ async function loadWorldMap(token){
       .on('mouseenter', function(event, d){
         const name = WORLDMAP_COUNTRY_ID_NAME[String(d.id)];
         if (!name) return;
-        d3.select(this).attr('fill', 'rgba(212,175,55,0.6)');
+        d3.select(this).attr('fill', 'rgba(184,134,11,0.6)');
         const variants = WORLDMAP_ALIASES[name] || [name];
         const correct = Math.max(0, ...variants.map(v => correctByCountry[_gaxNormalizeCountry(v)] || 0));
         if (tipEl) {
@@ -2827,8 +2827,8 @@ function showAccountSettings() {
   const user = getUser() || {};
   const currentName = user.username || '';
   const currentAvatar = localStorage.getItem('kbl_avatar_img') || '';
-  const currentColor = localStorage.getItem('kbl_avatar_color') || '#d4af37';
-  const avatarColors = ['#d4af37','#8a6d1f','#f0a500','#ff4c6a','#b5651d','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4'];
+  const currentColor = localStorage.getItem('kbl_avatar_color') || '#b8860b';
+  const avatarColors = ['#b8860b','#6b4e12','#d4900a','#ff4c6a','#b5651d','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4'];
 
   const existingModal = document.getElementById('gax-settings-modal');
   if (existingModal) existingModal.remove();
@@ -2855,10 +2855,10 @@ function showAccountSettings() {
       <!-- Avatar -->
       <div style="text-align:center;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid #2b2419;">
         <div style="position:relative;display:inline-block;margin-bottom:12px;">
-          <div id="avatar-preview" onclick="document.getElementById('avatar-upload').click()" style="width:90px;height:90px;border-radius:50%;background:${currentColor};margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid rgba(212,175,55,0.4);cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='#d4af37';this.style.transform='scale(1.05)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.4)';this.style.transform='scale(1)'">
+          <div id="avatar-preview" onclick="document.getElementById('avatar-upload').click()" style="width:90px;height:90px;border-radius:50%;background:${currentColor};margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid rgba(184,134,11,0.4);cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='#b8860b';this.style.transform='scale(1.05)'" onmouseout="this.style.borderColor='rgba(184,134,11,0.4)';this.style.transform='scale(1)'">
             ${avatarContent}
           </div>
-          <div onclick="document.getElementById('avatar-upload').click()" style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:#d4af37;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;border:2px solid #171310;box-shadow:0 2px 8px rgba(0,0,0,0.4);">📷</div>
+          <div onclick="document.getElementById('avatar-upload').click()" style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:#b8860b;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;border:2px solid #171310;box-shadow:0 2px 8px rgba(0,0,0,0.4);">📷</div>
         </div>
         <input type="file" id="avatar-upload" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="previewAvatar(this)"/>
         <div style="font-size:11px;color:#8a806c;margin-bottom:12px;">Click avatar to upload · JPG PNG GIF · Max 2MB</div>
@@ -2869,7 +2869,7 @@ function showAccountSettings() {
       <!-- Display Name -->
       <div style="margin-bottom:16px;">
         <label style="color:#a89f8a;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">DISPLAY NAME</label>
-        <input id="settings-displayname" type="text" value="${currentName}" maxlength="20" placeholder="Your display name" style="width:100%;box-sizing:border-box;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:11px 14px;border-radius:10px;font-size:14px;outline:none;" onfocus="this.style.borderColor='#d4af37';this.style.boxShadow='0 0 0 3px rgba(212,175,55,0.1)'" onblur="this.style.borderColor='#2c2618';this.style.boxShadow='none'"/>
+        <input id="settings-displayname" type="text" value="${currentName}" maxlength="20" placeholder="Your display name" style="width:100%;box-sizing:border-box;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:11px 14px;border-radius:10px;font-size:14px;outline:none;" onfocus="this.style.borderColor='#b8860b';this.style.boxShadow='0 0 0 3px rgba(184,134,11,0.1)'" onblur="this.style.borderColor='#2c2618';this.style.boxShadow='none'"/>
         <div style="color:#6e6552;font-size:11px;margin-top:4px;">Max 20 characters · No offensive language</div>
       </div>
 
@@ -2893,7 +2893,7 @@ function showAccountSettings() {
         <div style="display:flex;align-items:center;gap:10px;">
           <input type="tel" value="${user.phone_number}" disabled style="flex:1;box-sizing:border-box;background:#100e0a;border:1px solid #2b2419;color:#8a806c;padding:11px 14px;border-radius:10px;font-size:14px;cursor:not-allowed;"/>
           ${user.phone_verified
-            ? `<span style="background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.3);color:#d4af37;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;white-space:nowrap;">✓ Verified</span>`
+            ? `<span style="background:rgba(184,134,11,0.12);border:1px solid rgba(184,134,11,0.3);color:#b8860b;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;white-space:nowrap;">✓ Verified</span>`
             : `<span style="background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;white-space:nowrap;">✗ Unverified</span>`}
         </div>
       </div>
@@ -2906,28 +2906,28 @@ function showAccountSettings() {
           <span id="pwd-toggle-icon" style="color:#9a8f76;font-size:12px;">▼</span>
         </div>
         <div id="password-section" style="display:none;margin-top:12px;">
-          <input id="settings-current-pwd" type="password" placeholder="Current password" style="width:100%;box-sizing:border-box;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:10px 14px;border-radius:10px;font-size:13px;outline:none;margin-bottom:8px;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#2c2618'"/>
-          <input id="settings-new-pwd" type="password" placeholder="New password (min 6 chars)" style="width:100%;box-sizing:border-box;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:10px 14px;border-radius:10px;font-size:13px;outline:none;margin-bottom:8px;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#2c2618'"/>
-          <input id="settings-confirm-pwd" type="password" placeholder="Confirm new password" style="width:100%;box-sizing:border-box;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:10px 14px;border-radius:10px;font-size:13px;outline:none;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='#2c2618'"/>
+          <input id="settings-current-pwd" type="password" placeholder="Current password" style="width:100%;box-sizing:border-box;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:10px 14px;border-radius:10px;font-size:13px;outline:none;margin-bottom:8px;" onfocus="this.style.borderColor='#b8860b'" onblur="this.style.borderColor='#2c2618'"/>
+          <input id="settings-new-pwd" type="password" placeholder="New password (min 6 chars)" style="width:100%;box-sizing:border-box;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:10px 14px;border-radius:10px;font-size:13px;outline:none;margin-bottom:8px;" onfocus="this.style.borderColor='#b8860b'" onblur="this.style.borderColor='#2c2618'"/>
+          <input id="settings-confirm-pwd" type="password" placeholder="Confirm new password" style="width:100%;box-sizing:border-box;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:10px 14px;border-radius:10px;font-size:13px;outline:none;" onfocus="this.style.borderColor='#b8860b'" onblur="this.style.borderColor='#2c2618'"/>
         </div>
       </div>
 
       <!-- 2FA -->
-      <div style="margin-bottom:24px;padding:16px;background:rgba(138,109,31,0.06);border:1px solid rgba(138,109,31,0.2);border-radius:12px;">
+      <div style="margin-bottom:24px;padding:16px;background:rgba(107,78,18,0.06);border:1px solid rgba(107,78,18,0.2);border-radius:12px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
           <div>
             <div style="font-size:13px;font-weight:700;margin-bottom:2px;">🔐 Two-Factor Authentication</div>
             <div style="font-size:12px;color:#9a8f76;">Use Google Authenticator or Authy for extra security</div>
           </div>
-          <button onclick="toggle2FA()" id="twofa-toggle-btn" style="background:linear-gradient(135deg,#8a6d1f,#6b4e12);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">Enable</button>
+          <button onclick="toggle2FA()" id="twofa-toggle-btn" style="background:linear-gradient(135deg,#6b4e12,#6b4e12);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">Enable</button>
         </div>
         <div id="twofa-setup" style="display:none;margin-top:16px;">
           <div style="font-size:12px;color:#aaa;margin-bottom:10px;">1. Scan this QR code with Google Authenticator or Authy</div>
           <div id="twofa-qr" style="text-align:center;margin-bottom:12px;"></div>
           <div style="font-size:12px;color:#aaa;margin-bottom:8px;">2. Enter the 6-digit code to confirm</div>
           <div style="display:flex;gap:8px;">
-            <input id="twofa-code" type="text" maxlength="6" placeholder="000000" style="flex:1;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:9px 12px;border-radius:8px;font-size:16px;letter-spacing:6px;text-align:center;outline:none;" onfocus="this.style.borderColor='#8a6d1f'" onblur="this.style.borderColor='#2c2618'"/>
-            <button onclick="confirm2FA()" style="background:#8a6d1f;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;">Verify</button>
+            <input id="twofa-code" type="text" maxlength="6" placeholder="000000" style="flex:1;background:#1c1712;border:1px solid #2c2618;color:#eee;padding:9px 12px;border-radius:8px;font-size:16px;letter-spacing:6px;text-align:center;outline:none;" onfocus="this.style.borderColor='#6b4e12'" onblur="this.style.borderColor='#2c2618'"/>
+            <button onclick="confirm2FA()" style="background:#6b4e12;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;">Verify</button>
           </div>
           <div id="twofa-msg" style="font-size:11px;margin-top:6px;text-align:center;"></div>
         </div>
@@ -2944,7 +2944,7 @@ function showAccountSettings() {
         </div>
       </div>
 
-      <button onclick="saveAccountSettings()" style="width:100%;padding:13px;background:linear-gradient(135deg,#d4af37,#a8841c);color:#0b0a08;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">Save Changes</button>
+      <button onclick="saveAccountSettings()" style="width:100%;padding:13px;background:linear-gradient(135deg,#b8860b,#8a6510);color:#0b0a08;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">Save Changes</button>
       <div id="settings-msg" style="text-align:center;font-size:12px;margin-top:10px;min-height:18px;"></div>
     </div>`;
   document.body.appendChild(overlay);
@@ -2965,7 +2965,7 @@ function previewAvatar(input) {
     if (preview) {
       preview.style.background = 'transparent';
       preview.innerHTML = '<img src="' + data + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>' +
-        '<div onclick="document.getElementById(\'avatar-upload\').click()" style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:#d4af37;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;border:2px solid #171310;">📷</div>';
+        '<div onclick="document.getElementById(\'avatar-upload\').click()" style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:#b8860b;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;border:2px solid #171310;">📷</div>';
       preview.style.position = 'relative';
     }
     updateNavAvatar();
@@ -2975,7 +2975,7 @@ function previewAvatar(input) {
 
 function updateNavAvatar() {
   const img   = localStorage.getItem('kbl_avatar_img');
-  const color = localStorage.getItem('kbl_avatar_color') || '#d4af37';
+  const color = localStorage.getItem('kbl_avatar_color') || '#b8860b';
   const navAv = document.getElementById('nav-avatar');
   if (!navAv) return;
   if (img) {
@@ -3112,7 +3112,7 @@ async function saveAccountSettings() {
   localStorage.setItem('kbl_user', JSON.stringify(user));
   updateNav(user);
   applyBadgeToUsernameEls(user);
-  msg.style.color = '#d4af37';
+  msg.style.color = '#b8860b';
   msg.textContent = '✓ Changes saved!';
   setTimeout(() => { const m = document.getElementById('gax-settings-modal'); if(m) m.remove(); }, 1400);
 }
@@ -3130,9 +3130,9 @@ async function loadBadgesIntoSettings(){
     if (data.earned && data.earned.length) {
       html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">` + data.earned.map(b => {
         const isActive = data.active === b.country;
-        return `<div onclick="setBadge(${JSON.stringify(b.country)})" title="${escapeHtmlLocal(b.country)} — ${b.correct} correct" style="cursor:pointer;padding:6px 10px;border-radius:10px;display:flex;align-items:center;gap:6px;background:${isActive ? 'rgba(212,175,55,0.15)' : '#1c1712'};border:1.5px solid ${isActive ? '#d4af37' : '#2c2618'};transition:all .15s;" onmouseover="if(!${isActive}){this.style.borderColor='#d4af37'}" onmouseout="if(!${isActive}){this.style.borderColor='#2c2618'}">
+        return `<div onclick="setBadge(${JSON.stringify(b.country)})" title="${escapeHtmlLocal(b.country)} — ${b.correct} correct" style="cursor:pointer;padding:6px 10px;border-radius:10px;display:flex;align-items:center;gap:6px;background:${isActive ? 'rgba(184,134,11,0.15)' : '#1c1712'};border:1.5px solid ${isActive ? '#b8860b' : '#2c2618'};transition:all .15s;" onmouseover="if(!${isActive}){this.style.borderColor='#b8860b'}" onmouseout="if(!${isActive}){this.style.borderColor='#2c2618'}">
           ${renderBadgeImg(b.country, 20)}
-          <span style="font-size:12px;color:${isActive ? '#d4af37' : '#eee'};font-weight:${isActive ? '700' : '500'};">${escapeHtmlLocal(b.country)}</span>
+          <span style="font-size:12px;color:${isActive ? '#b8860b' : '#eee'};font-weight:${isActive ? '700' : '500'};">${escapeHtmlLocal(b.country)}</span>
         </div>`;
       }).join('') + `</div>`;
       if (data.active) {
@@ -3148,7 +3148,7 @@ async function loadBadgesIntoSettings(){
         return `<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-size:12px;">
           <div style="width:110px;flex-shrink:0;color:#aaa;">${escapeHtmlLocal(p.country)}</div>
           <div style="flex:1;background:#1c1712;border-radius:5px;height:6px;overflow:hidden;">
-            <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#8a6d1f,#d4af37);transition:width .4s ease;"></div>
+            <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#6b4e12,#b8860b);transition:width .4s ease;"></div>
           </div>
           <div style="width:50px;text-align:right;color:#9a8f76;flex-shrink:0;">${p.correct}/${threshold}</div>
         </div>`;
@@ -3190,10 +3190,10 @@ async function loadStatsBadges(){
     if (data.earned && data.earned.length) {
       html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:${data.in_progress && data.in_progress.length ? '18px' : '0'};">` + data.earned.map(b => {
         const isActive = data.active === b.country;
-        return `<div onclick="setBadge(${JSON.stringify(b.country)})" title="Click to set as your active badge" style="cursor:pointer;padding:10px 14px;border-radius:12px;display:flex;align-items:center;gap:8px;background:${isActive ? 'rgba(212,175,55,0.15)' : 'var(--card)'};border:1.5px solid ${isActive ? '#d4af37' : 'var(--border)'};transition:transform .15s,border-color .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+        return `<div onclick="setBadge(${JSON.stringify(b.country)})" title="Click to set as your active badge" style="cursor:pointer;padding:10px 14px;border-radius:12px;display:flex;align-items:center;gap:8px;background:${isActive ? 'rgba(184,134,11,0.15)' : 'var(--card)'};border:1.5px solid ${isActive ? '#b8860b' : 'var(--border)'};transition:transform .15s,border-color .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
           ${renderBadgeImg(b.country, 26)}
           <div>
-            <div style="font-size:13px;font-weight:700;color:${isActive ? '#d4af37' : 'var(--text)'};">${escapeHtmlLocal(b.country)}</div>
+            <div style="font-size:13px;font-weight:700;color:${isActive ? '#b8860b' : 'var(--text)'};">${escapeHtmlLocal(b.country)}</div>
             <div style="font-size:10px;color:var(--muted);">${b.correct} correct${isActive ? ' · active' : ''}</div>
           </div>
         </div>`;
@@ -3211,7 +3211,7 @@ async function loadStatsBadges(){
             <span style="color:var(--muted);">${p.correct}/${threshold}</span>
           </div>
           <div style="background:var(--bg2);border-radius:5px;height:6px;overflow:hidden;">
-            <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#8a6d1f,#d4af37);transition:width .4s ease;"></div>
+            <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#6b4e12,#b8860b);transition:width .4s ease;"></div>
           </div>
         </div>`;
       }).join('') + `</div>`;
