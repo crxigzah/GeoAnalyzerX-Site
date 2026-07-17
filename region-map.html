@@ -1400,7 +1400,15 @@ const REGION_PALETTE = [
   { key:'yellow',  label:'Yellow',  color:'#f1c40f' },
 ];
 
+// Single source of truth for "what color/state is each region currently
+// assigned" — used by Hide Unassigned Regions to know exactly which
+// regions are still untouched, instead of trying to infer it from which
+// swatch button happens to have the 'active' CSS class (which turned
+// out to be unreliable in practice).
+let regionKeyById = {};
+
 function setRegionColor(id, key){
+  regionKeyById[id] = key;
   const entry = REGION_PALETTE.find(p => p.key === key) || REGION_PALETTE[1];
   const path  = countryLayer.select(`path[data-id="${id}"]`);
   const label = labelLayer.select(`g[data-id="${id}"]`);
@@ -1437,6 +1445,7 @@ function trueHideRegionShape(id){
 // persistence layer requiring a stable palette key, it just styles
 // the live SVG directly, so any color works with no extra bookkeeping.
 function setRegionCustomColor(id, hex){
+  regionKeyById[id] = 'custom';
   const path  = countryLayer.select(`path[data-id="${id}"]`);
   const label = labelLayer.select(`g[data-id="${id}"]`);
   path.style('display', null).classed('dimmed', false).style('fill', hex);
@@ -1446,7 +1455,9 @@ function setRegionCustomColor(id, hex){
 function buildCountryRegionsList(labelData){
   const listEl = document.getElementById('countryRegionsList');
   listEl.innerHTML = '';
+  regionKeyById = {}; // fresh state for whichever country's panel this is
   labelData.forEach(l => {
+    regionKeyById[l.id] = 'default';
     const item = document.createElement('div');
     item.className = 'region-toggle-item';
     item.innerHTML = `
@@ -1513,13 +1524,15 @@ document.getElementById('selectNoneRegionsBtn').onclick = () => {
 // color, leaving anything you've already deliberately colored alone —
 // unlike "Select None" above, which grays out everything regardless.
 // This uses trueHideRegionShape() (full removal), not the softer
-// gray-out that a single ✕ click on one region gives.
+// gray-out that a single ✕ click on one region gives. Reads from
+// regionKeyById (set by setRegionColor/setRegionCustomColor) rather
+// than checking DOM classes, since that's the reliable source of truth.
 document.getElementById('hideUnassignedBtn').onclick = () => {
   document.querySelectorAll('.region-swatch-row').forEach(row => {
-    const activeBtn = row.querySelector('.region-swatch.active');
-    const activeKey = activeBtn ? activeBtn.dataset.key : 'default';
-    if (activeKey === 'default'){
-      trueHideRegionShape(row.dataset.id);
+    const id = row.dataset.id;
+    const key = regionKeyById[id] || 'default';
+    if (key === 'default'){
+      trueHideRegionShape(id);
       row.querySelectorAll('.region-swatch').forEach(b => b.classList.toggle('active', b.dataset.key === 'hide'));
     }
   });
