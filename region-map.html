@@ -1453,7 +1453,7 @@ function buildCountryRegionsList(labelData){
       <div class="region-toggle-name">${l.name}</div>
       <div class="region-swatch-row" data-id="${l.id}">
         ${REGION_PALETTE.map(p => `<button class="region-swatch${p.key==='default' ? ' active' : ''}" data-id="${l.id}" data-key="${p.key}" title="${p.label}" style="background:${p.swatchBg || p.color};">${p.key==='hide' ? '✕' : ''}</button>`).join('')}
-        <input type="color" class="region-swatch region-swatch-custom" data-id="${l.id}" title="Pick any color" value="#d1443a">
+        <input type="color" class="region-swatch region-swatch-custom" data-id="${l.id}" data-key="custom" title="Pick any color" value="#d1443a">
       </div>`;
     listEl.appendChild(item);
   });
@@ -1470,6 +1470,7 @@ function buildCountryRegionsList(labelData){
       const id = input.dataset.id;
       setRegionCustomColor(id, input.value);
       document.querySelectorAll(`.region-swatch[data-id="${id}"]`).forEach(b => b.classList.remove('active'));
+      input.classList.add('active');
     });
   });
 }
