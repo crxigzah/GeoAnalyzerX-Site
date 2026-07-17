@@ -1971,7 +1971,11 @@ function changeTicketAssignment(){
     body: JSON.stringify({ admin_id: adminId || null })
   })
     .then(r => r.json())
-    .then(d => { if (d.error) throw new Error(d.error); toast(adminId ? 'Ticket assigned' : 'Ticket unassigned'); })
+    .then(d => {
+      if (d.error) throw new Error(d.error);
+      toast(adminId ? 'Ticket assigned' : 'Ticket unassigned');
+      loadTicketsFullPage();
+    })
     .catch(e => toast('Assignment failed: ' + e.message, true));
 }
 
@@ -1992,6 +1996,7 @@ function confirmAssignToMe(){
       document.getElementById('assign-to-me-overlay').style.display = 'none';
       populateAssignDropdown(currentAdminId);
       toast(`Assigned to you as "${displayName}"`);
+      loadTicketsFullPage();
     })
     .catch(e => toast('Assignment failed: ' + e.message, true));
 }
