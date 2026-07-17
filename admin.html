@@ -194,6 +194,8 @@
           <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4a0ff;padding:7px 14px;" onclick="showProgressTracker()">📊 Progress</button>
           <button class="btn btn-sm" style="background:rgba(240,165,0,0.15);border:1px solid rgba(240,165,0,0.3);color:#f0a500;padding:7px 14px;" onclick="showBatchScaffold()">🚀 Batch-Scaffold</button>
           <button class="btn btn-sm" id="export-guides-btn" style="background:rgba(0,150,255,0.15);border:1px solid rgba(0,150,255,0.3);color:#5eb3ff;padding:7px 14px;" onclick="exportAllGuides()">⬇️ Export All Guides</button>
+          <button class="btn btn-sm" id="import-guides-btn" style="background:rgba(0,150,255,0.15);border:1px solid rgba(0,150,255,0.3);color:#5eb3ff;padding:7px 14px;" onclick="document.getElementById('import-guides-file').click()">⬆️ Import Guides</button>
+          <input type="file" id="import-guides-file" accept="application/json" style="display:none" onchange="importGuidesFromFile(event)">
           <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="openGuideEditor(null)">+ Write New Guide</button>
         </div>
       </div>
@@ -1434,6 +1436,67 @@ function exportAllGuides() {
       btn.textContent = originalText;
       btn.disabled = false;
     });
+}
+
+function importGuidesFromFile(event) {
+  const file = event.target.files[0];
+  event.target.value = ''; // reset so picking the same file again still fires onchange
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed;
+    try {
+      parsed = JSON.parse(reader.result);
+    } catch (e) {
+      alert('That file isn\'t valid JSON — make sure it\'s an export from the Export All Guides button.');
+      return;
+    }
+    const guides = parsed.guides || [];
+    if (!guides.length) {
+      alert('No guides found in that file.');
+      return;
+    }
+
+    // OK = overwrite existing guides with the backup's content (real
+    // disaster-recovery restore). Cancel = safer default — only restore
+    // guides that are currently missing, leaving anything that already
+    // exists untouched.
+    const overwrite = confirm(
+      `This file has ${guides.length} guide(s).\n\n` +
+      `OK = overwrite any guides that already exist with this backup's content.\n` +
+      `Cancel = only restore guides that are currently missing (safer — won't touch existing guides).`
+    );
+
+    const btn = document.getElementById('import-guides-btn');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Importing…';
+
+    fetch(`${API}/admin/import_guides`, {
+      method: 'POST',
+      headers: adminHeaders(),
+      body: JSON.stringify({ guides, mode: overwrite ? 'overwrite' : 'skip_existing' })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        alert(
+          `Restored: ${data.restored_count}${data.restored.length ? ' (' + data.restored.join(', ') + ')' : ''}\n` +
+          `Skipped (already existed): ${data.skipped_count}${data.skipped.length ? ' (' + data.skipped.join(', ') + ')' : ''}\n` +
+          `Errors: ${data.errored_count}${data.errored.length ? ' (' + data.errored.join(', ') + ')' : ''}`
+        );
+        btn.textContent = originalText;
+        btn.disabled = false;
+        loadGuides();
+      })
+      .catch(e => {
+        alert('Import failed: ' + e.message);
+        btn.textContent = originalText;
+        btn.disabled = false;
+      });
+  };
+  reader.readAsText(file);
 }
 
 function loadGuides() {
