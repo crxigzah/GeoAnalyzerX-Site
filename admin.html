@@ -1988,13 +1988,13 @@ function confirmAssignToMe(){
   const displayName = document.getElementById('assign-to-me-name').value.trim() || currentAdminUsername;
   fetch(`${API}/admin/tickets/${currentTicketId}/assign`, {
     method: 'POST', headers: adminHeaders(),
-    body: JSON.stringify({ admin_id: currentAdminId, display_name: displayName })
+    body: JSON.stringify({ self_assign: true, display_name: displayName })
   })
     .then(r => r.json())
     .then(d => {
       if (d.error) throw new Error(d.error);
       document.getElementById('assign-to-me-overlay').style.display = 'none';
-      populateAssignDropdown(currentAdminId);
+      populateAssignDropdown(d.assigned_admin_id);
       toast(`Assigned to you as "${displayName}"`);
       loadTicketsFullPage();
     })
