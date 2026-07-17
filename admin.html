@@ -73,6 +73,7 @@
 
   .section-nav-btn { padding:8px 14px; border:1px solid #1e1a12; background:#141008; color:#8888aa; cursor:pointer; font-size:12px; font-weight:600; border-radius:8px; white-space:nowrap; transition:all .15s; }
   .section-nav-btn:hover { color:#efeade; border-color:#1e1e35; }
+  .section-nav-btn:focus, .section-nav-btn:focus-visible { outline:none; box-shadow:0 0 0 2px rgba(0,201,167,0.4); }
   .section-nav-btn.active { color:#00c9a7; border-color:#00c9a7; background:rgba(0,201,167,0.08); }
 
   .card-collapse-btn { background:none; border:1px solid #1e1e35; color:#8888aa; width:26px; height:26px; border-radius:6px; cursor:pointer; font-size:13px; line-height:1; margin-left:8px; flex-shrink:0; }
@@ -215,7 +216,7 @@
         <h2>🗺️ Country Meta Guides</h2>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:7px 14px;" onclick="showProgressTracker()">📊 Progress</button>
-          <button class="btn btn-sm" style="background:rgba(240,165,0,0.15);border:1px solid rgba(240,165,0,0.3);color:#f0a500;padding:7px 14px;" onclick="showBatchScaffold()">🚀 Batch-Scaffold</button>
+          <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:7px 14px;" onclick="showBatchScaffold()">🚀 Batch-Scaffold</button>
           <button class="btn btn-sm" id="export-guides-btn" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="exportAllGuides()">⬇️ Export All Guides</button>
           <button class="btn btn-sm" id="import-guides-btn" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="document.getElementById('import-guides-file').click()">⬆️ Import Guides</button>
           <input type="file" id="import-guides-file" accept="application/json" style="display:none" onchange="importGuidesFromFile(event)">
