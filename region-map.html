@@ -596,7 +596,6 @@
           <button class="btn" id="selectAllRegionsBtn" style="flex:1;">Select All</button>
           <button class="btn" id="selectNoneRegionsBtn" style="flex:1;">Select None</button>
         </div>
-        <button class="btn" id="hideUnassignedBtn" style="width:100%;margin-top:8px;background:rgba(58,58,74,0.3);border-color:#3a3a4a;color:var(--muted);" title="Hides every region that hasn't been assigned a color yet, leaving only the ones you've explicitly colored visible">🙈 Hide Unassigned Regions</button>
         <button class="btn" id="exportAllBadgesBtn" style="width:100%;margin-top:8px;background:rgba(0,201,167,0.1);border-color:rgba(0,201,167,0.3);color:#00c9a7;">📦 Export All Region Badges</button>
         <div id="exportProgress" style="display:none;font-size:11px;color:var(--muted);margin-top:6px;text-align:center;"></div>
       </div>
@@ -1401,23 +1400,13 @@ const REGION_PALETTE = [
 ];
 
 // Single source of truth for "what color/state is each region currently
-// assigned" — used by Hide Unassigned Regions to know exactly which
-// regions are still untouched, instead of trying to infer it from which
-// swatch button happens to have the 'active' CSS class (which turned
-// out to be unreliable in practice).
-let regionKeyById = {};
-
 function setRegionColor(id, key){
-  regionKeyById[id] = key;
   const entry = REGION_PALETTE.find(p => p.key === key) || REGION_PALETTE[1];
   const path  = countryLayer.select(`path[data-id="${id}"]`);
   const label = labelLayer.select(`g[data-id="${id}"]`);
   if (entry.color === null){
-    // Hide — recolors to the muted "no coverage" gray; the shape and
-    // border stay visible, just de-emphasized. For a full removal from
-    // view, see trueHideRegionShape() below, used only by the bulk
-    // "Hide Unassigned Regions" button.
-    path.style('display', null).classed('dimmed', true).style('fill', null);
+    // Hide — the shape and its border are completely removed from view.
+    path.style('display', 'none');
     label.style('display', 'none');
   } else if (entry.color === ''){
     // Default theme color — clear any custom override
@@ -1430,22 +1419,11 @@ function setRegionColor(id, key){
   }
 }
 
-// Fully removes a region's shape and border from view — unlike
-// setRegionColor's 'hide' option above, which just recolors to the
-// muted "no coverage" gray but keeps the outline visible. Used only by
-// the bulk "Hide Unassigned Regions" button, so a single ✕ click on one
-// region still gives the softer gray-out instead.
-function trueHideRegionShape(id){
-  countryLayer.select(`path[data-id="${id}"]`).style('display', 'none');
-  labelLayer.select(`g[data-id="${id}"]`).style('display', 'none');
-}
-
 // Applies an arbitrary hex color picked from the color wheel input,
 // bypassing the fixed preset list entirely — this tool has no
 // persistence layer requiring a stable palette key, it just styles
 // the live SVG directly, so any color works with no extra bookkeeping.
 function setRegionCustomColor(id, hex){
-  regionKeyById[id] = 'custom';
   const path  = countryLayer.select(`path[data-id="${id}"]`);
   const label = labelLayer.select(`g[data-id="${id}"]`);
   path.style('display', null).classed('dimmed', false).style('fill', hex);
@@ -1455,9 +1433,7 @@ function setRegionCustomColor(id, hex){
 function buildCountryRegionsList(labelData){
   const listEl = document.getElementById('countryRegionsList');
   listEl.innerHTML = '';
-  regionKeyById = {}; // fresh state for whichever country's panel this is
   labelData.forEach(l => {
-    regionKeyById[l.id] = 'default';
     const item = document.createElement('div');
     item.className = 'region-toggle-item';
     item.innerHTML = `
@@ -1515,28 +1491,8 @@ document.getElementById('selectAllRegionsBtn').onclick = () => {
 };
 document.getElementById('selectNoneRegionsBtn').onclick = () => {
   document.querySelectorAll('.region-swatch-row').forEach(row => {
-    const id = row.dataset.id;
-    if ((regionKeyById[id] || 'default') !== 'default') return; // leave anything you've deliberately colored alone
-    setRegionColor(id, 'hide');
+    setRegionColor(row.dataset.id, 'hide');
     row.querySelectorAll('.region-swatch').forEach(b => b.classList.toggle('active', b.dataset.key === 'hide'));
-  });
-};
-
-// Hides only the regions still sitting at their default/unassigned
-// color, leaving anything you've already deliberately colored alone —
-// unlike "Select None" above, which grays out everything regardless.
-// This uses trueHideRegionShape() (full removal), not the softer
-// gray-out that a single ✕ click on one region gives. Reads from
-// regionKeyById (set by setRegionColor/setRegionCustomColor) rather
-// than checking DOM classes, since that's the reliable source of truth.
-document.getElementById('hideUnassignedBtn').onclick = () => {
-  document.querySelectorAll('.region-swatch-row').forEach(row => {
-    const id = row.dataset.id;
-    const key = regionKeyById[id] || 'default';
-    if (key === 'default'){
-      trueHideRegionShape(id);
-      row.querySelectorAll('.region-swatch').forEach(b => b.classList.toggle('active', b.dataset.key === 'hide'));
-    }
   });
 };
 
