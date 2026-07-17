@@ -596,6 +596,7 @@
           <button class="btn" id="selectAllRegionsBtn" style="flex:1;">Select All</button>
           <button class="btn" id="selectNoneRegionsBtn" style="flex:1;">Select None</button>
         </div>
+        <button class="btn" id="hideUnassignedBtn" style="width:100%;margin-top:8px;background:rgba(58,58,74,0.3);border-color:#3a3a4a;color:var(--muted);" title="Hides every region that hasn't been assigned a color yet, leaving only the ones you've explicitly colored visible">🙈 Hide Unassigned Regions</button>
         <button class="btn" id="exportAllBadgesBtn" style="width:100%;margin-top:8px;background:rgba(0,201,167,0.1);border-color:rgba(0,201,167,0.3);color:#00c9a7;">📦 Export All Region Badges</button>
         <div id="exportProgress" style="display:none;font-size:11px;color:var(--muted);margin-top:6px;text-align:center;"></div>
       </div>
@@ -1404,16 +1405,18 @@ function setRegionColor(id, key){
   const path  = countryLayer.select(`path[data-id="${id}"]`);
   const label = labelLayer.select(`g[data-id="${id}"]`);
   if (entry.color === null){
-    // Hide
-    path.classed('dimmed', true).style('fill', null);
+    // True hide — the shape and its border are completely removed from
+    // view, not just recolored to blend in as "no coverage" gray (which
+    // still left the outline visible and cluttering the map).
+    path.style('display', 'none');
     label.style('display', 'none');
   } else if (entry.color === ''){
     // Default theme color — clear any custom override
-    path.classed('dimmed', false).style('fill', null);
+    path.style('display', null).classed('dimmed', false).style('fill', null);
     label.style('display', '');
   } else {
     // Custom color override
-    path.classed('dimmed', false).style('fill', entry.color);
+    path.style('display', null).classed('dimmed', false).style('fill', entry.color);
     label.style('display', '');
   }
 }
@@ -1425,7 +1428,7 @@ function setRegionColor(id, key){
 function setRegionCustomColor(id, hex){
   const path  = countryLayer.select(`path[data-id="${id}"]`);
   const label = labelLayer.select(`g[data-id="${id}"]`);
-  path.classed('dimmed', false).style('fill', hex);
+  path.style('display', null).classed('dimmed', false).style('fill', hex);
   label.style('display', '');
 }
 
@@ -1491,6 +1494,20 @@ document.getElementById('selectNoneRegionsBtn').onclick = () => {
   document.querySelectorAll('.region-swatch-row').forEach(row => {
     setRegionColor(row.dataset.id, 'hide');
     row.querySelectorAll('.region-swatch').forEach(b => b.classList.toggle('active', b.dataset.key === 'hide'));
+  });
+};
+
+// Hides only the regions still sitting at their default/unassigned
+// color, leaving anything you've already deliberately colored alone —
+// unlike "Select None" above, which hides everything regardless.
+document.getElementById('hideUnassignedBtn').onclick = () => {
+  document.querySelectorAll('.region-swatch-row').forEach(row => {
+    const activeBtn = row.querySelector('.region-swatch.active');
+    const activeKey = activeBtn ? activeBtn.dataset.key : 'default';
+    if (activeKey === 'default'){
+      setRegionColor(row.dataset.id, 'hide');
+      row.querySelectorAll('.region-swatch').forEach(b => b.classList.toggle('active', b.dataset.key === 'hide'));
+    }
   });
 };
 
