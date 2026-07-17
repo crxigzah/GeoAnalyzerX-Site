@@ -722,12 +722,10 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
     <a href="#rules" onclick="goHome();setTimeout(()=>document.getElementById('rules')?.scrollIntoView({behavior:'smooth'}),100);return false;">📋 Rules</a>
     <div class="nav-dropdown-wrap" style="display:flex;align-items:center;">
       <a style="display:flex;align-items:center;gap:4px;">
-        🛠️ Tools
+        🎮 Games
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </a>
       <div class="nav-dropdown-menu">
-        <a href="/region-map.html">🗺️ Region Map</a>
-        <a href="/phone-code-map.html">📞 Phone Code Map</a>
         <a href="/camera-gen-game.html">🎥 Camera Generation Game</a>
         <a href="/photo-quiz-game.html?type=bollard">🚧 Bollard Bingo</a>
         <a href="/photo-quiz-game.html?type=sign_shape">🚸 Sign Shape Sprint</a>
@@ -735,6 +733,16 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
         <a href="/photo-quiz-game.html?type=license_plate">🚗 License Plate Guess</a>
         <a href="/meta-quiz-game.html">⚡ Meta Speed Quiz</a>
         <a href="/daily-challenge.html">📅 Daily Challenge</a>
+      </div>
+    </div>
+    <div class="nav-dropdown-wrap" style="display:flex;align-items:center;">
+      <a style="display:flex;align-items:center;gap:4px;">
+        🛠️ Tools
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </a>
+      <div class="nav-dropdown-menu">
+        <a href="/region-map.html">🗺️ Region Map</a>
+        <a href="/phone-code-map.html">📞 Phone Code Map</a>
       </div>
     </div>
     <a href="/metas" style="color:#00c9a7;font-weight:700;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);padding:4px 12px;border-radius:20px;font-size:12px;text-decoration:none;transition:background .2s;" onmouseover="this.style.background='rgba(0,201,167,0.2)'" onmouseout="this.style.background='rgba(0,201,167,0.1)'">🗺️ Metas</a>
