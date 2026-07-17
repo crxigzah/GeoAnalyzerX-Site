@@ -11,48 +11,48 @@
   #login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; }
   .login-box { background:#141008; border:1px solid #1e1a12; border-radius:16px; padding:40px; width:340px; text-align:center; }
   .login-box h1 { font-size:22px; font-weight:800; margin-bottom:6px; }
-  .login-box p { color:#a89f8a; font-size:13px; margin-bottom:24px; }
-  .login-box input { width:100%; padding:12px; background:#1c1712; border:1px solid #2e2717; border-radius:8px; color:#efeade; font-size:14px; margin-bottom:12px; outline:none; }
-  .login-box input:focus { border-color:#b8860b; }
+  .login-box p { color:#8888aa; font-size:13px; margin-bottom:24px; }
+  .login-box input { width:100%; padding:12px; background:#1c1712; border:1px solid #1e1e35; border-radius:8px; color:#efeade; font-size:14px; margin-bottom:12px; outline:none; }
+  .login-box input:focus { border-color:#00c9a7; }
   .btn { padding:12px 20px; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:700; transition:opacity .2s; }
   .btn:hover { opacity:.85; }
-  .btn-primary { background:linear-gradient(135deg,#b8860b,#8a6510); color:#000; width:100%; }
+  .btn-primary { background:linear-gradient(135deg,#00c9a7,#00a87d); color:#000; width:100%; }
   .btn-danger  { background:rgba(255,100,100,.15); color:#ff6b6b; border:1px solid rgba(255,100,100,.3); }
-  .btn-purple  { background:linear-gradient(135deg,#6b4e12,#6b4e12); color:#fff; }
+  .btn-purple  { background:linear-gradient(135deg,#7c3aed,#7c3aed); color:#fff; }
   .btn-sm { padding:5px 12px; font-size:11px; }
 
   #dashboard { display:none; }
   nav { background:#141008; border-bottom:1px solid #1e1a12; padding:0 32px; display:flex; align-items:center; justify-content:space-between; height:56px; }
-  nav h1 { font-size:16px; font-weight:800; background:linear-gradient(135deg,#b8860b,#6b4e12); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  nav .nav-right { display:flex; align-items:center; gap:12px; font-size:12px; color:#a89f8a; }
+  nav h1 { font-size:16px; font-weight:800; background:linear-gradient(135deg,#00c9a7,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  nav .nav-right { display:flex; align-items:center; gap:12px; font-size:12px; color:#8888aa; }
 
   .page { padding:32px; max-width:1200px; margin:0 auto; }
   
   .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px; }
   .stat-card { background:#141008; border:1px solid #1e1a12; border-radius:12px; padding:20px; }
-  .stat-card .num { font-size:32px; font-weight:800; background:linear-gradient(135deg,#b8860b,#6b4e12); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  .stat-card .label { font-size:12px; color:#a89f8a; margin-top:4px; }
+  .stat-card .num { font-size:32px; font-weight:800; background:linear-gradient(135deg,#00c9a7,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .stat-card .label { font-size:12px; color:#8888aa; margin-top:4px; }
 
   .card { background:#141008; border:1px solid #1e1a12; border-radius:12px; overflow:hidden; margin-bottom:24px; }
   .card-header { padding:16px 20px; border-bottom:1px solid #1e1a12; display:flex; align-items:center; justify-content:space-between; }
   .card-header h2 { font-size:14px; font-weight:700; }
-  .card-header span { font-size:12px; color:#a89f8a; }
+  .card-header span { font-size:12px; color:#8888aa; }
 
   table { width:100%; border-collapse:collapse; font-size:13px; }
-  th { text-align:left; padding:10px 16px; color:#a89f8a; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; border-bottom:1px solid #1e1a12; }
-  td { padding:12px 16px; border-bottom:1px solid #100e0a; }
+  th { text-align:left; padding:10px 16px; color:#8888aa; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; border-bottom:1px solid #1e1a12; }
+  td { padding:12px 16px; border-bottom:1px solid #0d0d18; }
   tr:last-child td { border-bottom:none; }
   tr:hover td { background:rgba(255,255,255,.02); }
 
   .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
-  .badge-pro  { background:rgba(212,144,10,.15); color:#d4900a; border:1px solid rgba(212,144,10,.3); }
-  .badge-free { background:rgba(184,134,11,.1); color:#b8860b; border:1px solid rgba(184,134,11,.2); }
+  .badge-pro  { background:rgba(240,165,0,.15); color:#f0a500; border:1px solid rgba(240,165,0,.3); }
+  .badge-free { background:rgba(0,201,167,.1); color:#00c9a7; border:1px solid rgba(0,201,167,.2); }
   .badge-banned { background:rgba(255,100,100,.15); color:#ff6b6b; border:1px solid rgba(255,100,100,.3); }
 
   .ban-menu { position:relative; display:inline-block; }
   .ban-dropdown {
     position:absolute; top:100%; right:0; margin-top:4px;
-    background:#1c1712; border:1px solid #2e2717; border-radius:8px;
+    background:#1c1712; border:1px solid #1e1e35; border-radius:8px;
     min-width:140px; z-index:100; display:none; overflow:hidden;
     box-shadow:0 10px 30px rgba(0,0,0,.5);
   }
@@ -64,28 +64,28 @@
   .ban-dropdown button:hover { background:rgba(255,100,100,.1); color:#ff6b6b; }
 
   .search-bar { padding:16px 20px; border-bottom:1px solid #1e1a12; }
-  .search-bar input { width:100%; max-width:300px; padding:8px 12px; background:#1c1712; border:1px solid #2e2717; border-radius:8px; color:#efeade; font-size:13px; outline:none; }
-  .search-bar input:focus { border-color:#b8860b; }
+  .search-bar input { width:100%; max-width:300px; padding:8px 12px; background:#1c1712; border:1px solid #1e1e35; border-radius:8px; color:#efeade; font-size:13px; outline:none; }
+  .search-bar input:focus { border-color:#00c9a7; }
 
   .tab-bar { display:flex; gap:4px; padding:16px 20px 0; border-bottom:1px solid #1e1a12; }
-  .tab { padding:8px 16px; border:none; background:none; color:#a89f8a; cursor:pointer; font-size:13px; font-weight:600; border-bottom:2px solid transparent; margin-bottom:-1px; }
-  .tab.active { color:#b8860b; border-bottom-color:#b8860b; }
+  .tab { padding:8px 16px; border:none; background:none; color:#8888aa; cursor:pointer; font-size:13px; font-weight:600; border-bottom:2px solid transparent; margin-bottom:-1px; }
+  .tab.active { color:#00c9a7; border-bottom-color:#00c9a7; }
 
-  .section-nav-btn { padding:8px 14px; border:1px solid #1e1a12; background:#141008; color:#a89f8a; cursor:pointer; font-size:12px; font-weight:600; border-radius:8px; white-space:nowrap; transition:all .15s; }
-  .section-nav-btn:hover { color:#efeade; border-color:#2e2717; }
-  .section-nav-btn.active { color:#b8860b; border-color:#b8860b; background:rgba(184,134,11,0.08); }
+  .section-nav-btn { padding:8px 14px; border:1px solid #1e1a12; background:#141008; color:#8888aa; cursor:pointer; font-size:12px; font-weight:600; border-radius:8px; white-space:nowrap; transition:all .15s; }
+  .section-nav-btn:hover { color:#efeade; border-color:#1e1e35; }
+  .section-nav-btn.active { color:#00c9a7; border-color:#00c9a7; background:rgba(0,201,167,0.08); }
 
-  .card-collapse-btn { background:none; border:1px solid #2e2717; color:#a89f8a; width:26px; height:26px; border-radius:6px; cursor:pointer; font-size:13px; line-height:1; margin-left:8px; flex-shrink:0; }
-  .card-collapse-btn:hover { color:#efeade; border-color:#38321f; }
+  .card-collapse-btn { background:none; border:1px solid #1e1e35; color:#8888aa; width:26px; height:26px; border-radius:6px; cursor:pointer; font-size:13px; line-height:1; margin-left:8px; flex-shrink:0; }
+  .card-collapse-btn:hover { color:#efeade; border-color:#2a2a45; }
   .card.collapsed > *:not(.card-header) { display:none !important; }
 
   .usage-bar-wrap { background:#1c1712; border-radius:4px; height:6px; width:80px; display:inline-block; vertical-align:middle; }
-  .usage-bar { height:100%; border-radius:4px; background:#b8860b; }
+  .usage-bar { height:100%; border-radius:4px; background:#00c9a7; }
 
-  .toast { position:fixed; bottom:24px; right:24px; background:#1e1a12; border:1px solid #2e2717; border-radius:10px; padding:12px 18px; font-size:13px; z-index:9999; opacity:0; transition:opacity .3s; pointer-events:none; }
+  .toast { position:fixed; bottom:24px; right:24px; background:#1e1a12; border:1px solid #1e1e35; border-radius:10px; padding:12px 18px; font-size:13px; z-index:9999; opacity:0; transition:opacity .3s; pointer-events:none; }
   .toast.show { opacity:1; }
 
-  .empty { text-align:center; padding:40px; color:#8a806c; font-size:13px; }
+  .empty { text-align:center; padding:40px; color:#7a7a9a; font-size:13px; }
 
   @media(max-width:600px) {
     .page { padding:16px; }
@@ -118,11 +118,11 @@
     <div class="nav-right">
       <span id="nav-status">●</span>
       <span id="nav-time"></span>
-      <button class="btn btn-sm" onclick="refreshAll()" style="background:#1c1712;border:1px solid #2e2717;color:#efeade;">↻ Refresh</button>
+      <button class="btn btn-sm" onclick="refreshAll()" style="background:#1c1712;border:1px solid #1e1e35;color:#efeade;">↻ Refresh</button>
     </div>
   </nav>
 
-  <div id="section-nav" style="position:sticky;top:0;z-index:100;background:#0b0a08;border-bottom:1px solid #1e1a12;display:flex;gap:6px;padding:10px 20px;overflow-x:auto;align-items:center;">
+  <div id="section-nav" style="position:sticky;top:0;z-index:100;background:#080810;border-bottom:1px solid #1e1a12;display:flex;gap:6px;padding:10px 20px;overflow-x:auto;align-items:center;">
     <button class="section-nav-btn" data-section="section-usage" onclick="scrollToSection('section-usage', this)">📊 Usage</button>
     <button class="section-nav-btn" data-section="section-users" onclick="scrollToSection('section-users', this)">👥 Users</button>
     <button class="section-nav-btn" data-section="section-logs" onclick="scrollToSection('section-logs', this)">📋 Logs</button>
@@ -177,9 +177,9 @@
       <div class="card-header">
         <h2>📋 Logs</h2>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="text" id="log-search" placeholder="Search..." oninput="filterLogs()" style="max-width:220px;padding:6px 10px;background:#0f0d08;border:1px solid #2e2717;border-radius:6px;color:#efeade;font-size:12px;">
-          <button class="btn btn-sm" style="background:#1c1712;border:1px solid #2e2717;color:#a89f8a;padding:6px 12px;" onclick="loadAllLogs()">↻ Refresh</button>
-          <span id="log-count" style="color:#a89f8a;font-size:12px;"></span>
+          <input type="text" id="log-search" placeholder="Search..." oninput="filterLogs()" style="max-width:220px;padding:6px 10px;background:#0f0d08;border:1px solid #1e1e35;border-radius:6px;color:#efeade;font-size:12px;">
+          <button class="btn btn-sm" style="background:#1c1712;border:1px solid #1e1e35;color:#8888aa;padding:6px 12px;" onclick="loadAllLogs()">↻ Refresh</button>
+          <span id="log-count" style="color:#8888aa;font-size:12px;"></span>
         </div>
       </div>
       <div class="tab-bar" style="padding:0 20px;margin-bottom:0;">
@@ -214,12 +214,12 @@
       <div class="card-header">
         <h2>🗺️ Country Meta Guides</h2>
         <div style="display:flex;gap:8px;">
-          <button class="btn btn-sm" style="background:rgba(107,78,18,0.15);border:1px solid rgba(107,78,18,0.3);color:#e8d9a8;padding:7px 14px;" onclick="showProgressTracker()">📊 Progress</button>
-          <button class="btn btn-sm" style="background:rgba(212,144,10,0.15);border:1px solid rgba(212,144,10,0.3);color:#d4900a;padding:7px 14px;" onclick="showBatchScaffold()">🚀 Batch-Scaffold</button>
-          <button class="btn btn-sm" id="export-guides-btn" style="background:rgba(201,132,63,0.15);border:1px solid rgba(201,132,63,0.3);color:#c9843f;padding:7px 14px;" onclick="exportAllGuides()">⬇️ Export All Guides</button>
-          <button class="btn btn-sm" id="import-guides-btn" style="background:rgba(201,132,63,0.15);border:1px solid rgba(201,132,63,0.3);color:#c9843f;padding:7px 14px;" onclick="document.getElementById('import-guides-file').click()">⬆️ Import Guides</button>
+          <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:7px 14px;" onclick="showProgressTracker()">📊 Progress</button>
+          <button class="btn btn-sm" style="background:rgba(240,165,0,0.15);border:1px solid rgba(240,165,0,0.3);color:#f0a500;padding:7px 14px;" onclick="showBatchScaffold()">🚀 Batch-Scaffold</button>
+          <button class="btn btn-sm" id="export-guides-btn" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="exportAllGuides()">⬇️ Export All Guides</button>
+          <button class="btn btn-sm" id="import-guides-btn" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="document.getElementById('import-guides-file').click()">⬆️ Import Guides</button>
           <input type="file" id="import-guides-file" accept="application/json" style="display:none" onchange="importGuidesFromFile(event)">
-          <button class="btn btn-sm" style="background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:7px 14px;" onclick="openGuideEditor(null)">+ Write New Guide</button>
+          <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="openGuideEditor(null)">+ Write New Guide</button>
         </div>
       </div>
       <div style="overflow-x:auto">
@@ -239,8 +239,8 @@
         <h2>🎫 Tickets</h2>
       </div>
       <div style="padding:20px;text-align:center;">
-        <div style="color:#a89f8a;font-size:13px;margin-bottom:12px;">Tickets now have their own dedicated page — full details, priority, assignment, and ticket-number lookup.</div>
-        <button class="btn btn-sm" style="background:rgba(201,132,63,0.15);border:1px solid rgba(201,132,63,0.3);color:#c9843f;padding:8px 20px;" onclick="goToTicketsPage()">Open Tickets Page →</button>
+        <div style="color:#8888aa;font-size:13px;margin-bottom:12px;">Tickets now have their own dedicated page — full details, priority, assignment, and ticket-number lookup.</div>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:8px 20px;" onclick="goToTicketsPage()">Open Tickets Page →</button>
       </div>
     </div>
 
@@ -262,7 +262,7 @@
         </div>
         <div>
           <input type="file" id="camera-quiz-file-input" accept="image/*" style="display:none" onchange="uploadCameraQuizImage(this.files[0])">
-          <button class="btn btn-sm" style="background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:9px 16px;" onclick="document.getElementById('camera-quiz-file-input').click()">📤 Upload Labeled Image</button>
+          <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="document.getElementById('camera-quiz-file-input').click()">📤 Upload Labeled Image</button>
         </div>
         <div id="camera-quiz-upload-status" style="font-size:12px;color:var(--muted);"></div>
       </div>
@@ -289,7 +289,7 @@
         </div>
         <div>
           <input type="file" id="dial-map-file-input" accept="image/*" style="display:none" onchange="uploadDialRegionMap(this.files[0])">
-          <button class="btn btn-sm" style="background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:9px 16px;" onclick="document.getElementById('dial-map-file-input').click()">📤 Upload Region Map</button>
+          <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="document.getElementById('dial-map-file-input').click()">📤 Upload Region Map</button>
         </div>
         <div id="dial-map-upload-status" style="font-size:12px;color:var(--muted);"></div>
       </div>
@@ -321,7 +321,7 @@
         </div>
         <div>
           <input type="file" id="photo-quiz-file-input" accept="image/*" style="display:none" onchange="uploadPhotoQuizImage(this.files[0])">
-          <button class="btn btn-sm" style="background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:9px 16px;" onclick="document.getElementById('photo-quiz-file-input').click()">📤 Upload Labeled Image</button>
+          <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="document.getElementById('photo-quiz-file-input').click()">📤 Upload Labeled Image</button>
         </div>
         <div id="photo-quiz-upload-status" style="font-size:12px;color:var(--muted);"></div>
       </div>
@@ -367,13 +367,13 @@
             <option value="quality_desc">Highest quality first</option>
           </select>
         </div>
-        <button class="btn btn-sm" style="background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:9px 16px;" onclick="scenesOffset=0;loadScenesList()">🔍 Apply Filters</button>
-        <button class="btn btn-sm" style="background:rgba(107,78,18,0.15);border:1px solid rgba(107,78,18,0.3);color:#d9c07a;padding:9px 16px;" onclick="recheckSceneQuality()" id="scenes-recheck-btn">🤖 Quality: next 10 unchecked</button>
-        <button class="btn btn-sm" style="background:rgba(107,78,18,0.15);border:1px solid rgba(107,78,18,0.3);color:#d9c07a;padding:9px 16px;" onclick="autoProcessAllUnchecked()" id="scenes-autoprocess-btn">🤖 Quality: Process ALL (auto)</button>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="scenesOffset=0;loadScenesList()">🔍 Apply Filters</button>
+        <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:9px 16px;" onclick="recheckSceneQuality()" id="scenes-recheck-btn">🤖 Quality: next 10 unchecked</button>
+        <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:9px 16px;" onclick="autoProcessAllUnchecked()" id="scenes-autoprocess-btn">🤖 Quality: Process ALL (auto)</button>
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="stopAutoProcessAllUnchecked()" id="scenes-autoprocess-stop-btn">⏹ Stop</button>
-        <button class="btn btn-sm" style="background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:9px 16px;display:none;" onclick="passSelectedScenes()" id="scenes-bulk-pass-btn">✓ Pass Selected (<span id="scenes-selected-count-pass">0</span>)</button>
-        <button class="btn btn-sm" style="background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:9px 16px;" onclick="passAllFailedScenes()" id="scenes-pass-all-failed-btn">✓ Pass ALL Failed</button>
-        <button class="btn btn-sm" style="background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:9px 16px;" onclick="passAllUncheckedScenes()" id="scenes-pass-all-unchecked-btn">✓ Pass ALL Unchecked</button>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;display:none;" onclick="passSelectedScenes()" id="scenes-bulk-pass-btn">✓ Pass Selected (<span id="scenes-selected-count-pass">0</span>)</button>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="passAllFailedScenes()" id="scenes-pass-all-failed-btn">✓ Pass ALL Failed</button>
+        <button class="btn btn-sm" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:9px 16px;" onclick="passAllUncheckedScenes()" id="scenes-pass-all-unchecked-btn">✓ Pass ALL Unchecked</button>
         <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:9px 16px;display:none;" onclick="deleteSelectedScenes()" id="scenes-bulk-delete-btn">🗑️ Delete Selected (<span id="scenes-selected-count">0</span>)</button>
         <button class="btn btn-sm" style="padding:9px 16px;" onclick="toggleSelectAllScenes()" id="scenes-select-all-btn">☐ Select All</button>
         <div id="scenes-recheck-status" style="font-size:12px;color:var(--muted);"></div>
@@ -397,7 +397,7 @@
   <nav>
     <h1>🎫 Tickets</h1>
     <div class="nav-right">
-      <button class="btn btn-sm" onclick="backToDashboard()" style="background:#1c1712;border:1px solid #2e2717;color:#efeade;">← Back to Dashboard</button>
+      <button class="btn btn-sm" onclick="backToDashboard()" style="background:#1c1712;border:1px solid #1e1e35;color:#efeade;">← Back to Dashboard</button>
     </div>
   </nav>
   <div class="page">
@@ -405,10 +405,10 @@
       <div class="card-header">
         <h2>All Tickets</h2>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="text" id="ticket-number-search" placeholder="Find by ticket #…" style="background:#1c1712;border:1px solid #2e2717;color:#efeade;padding:7px 12px;border-radius:6px;font-size:12px;width:140px;" onkeydown="if(event.key==='Enter')searchTicketByNumber()">
-          <button class="btn btn-sm" style="background:rgba(201,132,63,0.15);border:1px solid rgba(201,132,63,0.3);color:#c9843f;padding:7px 14px;" onclick="searchTicketByNumber()">🔍 Find</button>
-          <button class="btn btn-sm" style="background:#1c1712;border:1px solid #2e2717;color:#a89f8a;padding:7px 14px;" onclick="loadTicketsFullPage()">↻ Refresh</button>
-          <span id="tickets-full-count" style="color:#a89f8a;font-size:12px;"></span>
+          <input type="text" id="ticket-number-search" placeholder="Find by ticket #…" style="background:#1c1712;border:1px solid #1e1e35;color:#efeade;padding:7px 12px;border-radius:6px;font-size:12px;width:140px;" onkeydown="if(event.key==='Enter')searchTicketByNumber()">
+          <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="searchTicketByNumber()">🔍 Find</button>
+          <button class="btn btn-sm" style="background:#1c1712;border:1px solid #1e1e35;color:#8888aa;padding:7px 14px;" onclick="loadTicketsFullPage()">↻ Refresh</button>
+          <span id="tickets-full-count" style="color:#8888aa;font-size:12px;"></span>
         </div>
       </div>
       <div id="ticket-number-search-error" style="display:none;color:#ff6b6b;font-size:12px;padding:8px 20px 0;"></div>
@@ -469,7 +469,7 @@
     <div id="batch-scaffold-list" style="overflow-y:auto;padding:8px 24px;flex:1;"></div>
     <div style="padding:16px 24px;border-top:1px solid var(--border);">
       <div id="batch-scaffold-progress" style="font-size:12px;color:var(--muted);margin-bottom:10px;min-height:16px;"></div>
-      <button onclick="runBatchScaffold()" style="width:100%;background:rgba(107,78,18,0.15);border:1px solid rgba(107,78,18,0.4);color:#e8d9a8;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Generate Selected Scaffolds</button>
+      <button onclick="runBatchScaffold()" style="width:100%;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Generate Selected Scaffolds</button>
     </div>
   </div>
 </div>
@@ -526,7 +526,7 @@
   <div id="editor-panes" style="display:flex;flex:1;overflow:hidden;">
 
     <!-- LEFT: Editor -->
-    <div id="editor-left" style="width:50%;min-width:380px;overflow-y:auto;background:#0b0a08;border-right:1px solid #171410;">
+    <div id="editor-left" style="width:50%;min-width:380px;overflow-y:auto;background:#080810;border-right:1px solid #171410;">
 
       <!-- Country meta strip -->
       <div class="ge-meta-strip">
@@ -539,22 +539,22 @@
           <input id="ge-iso" placeholder="AU" maxlength="2" oninput="updatePreview()" class="ge-input" style="text-transform:uppercase;font-size:15px;font-weight:600;letter-spacing:2px;">
         </div>
         <div class="ge-meta-field" style="max-width:170px;align-self:flex-end;">
-          <button onclick="autoScaffoldCountry()" style="width:100%;background:rgba(107,78,18,0.15);border:1px solid rgba(107,78,18,0.4);color:#e8d9a8;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🪄 Auto-Scaffold</button>
+          <button onclick="autoScaffoldCountry()" style="width:100%;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🪄 Auto-Scaffold</button>
         </div>
         <div class="ge-meta-field" style="max-width:150px;align-self:flex-end;">
-          <button onclick="showPhotoChecklist()" style="width:100%;background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.4);color:#b8860b;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📋 Checklist</button>
+          <button onclick="showPhotoChecklist()" style="width:100%;background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.4);color:#00c9a7;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📋 Checklist</button>
         </div>
       </div>
       <div class="ge-meta-strip" style="border-top:none;padding-top:0;">
         <div class="ge-meta-field" style="max-width:170px;">
-          <button onclick="document.getElementById('bulk-upload-input').click()" style="width:100%;background:rgba(212,144,10,0.15);border:1px solid rgba(212,144,10,0.4);color:#d4900a;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📤 Bulk Upload Photos</button>
+          <button onclick="document.getElementById('bulk-upload-input').click()" style="width:100%;background:rgba(240,165,0,0.15);border:1px solid rgba(240,165,0,0.4);color:#f0a500;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📤 Bulk Upload Photos</button>
           <input type="file" id="bulk-upload-input" accept="image/*" multiple style="display:none" onchange="handleBulkUpload(this.files)">
         </div>
         <div class="ge-meta-field" style="max-width:170px;">
           <button onclick="checkGuideCompleteness()" style="width:100%;background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.4);color:#ff6b6b;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✅ Check Completeness</button>
         </div>
         <div class="ge-meta-field" style="max-width:220px;position:relative;">
-          <button onclick="toggleBulkResizeMenu()" id="bulk-resize-btn" style="width:100%;background:rgba(201,132,63,0.15);border:1px solid rgba(201,132,63,0.4);color:#c9843f;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📐 Resize ALL Images</button>
+          <button onclick="toggleBulkResizeMenu()" id="bulk-resize-btn" style="width:100%;background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.4);color:#00c9a7;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📐 Resize ALL Images</button>
           <div id="bulk-resize-menu" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.4);white-space:nowrap;">
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Set every Image+Text block to:</div>
             <div style="display:flex;gap:4px;flex-wrap:wrap;max-width:200px;">
@@ -571,7 +571,7 @@
           </div>
         </div>
         <div class="ge-meta-field" style="max-width:220px;position:relative;">
-          <button onclick="toggleBulkBadgeMenu()" id="bulk-badge-btn" style="width:100%;background:rgba(232,217,168,0.15);border:1px solid rgba(232,217,168,0.4);color:#e8d9a8;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🗺️ Resize ALL Map Badges</button>
+          <button onclick="toggleBulkBadgeMenu()" id="bulk-badge-btn" style="width:100%;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🗺️ Resize ALL Map Badges</button>
           <div id="bulk-badge-menu" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.4);white-space:nowrap;">
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Set every map badge to:</div>
             <div style="display:flex;gap:4px;flex-wrap:wrap;max-width:230px;">
@@ -666,35 +666,35 @@
 /* ── Guide Editor Layout ─────────────────── */
 .ge-topbar {
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;height:52px;background:#100e0a;
+  padding:0 20px;height:52px;background:#0d0d18;
   border-bottom:1px solid #171410;flex-shrink:0;z-index:10;
 }
 .ge-btn-ghost {
   display:inline-flex;align-items:center;gap:6px;
-  background:transparent;border:1px solid #241f14;color:#a89f8a;
+  background:transparent;border:1px solid #241f14;color:#8888aa;
   padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;
   font-weight:600;transition:all .15s;
 }
-.ge-btn-ghost:hover { border-color:#6b4e12;color:#d9c07a; }
+.ge-btn-ghost:hover { border-color:#7c3aed;color:#c4b5fd; }
 .ge-btn-save {
   display:inline-flex;align-items:center;gap:7px;
-  background:linear-gradient(135deg,#b8860b,#b8860b);border:none;color:#040d0b;
+  background:linear-gradient(135deg,#00c9a7,#00c9a7);border:none;color:#040d0b;
   padding:8px 20px;border-radius:9px;cursor:pointer;font-size:13px;
-  font-weight:700;transition:opacity .15s;box-shadow:0 2px 12px rgba(184,134,11,0.3);
+  font-weight:700;transition:opacity .15s;box-shadow:0 2px 12px rgba(0,201,167,0.3);
 }
 .ge-btn-save:hover { opacity:.88; }
 .ge-toggle {
-  display:flex;gap:2px;background:#100e0a;border:1px solid #241f14;
+  display:flex;gap:2px;background:#0d0d18;border:1px solid #241f14;
   border-radius:9px;padding:3px;
 }
 .ge-toggle-btn {
   display:inline-flex;align-items:center;gap:5px;
   padding:5px 12px;border-radius:7px;border:none;font-size:12px;
-  cursor:pointer;background:transparent;color:#8a806c;font-weight:600;
+  cursor:pointer;background:transparent;color:#7a7a9a;font-weight:600;
   transition:all .15s;
 }
 .ge-toggle-btn.active { background:#241f14;color:#efeade; }
-.ge-toggle-btn:hover:not(.active) { color:#a89f8a; }
+.ge-toggle-btn:hover:not(.active) { color:#8888aa; }
 
 /* ── Meta strip ──────────────────────────── */
 .ge-meta-strip {
@@ -703,7 +703,7 @@
 }
 .ge-meta-field { flex:1; }
 .ge-label {
-  display:block;font-size:10px;font-weight:700;color:#4a4030;
+  display:block;font-size:10px;font-weight:700;color:#4a4a6a;
   text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;
 }
 .ge-input {
@@ -711,16 +711,16 @@
   color:#efeade;padding:4px 0;outline:none;font-family:inherit;
   transition:border-color .15s;
 }
-.ge-input:focus { border-bottom-color:#b8860b; }
-.ge-input::placeholder { color:#332c1c; }
+.ge-input:focus { border-bottom-color:#00c9a7; }
+.ge-input::placeholder { color:#2a2a45; }
 
 /* ── Add block panel ─────────────────────── */
 .ge-add-panel {
-  margin:16px 20px 24px;background:#100e0a;border:1px solid #171410;
+  margin:16px 20px 24px;background:#0d0d18;border:1px solid #171410;
   border-radius:14px;padding:16px;
 }
 .ge-add-label {
-  font-size:10px;font-weight:700;color:#332c1c;text-transform:uppercase;
+  font-size:10px;font-weight:700;color:#2a2a45;text-transform:uppercase;
   letter-spacing:.8px;margin-bottom:12px;
 }
 .ge-add-grid {
@@ -731,59 +731,59 @@
   background:#0a0908;border:1px solid #171410;border-radius:9px;
   padding:9px 12px;cursor:pointer;transition:all .15s;text-align:left;
 }
-.ge-add-btn:hover { border-color:#6b4e12;background:#110f0a; }
-.ge-add-icon { font-size:14px;flex-shrink:0;width:20px;text-align:center;font-weight:700;color:#8a7e5c; }
-.ge-add-name { font-size:12px;font-weight:600;color:#a89f8a; }
-.ge-add-btn:hover .ge-add-name { color:#d9c07a; }
+.ge-add-btn:hover { border-color:#7c3aed;background:#110f0a; }
+.ge-add-icon { font-size:14px;flex-shrink:0;width:20px;text-align:center;font-weight:700;color:#8a8ab0; }
+.ge-add-name { font-size:12px;font-weight:600;color:#8888aa; }
+.ge-add-btn:hover .ge-add-name { color:#c4b5fd; }
 
 .ge-inline-add-wrap { margin-top:8px; position:relative; }
 .ge-inline-add-btn {
-  width:100%;background:none;border:1px dashed #241f14;color:#6e6552;
+  width:100%;background:none;border:1px dashed #241f14;color:#5a5a7a;
   border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;
   cursor:pointer;transition:all .15s;text-align:center;
 }
-.ge-inline-add-btn:hover { border-color:#6b4e12;color:#d9c07a;background:rgba(107,78,18,0.06); }
+.ge-inline-add-btn:hover { border-color:#7c3aed;color:#c4b5fd;background:rgba(124,58,237,0.06); }
 .ge-inline-add-menu {
   position:absolute;z-index:50;top:calc(100% + 4px);left:0;right:0;
-  background:#100e0a;border:1px solid #6b4e12;border-radius:12px;
+  background:#0d0d18;border:1px solid #7c3aed;border-radius:12px;
   padding:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
   box-shadow:0 12px 32px rgba(0,0,0,0.5);
 }
 
 /* ── Block cards ─────────────────────────── */
 .block-card {
-  background:#100e0a;border:1px solid #171410;border-radius:10px;
+  background:#0d0d18;border:1px solid #171410;border-radius:10px;
   padding:12px 14px;position:relative;transition:border-color .15s;
 }
 .block-card:hover { border-color:#241f14; }
-.block-card.block-focused { border-color:#6b4e12; }
-.block-card.drag-over { border-color:#6b4e12; border-style:dashed; background:#110f0a; }
+.block-card.block-focused { border-color:#7c3aed; }
+.block-card.drag-over { border-color:#7c3aed; border-style:dashed; background:#110f0a; }
 .drag-handle {
-  cursor:grab;color:#332c1c;font-size:16px;padding:2px 6px;
+  cursor:grab;color:#2a2a45;font-size:16px;padding:2px 6px;
   border-radius:5px;transition:color .1s;user-select:none;
 }
-.drag-handle:hover { color:#6b4e12; }
+.drag-handle:hover { color:#7c3aed; }
 .drag-handle:active { cursor:grabbing; }
 .group-drag-handle {
-  font-size:11px;font-weight:700;color:#6b4e12;background:rgba(107,78,18,0.1);
-  border:1px solid rgba(107,78,18,0.3);border-radius:6px;padding:3px 8px;
+  font-size:11px;font-weight:700;color:#7c3aed;background:rgba(124,58,237,0.1);
+  border:1px solid rgba(124,58,237,0.3);border-radius:6px;padding:3px 8px;
 }
-.group-drag-handle:hover { color:#fff;background:#6b4e12;border-color:#6b4e12; }
+.group-drag-handle:hover { color:#fff;background:#7c3aed;border-color:#7c3aed; }
 .block-toolbar {
   display:flex;gap:3px;align-items:center;margin-bottom:10px;
 }
 .block-tag {
-  font-size:10px;font-weight:700;color:#4a4030;text-transform:uppercase;
+  font-size:10px;font-weight:700;color:#4a4a6a;text-transform:uppercase;
   letter-spacing:.6px;background:#0a0908;padding:3px 8px;border-radius:5px;
   border:1px solid #171410;
 }
 .block-move {
-  background:none;border:none;color:#332c1c;cursor:pointer;
+  background:none;border:none;color:#2a2a45;cursor:pointer;
   font-size:13px;padding:2px 6px;border-radius:5px;transition:all .1s;
 }
-.block-move:hover { color:#a89f8a;background:#171410; }
+.block-move:hover { color:#8888aa;background:#171410; }
 .block-delete {
-  background:none;border:none;color:#332c1c;cursor:pointer;
+  background:none;border:none;color:#2a2a45;cursor:pointer;
   font-size:12px;padding:2px 6px;border-radius:5px;margin-left:auto;
   transition:all .1s;
 }
@@ -796,14 +796,14 @@
   outline:none;resize:none;font-family:inherit;min-height:38px;
   white-space:pre-wrap;word-break:break-word;transition:border-color .15s;
 }
-.be:focus { border-color:#6b4e12;box-shadow:0 0 0 3px rgba(107,78,18,0.08); }
-.be::placeholder { color:#332c1c; }
+.be:focus { border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,0.08); }
+.be::placeholder { color:#2a2a45; }
 .be-heading {
   font-size:17px;font-weight:700;min-height:28px;resize:none;
   background:transparent;border:none;border-bottom:1px solid #171410;
   border-radius:0;padding:4px 0;letter-spacing:-.2px;
 }
-.be-heading:focus { border-bottom-color:#6b4e12;box-shadow:none; }
+.be-heading:focus { border-bottom-color:#7c3aed;box-shadow:none; }
 
 /* ── Image drop zone ─────────────────────── */
 .img-drop-zone {
@@ -811,25 +811,25 @@
   cursor:pointer;transition:all .2s;background:#0a0908;position:relative;
 }
 .img-drop-zone:hover,.img-drop-zone.drag-over {
-  border-color:#6b4e12;background:rgba(107,78,18,0.05);
+  border-color:#7c3aed;background:rgba(124,58,237,0.05);
 }
 .img-drop-zone img { max-width:100%;border-radius:8px;display:block;margin:0 auto; }
 
 /* ── Preview ─────────────────────────────── */
 .ge-preview-empty {
   text-align:center;padding:80px 20px;color:#221d10;font-size:14px;
-  border:2px dashed #100e0a;border-radius:16px;
+  border:2px dashed #0d0d18;border-radius:16px;
 }
 .prev-h2 { font-size:20px;font-weight:800;color:#efeade;margin:28px 0 12px;padding-bottom:10px;border-bottom:1px solid #171410; }
-.prev-p { color:#d9d0bc;line-height:1.8;font-size:14px;margin-bottom:14px;white-space:pre-wrap; }
+.prev-p { color:#d0d0e8;line-height:1.8;font-size:14px;margin-bottom:14px;white-space:pre-wrap; }
 .prev-img { width:100%;border-radius:10px;margin:14px 0 4px;display:block; }
-.prev-cap { text-align:center;font-size:12px;color:#4a4030;margin-bottom:14px; }
-.prev-tip { background:rgba(184,134,11,0.07);border-left:3px solid #b8860b;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0; }
-.prev-tip-label { font-size:10px;font-weight:800;color:#b8860b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px; }
+.prev-cap { text-align:center;font-size:12px;color:#4a4a6a;margin-bottom:14px; }
+.prev-tip { background:rgba(0,201,167,0.07);border-left:3px solid #00c9a7;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0; }
+.prev-tip-label { font-size:10px;font-weight:800;color:#00c9a7;margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px; }
 .prev-warn { background:rgba(255,107,107,0.07);border-left:3px solid #ff6b6b;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0; }
 .prev-warn-label { font-size:10px;font-weight:800;color:#ff6b6b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px; }
 .prev-2col { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0; }
-.prev-2col-cell { background:#100e0a;border:1px solid #171410;border-radius:10px;padding:14px; }
+.prev-2col-cell { background:#0d0d18;border:1px solid #171410;border-radius:10px;padding:14px; }
 
 @keyframes spin { to { transform:rotate(360deg); } }
 </style>
@@ -837,18 +837,18 @@
 <div class="toast" id="toast"></div>
 
 <div id="ticket-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
-  <div style="background:#141008;border:1px solid #2e2717;border-radius:16px;padding:0;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
-    <div style="padding:20px 24px;border-bottom:1px solid #2e2717;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+  <div style="background:#141008;border:1px solid #1e1e35;border-radius:16px;padding:0;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+    <div style="padding:20px 24px;border-bottom:1px solid #1e1e35;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <div id="ticket-modal-subject" style="font-weight:700;font-size:16px;color:#efeade;"></div>
-        <div id="ticket-modal-meta" style="font-size:12px;color:#a89f8a;margin-top:4px;"></div>
+        <div id="ticket-modal-meta" style="font-size:12px;color:#8888aa;margin-top:4px;"></div>
       </div>
-      <button onclick="closeTicketModal()" style="background:none;border:none;color:#a89f8a;font-size:20px;cursor:pointer;line-height:1;">✕</button>
+      <button onclick="closeTicketModal()" style="background:none;border:none;color:#8888aa;font-size:20px;cursor:pointer;line-height:1;">✕</button>
     </div>
-    <div style="padding:16px 24px;border-bottom:1px solid #2e2717;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+    <div style="padding:16px 24px;border-bottom:1px solid #1e1e35;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
       <div style="display:flex;gap:8px;align-items:center;">
-        <span style="font-size:12px;color:#a89f8a;">Status:</span>
-        <select id="ticket-modal-status-select" onchange="changeTicketStatus()" style="background:#1c1712;border:1px solid #2e2717;color:#efeade;padding:6px 10px;border-radius:6px;font-size:12px;">
+        <span style="font-size:12px;color:#8888aa;">Status:</span>
+        <select id="ticket-modal-status-select" onchange="changeTicketStatus()" style="background:#1c1712;border:1px solid #1e1e35;color:#efeade;padding:6px 10px;border-radius:6px;font-size:12px;">
           <option value="open">Open</option>
           <option value="in_progress">In Progress</option>
           <option value="resolved">Resolved</option>
@@ -856,8 +856,8 @@
         </select>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <span style="font-size:12px;color:#a89f8a;">Priority:</span>
-        <select id="ticket-modal-priority-select" onchange="changeTicketPriority()" style="background:#1c1712;border:1px solid #2e2717;color:#efeade;padding:6px 10px;border-radius:6px;font-size:12px;">
+        <span style="font-size:12px;color:#8888aa;">Priority:</span>
+        <select id="ticket-modal-priority-select" onchange="changeTicketPriority()" style="background:#1c1712;border:1px solid #1e1e35;color:#efeade;padding:6px 10px;border-radius:6px;font-size:12px;">
           <option value="low">Low</option>
           <option value="normal">Normal</option>
           <option value="high">High</option>
@@ -865,30 +865,30 @@
         </select>
       </div>
     </div>
-    <div style="padding:16px 24px;border-bottom:1px solid #2e2717;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <span style="font-size:12px;color:#a89f8a;">Assigned to:</span>
-      <select id="ticket-modal-assign-select" onchange="changeTicketAssignment()" style="background:#1c1712;border:1px solid #2e2717;color:#efeade;padding:6px 10px;border-radius:6px;font-size:12px;min-width:140px;">
+    <div style="padding:16px 24px;border-bottom:1px solid #1e1e35;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:12px;color:#8888aa;">Assigned to:</span>
+      <select id="ticket-modal-assign-select" onchange="changeTicketAssignment()" style="background:#1c1712;border:1px solid #1e1e35;color:#efeade;padding:6px 10px;border-radius:6px;font-size:12px;min-width:140px;">
         <option value="">Unassigned</option>
       </select>
-      <button class="btn btn-sm" style="background:rgba(201,132,63,0.15);border:1px solid rgba(201,132,63,0.3);color:#c9843f;padding:6px 12px;font-size:12px;" onclick="openAssignToMe()">Assign to me</button>
+      <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:6px 12px;font-size:12px;" onclick="openAssignToMe()">Assign to me</button>
     </div>
     <div id="ticket-modal-messages" style="padding:20px 24px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;"></div>
-    <div style="padding:16px 24px;border-top:1px solid #2e2717;">
-      <textarea id="ticket-modal-reply-text" placeholder="Reply to this ticket…" rows="3" style="width:100%;box-sizing:border-box;background:#100e0a;border:1px solid #2e2717;color:#efeade;padding:10px 12px;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
-      <button class="btn btn-sm" style="margin-top:8px;background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:8px 18px;" id="ticket-modal-reply-btn" onclick="sendTicketReply()">Send Reply</button>
+    <div style="padding:16px 24px;border-top:1px solid #1e1e35;">
+      <textarea id="ticket-modal-reply-text" placeholder="Reply to this ticket…" rows="3" style="width:100%;box-sizing:border-box;background:#0d0d18;border:1px solid #1e1e35;color:#efeade;padding:10px 12px;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+      <button class="btn btn-sm" style="margin-top:8px;background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:8px 18px;" id="ticket-modal-reply-btn" onclick="sendTicketReply()">Send Reply</button>
     </div>
   </div>
 </div>
 
 <div id="assign-to-me-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3100;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
-  <div style="background:#141008;border:1px solid #2e2717;border-radius:16px;padding:24px;max-width:360px;width:100%;">
+  <div style="background:#141008;border:1px solid #1e1e35;border-radius:16px;padding:24px;max-width:360px;width:100%;">
     <div style="font-weight:700;font-size:15px;color:#efeade;margin-bottom:4px;">Assign to me</div>
-    <div style="font-size:12px;color:#a89f8a;margin-bottom:14px;">Optionally show a different display name to the user instead of your account username.</div>
-    <label style="font-size:12px;color:#a89f8a;display:block;margin-bottom:6px;">Display name</label>
-    <input id="assign-to-me-name" type="text" style="width:100%;box-sizing:border-box;background:#100e0a;border:1px solid #2e2717;color:#efeade;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:14px;">
+    <div style="font-size:12px;color:#8888aa;margin-bottom:14px;">Optionally show a different display name to the user instead of your account username.</div>
+    <label style="font-size:12px;color:#8888aa;display:block;margin-bottom:6px;">Display name</label>
+    <input id="assign-to-me-name" type="text" style="width:100%;box-sizing:border-box;background:#0d0d18;border:1px solid #1e1e35;color:#efeade;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:14px;">
     <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button class="btn btn-sm" style="background:#1c1712;border:1px solid #2e2717;color:#a89f8a;padding:7px 14px;" onclick="document.getElementById('assign-to-me-overlay').style.display='none'">Cancel</button>
-      <button class="btn btn-sm" style="background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:7px 14px;" onclick="confirmAssignToMe()">Assign</button>
+      <button class="btn btn-sm" style="background:#1c1712;border:1px solid #1e1e35;color:#8888aa;padding:7px 14px;" onclick="document.getElementById('assign-to-me-overlay').style.display='none'">Cancel</button>
+      <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="confirmAssignToMe()">Assign</button>
     </div>
   </div>
 </div>
@@ -1073,7 +1073,7 @@ function startPoll() {
         renderLogs();
         // Flash the log count green to show something arrived
         const el = document.getElementById('log-count');
-        if (el) { el.style.color = '#b8860b'; setTimeout(() => el.style.color = '#a89f8a', 800); }
+        if (el) { el.style.color = '#00c9a7'; setTimeout(() => el.style.color = '#8888aa', 800); }
       })
       .catch(() => {});
   }, 3000);
@@ -1127,7 +1127,7 @@ function startClock() {
   }
   tick();
   setInterval(tick, 1000);
-  document.getElementById('nav-status').style.color = '#b8860b';
+  document.getElementById('nav-status').style.color = '#00c9a7';
 }
 
 function loadStats(d) {
@@ -1148,11 +1148,11 @@ function loadStats(d) {
       <td><span class="badge badge-${u.tier}">${u.tier}</span></td>
       <td>
         <span style="margin-right:8px">${u.f7||0}/10</span>
-        <span class="usage-bar-wrap"><span class="usage-bar" style="width:${Math.min(100,(u.f7||0)*10)}%;background:${(u.f7||0)>=10?'#ff6b6b':'#b8860b'}"></span></span>
+        <span class="usage-bar-wrap"><span class="usage-bar" style="width:${Math.min(100,(u.f7||0)*10)}%;background:${(u.f7||0)>=10?'#ff6b6b':'#00c9a7'}"></span></span>
       </td>
       <td>
         <span style="margin-right:8px">${u.guides||0}/10</span>
-        <span class="usage-bar-wrap"><span class="usage-bar" style="width:${Math.min(100,(u.guides||0)*10)}%;background:${(u.guides||0)>=10?'#ff6b6b':'#b8860b'}"></span></span>
+        <span class="usage-bar-wrap"><span class="usage-bar" style="width:${Math.min(100,(u.guides||0)*10)}%;background:${(u.guides||0)>=10?'#ff6b6b':'#00c9a7'}"></span></span>
       </td>
       <td>${u.analyses||0}</td>
     </tr>`).join('');
@@ -1224,8 +1224,8 @@ function fmtToolbar(taId, blockId, key) {
 
 function attachToggle(block) {
   const on = !!block.data.attachBelow;
-  return `<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:${on?'#b8860b':'var(--muted)'};cursor:pointer;margin-bottom:8px;user-select:none;">
-    <input type="checkbox" ${on?'checked':''} onchange="syncBlock(${block.id},'attachBelow',this.checked)" style="accent-color:#b8860b;cursor:pointer;">
+  return `<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:${on?'#00c9a7':'var(--muted)'};cursor:pointer;margin-bottom:8px;user-select:none;">
+    <input type="checkbox" ${on?'checked':''} onchange="syncBlock(${block.id},'attachBelow',this.checked)" style="accent-color:#00c9a7;cursor:pointer;">
     🔗 Attach to block below (no gap)
   </label>`;
 }
@@ -1241,40 +1241,40 @@ function renderUsers(users) {
     return `
     <tr>
       <td><strong>${uname}</strong>${u.disabled ? `<br><span class="badge badge-banned" style="margin-top:4px;">⏸ Disabled</span>` : ''}${isBanned ? `<br><span class="badge badge-banned" style="margin-top:4px;">${isPermaBanned ? '🚫 Permanent' : '🚫 Until ' + formatDate(u.banned_until)}</span>` : ''}</td>
-      <td style="color:#a89f8a;font-size:12px">${uemail}</td>
+      <td style="color:#8888aa;font-size:12px">${uemail}</td>
       <td><span class="badge badge-${u.tier}">${u.tier}</span></td>
       <td>${u.email_verified
             ? `<span class="badge badge-free">✓ Verified</span>`
-            : `<span class="badge badge-banned">✗ Unverified</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1c1712;border:1px solid #2e2717;color:#a89f8a;" onclick="resendVerification(${u.id})">✉ Resend</button>`}</td>
+            : `<span class="badge badge-banned">✗ Unverified</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1c1712;border:1px solid #1e1e35;color:#8888aa;" onclick="resendVerification(${u.id})">✉ Resend</button>`}</td>
       <td>
-        <div style="font-size:12px;color:#a89f8a;margin-bottom:4px;">${u.phone_number ? escapeHtml(u.phone_number) : '<em>none set</em>'}</div>
+        <div style="font-size:12px;color:#8888aa;margin-bottom:4px;">${u.phone_number ? escapeHtml(u.phone_number) : '<em>none set</em>'}</div>
         ${u.phone_number
           ? (u.phone_verified
               ? `<span class="badge badge-free">✓ Verified</span>`
               : `<span class="badge badge-banned">✗ Unverified</span>`)
           : ''}
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
-          <button class="btn btn-sm" style="background:#1c1712;border:1px solid #2e2717;color:#a89f8a;" onclick="setPhoneNumber(${u.id})">${u.phone_number ? '✎ Edit' : '+ Add'}</button>
-          ${u.phone_number && !u.phone_verified ? `<button class="btn btn-sm" style="background:#1c1712;border:1px solid #2e2717;color:#a89f8a;" onclick="resendPhoneVerification(${u.id})">📱 Resend</button>` : ''}
-          ${u.phone_number ? `<button class="btn btn-sm" style="background:${u.phone_verified ? '#1c1712' : 'rgba(184,134,11,.15)'};border:1px solid ${u.phone_verified ? '#2e2717' : 'rgba(184,134,11,.3)'};color:${u.phone_verified ? '#a89f8a' : '#b8860b'};" onclick="setPhoneVerified(${u.id},${!u.phone_verified})">${u.phone_verified ? 'Mark Unverified' : '✓ Mark Verified'}</button>` : ''}
+          <button class="btn btn-sm" style="background:#1c1712;border:1px solid #1e1e35;color:#8888aa;" onclick="setPhoneNumber(${u.id})">${u.phone_number ? '✎ Edit' : '+ Add'}</button>
+          ${u.phone_number && !u.phone_verified ? `<button class="btn btn-sm" style="background:#1c1712;border:1px solid #1e1e35;color:#8888aa;" onclick="resendPhoneVerification(${u.id})">📱 Resend</button>` : ''}
+          ${u.phone_number ? `<button class="btn btn-sm" style="background:${u.phone_verified ? '#1c1712' : 'rgba(0,201,167,.15)'};border:1px solid ${u.phone_verified ? '#1e1e35' : 'rgba(0,201,167,.3)'};color:${u.phone_verified ? '#8888aa' : '#00c9a7'};" onclick="setPhoneVerified(${u.id},${!u.phone_verified})">${u.phone_verified ? 'Mark Unverified' : '✓ Mark Verified'}</button>` : ''}
           ${u.phone_number ? `<button class="btn btn-sm btn-danger" onclick="resetPhone(${u.id})">↺ Reset</button>` : ''}
         </div>
       </td>
       <td>${u.is_admin
-            ? `<span class="badge badge-pro">★ Admin</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1c1712;border:1px solid #2e2717;color:#a89f8a;" onclick="setAdmin(${u.id},false)">Demote</button>`
+            ? `<span class="badge badge-pro">★ Admin</span><br><button class="btn btn-sm" style="margin-top:4px;background:#1c1712;border:1px solid #1e1e35;color:#8888aa;" onclick="setAdmin(${u.id},false)">Demote</button>`
             : `<button class="btn btn-sm btn-purple" onclick="setAdmin(${u.id},true)">Make Admin</button>`}</td>
-      <td style="color:#a89f8a;font-size:12px">${formatDate(u.created_at)}</td>
-      <td style="color:#a89f8a;font-size:12px">${formatDate(u.last_login)}</td>
+      <td style="color:#8888aa;font-size:12px">${formatDate(u.created_at)}</td>
+      <td style="color:#8888aa;font-size:12px">${formatDate(u.last_login)}</td>
       <td>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
           ${u.tier === 'free'
             ? `<button class="btn btn-sm btn-purple" onclick="setTier(${u.id},'pro')">↑ Pro</button>`
             : `<button class="btn btn-sm btn-danger" onclick="setTier(${u.id},'free')">↓ Free</button>`
           }
-          <button class="btn btn-sm" style="background:#1c1712;border:1px solid #2e2717;color:#a89f8a;" onclick="resetUsage(${u.id})">Reset</button>
-          <button class="btn btn-sm" style="background:${u.disabled ? 'rgba(184,134,11,.15)' : '#1c1712'};border:1px solid ${u.disabled ? 'rgba(184,134,11,.3)' : '#2e2717'};color:${u.disabled ? '#b8860b' : '#a89f8a'};" onclick="toggleDisabled(${u.id},${!u.disabled})">${u.disabled ? '▶ Enable' : '⏸ Disable'}</button>
+          <button class="btn btn-sm" style="background:#1c1712;border:1px solid #1e1e35;color:#8888aa;" onclick="resetUsage(${u.id})">Reset</button>
+          <button class="btn btn-sm" style="background:${u.disabled ? 'rgba(0,201,167,.15)' : '#1c1712'};border:1px solid ${u.disabled ? 'rgba(0,201,167,.3)' : '#1e1e35'};color:${u.disabled ? '#00c9a7' : '#8888aa'};" onclick="toggleDisabled(${u.id},${!u.disabled})">${u.disabled ? '▶ Enable' : '⏸ Disable'}</button>
           <div class="ban-menu">
-            <button class="btn btn-sm" style="background:${isBanned ? 'rgba(255,100,100,.15)' : '#1c1712'};border:1px solid ${isBanned ? 'rgba(255,100,100,.3)' : '#2e2717'};color:${isBanned ? '#ff6b6b' : '#a89f8a'};" onclick="toggleBanMenu(event,${u.id})">${isBanned ? '🚫 Banned' : '🚫 Ban'}</button>
+            <button class="btn btn-sm" style="background:${isBanned ? 'rgba(255,100,100,.15)' : '#1c1712'};border:1px solid ${isBanned ? 'rgba(255,100,100,.3)' : '#1e1e35'};color:${isBanned ? '#ff6b6b' : '#8888aa'};" onclick="toggleBanMenu(event,${u.id})">${isBanned ? '🚫 Banned' : '🚫 Ban'}</button>
             <div class="ban-dropdown" id="ban-menu-${u.id}">
               ${isBanned ? `<button onclick="banUser(${u.id},'unban')">✓ Unban</button>` : `
               <button onclick="banUser(${u.id},'1d')">1 Day</button>
@@ -1494,21 +1494,21 @@ function resetUsage(userId) {
 
 // ── Logs ─────────────────────────────────────────────────
 const EVENT_LABELS = {
-  register:          { icon: '👤', label: 'Register',         color: '#b8860b' },
-  email_verified:    { icon: '✉️',  label: 'Email Verified',   color: '#b8860b' },
-  login:             { icon: '🔓', label: 'Login',            color: '#a89f8a' },
+  register:          { icon: '👤', label: 'Register',         color: '#00c9a7' },
+  email_verified:    { icon: '✉️',  label: 'Email Verified',   color: '#00c9a7' },
+  login:             { icon: '🔓', label: 'Login',            color: '#8888aa' },
   login_failed:      { icon: '❌', label: 'Login Failed',     color: '#ff6b6b' },
-  logout:            { icon: '🔒', label: 'Logout',           color: '#8a806c' },
+  logout:            { icon: '🔒', label: 'Logout',           color: '#7a7a9a' },
   password_changed:  { icon: '🔑', label: 'Password Changed', color: '#f59e0b' },
   rate_limit_login:  { icon: '🚨', label: 'Rate Limited',     color: '#ff6b6b' },
-  ai_analyse:        { icon: '🔍', label: 'Analyse',          color: '#6b4e12' },
-  teaching_guide:    { icon: '📖', label: 'Training Guide',   color: '#6b4e12' },
-  ai_chat:           { icon: '💬', label: 'AI Chat',          color: '#6b4e12' },
-  scene_upload:      { icon: '📸', label: 'F7 Upload',        color: '#b8860b' },
+  ai_analyse:        { icon: '🔍', label: 'Analyse',          color: '#7c3aed' },
+  teaching_guide:    { icon: '📖', label: 'Training Guide',   color: '#7c3aed' },
+  ai_chat:           { icon: '💬', label: 'AI Chat',          color: '#7c3aed' },
+  scene_upload:      { icon: '📸', label: 'F7 Upload',        color: '#00c9a7' },
   admin_disable:     { icon: '🚫', label: 'User Disabled',    color: '#ff6b6b' },
-  admin_enable:      { icon: '✅', label: 'User Enabled',     color: '#b8860b' },
+  admin_enable:      { icon: '✅', label: 'User Enabled',     color: '#00c9a7' },
   admin_ban:         { icon: '🔨', label: 'User Banned',      color: '#ff6b6b' },
-  admin_unban:       { icon: '🕊️', label: 'User Unbanned',   color: '#b8860b' },
+  admin_unban:       { icon: '🕊️', label: 'User Unbanned',   color: '#00c9a7' },
   admin_delete_user: { icon: '🗑️', label: 'User Deleted',    color: '#ff6b6b' },
   admin_reset_usage: { icon: '↺',  label: 'Usage Reset',      color: '#f59e0b' },
   admin_set_tier:    { icon: '⭐', label: 'Tier Changed',     color: '#f59e0b' },
@@ -1558,13 +1558,13 @@ function renderLogs() {
     return;
   }
   tbody.innerHTML = logs.map(l => {
-    const meta = EVENT_LABELS[l.event_type] || { icon: '•', label: l.event_type, color: '#a89f8a' };
+    const meta = EVENT_LABELS[l.event_type] || { icon: '•', label: l.event_type, color: '#8888aa' };
     return `<tr>
-      <td style="color:#a89f8a;font-size:11px;white-space:nowrap">${formatDateTime(l.created_at)}</td>
+      <td style="color:#8888aa;font-size:11px;white-space:nowrap">${formatDateTime(l.created_at)}</td>
       <td><span style="color:${meta.color};font-weight:700;white-space:nowrap">${meta.icon} ${meta.label}</span></td>
       <td style="font-weight:600">${escapeHtml(l.username || '—')}</td>
-      <td style="font-size:12px;color:#d9d0bc;max-width:300px;word-break:break-word">${escapeHtml(l.detail || '—')}</td>
-      <td style="font-size:11px;color:#8a806c;white-space:nowrap">${escapeHtml(l.ip || '—')}</td>
+      <td style="font-size:12px;color:#d0d0e8;max-width:300px;word-break:break-word">${escapeHtml(l.detail || '—')}</td>
+      <td style="font-size:11px;color:#7a7a9a;white-space:nowrap">${escapeHtml(l.ip || '—')}</td>
     </tr>`;
   }).join('');
 }
@@ -1585,12 +1585,12 @@ function renderChatLogs() {
     return;
   }
   tbody.innerHTML = logs.map(l => `<tr>
-    <td style="color:#a89f8a;font-size:11px;white-space:nowrap">${formatDateTime(l.created_at)}</td>
+    <td style="color:#8888aa;font-size:11px;white-space:nowrap">${formatDateTime(l.created_at)}</td>
     <td style="font-weight:600">${escapeHtml(l.username || '—')}</td>
-    <td style="font-size:12px;color:#b8860b">${escapeHtml(l.correct_location || '—')}</td>
+    <td style="font-size:12px;color:#00c9a7">${escapeHtml(l.correct_location || '—')}</td>
     <td style="font-size:12px;color:#ff6b6b">${escapeHtml(l.guessed_location || '—')}</td>
     <td style="font-size:12px;max-width:220px;word-break:break-word">${escapeHtml(l.user_message || '')}</td>
-    <td style="font-size:12px;max-width:280px;word-break:break-word;color:#d9d0bc">${escapeHtml(l.ai_reply || '')}</td>
+    <td style="font-size:12px;max-width:280px;word-break:break-word;color:#d0d0e8">${escapeHtml(l.ai_reply || '')}</td>
   </tr>`).join('');
 }
 
@@ -1708,10 +1708,10 @@ function loadGuides() {
         <tr>
           <td style="font-weight:600">${escapeHtml(g.country)}</td>
           <td style="color:var(--muted);font-size:12px">${g.iso}</td>
-          <td><span style="color:${g.source==='manual'?'#b8860b':'#6b4e12'};font-size:12px;font-weight:600">${g.source==='manual'?'✍️ Manual':'🤖 AI'}</span></td>
+          <td><span style="color:${g.source==='manual'?'#00c9a7':'#7c3aed'};font-size:12px;font-weight:600">${g.source==='manual'?'✍️ Manual':'🤖 AI'}</span></td>
           <td style="color:var(--muted);font-size:12px">${formatDate(g.updated_at)}</td>
           <td style="display:flex;gap:6px;">
-            <button onclick="editGuide('${g.iso}','${escapeHtml(g.country)}')" style="background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Edit</button>
+            <button onclick="editGuide('${g.iso}','${escapeHtml(g.country)}')" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Edit</button>
             <button onclick="deleteGuide('${g.iso}','${escapeHtml(g.country)}')" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Delete</button>
           </td>
         </tr>`).join('');
@@ -1728,16 +1728,16 @@ const TICKET_CATEGORY_LABEL = {
   account: '👤 Account', other: '💬 Other',
 };
 const TICKET_STATUS_STYLE = {
-  open:        { label: 'Open',        color: '#d4900a' },
-  in_progress: { label: 'In Progress', color: '#e8c56b' },
-  resolved:    { label: 'Resolved',    color: '#c9a227' },
-  closed:      { label: 'Closed',      color: '#a89f8a' },
+  open:        { label: 'Open',        color: '#f0a500' },
+  in_progress: { label: 'In Progress', color: '#5eb3ff' },
+  resolved:    { label: 'Resolved',    color: '#00c9a7' },
+  closed:      { label: 'Closed',      color: '#8888aa' },
 };
 
 const TICKET_PRIORITY_STYLE = {
-  low:    { label: 'Low',    color: '#a89f8a' },
-  normal: { label: 'Normal', color: '#a89f8a' },
-  high:   { label: 'High',   color: '#d4900a' },
+  low:    { label: 'Low',    color: '#8888aa' },
+  normal: { label: 'Normal', color: '#8888aa' },
+  high:   { label: 'High',   color: '#f0a500' },
   urgent: { label: 'Urgent', color: '#ff6b6b' },
 };
 
@@ -1803,7 +1803,7 @@ function renderTicketsFullTable(){
           <td style="color:var(--muted);font-size:12px">${formatDate(t.updated_at)}</td>
           <td><span style="color:${s.color};font-size:12px;font-weight:600">${s.label}</span></td>
           <td>
-            <button onclick="openTicketModal('${t.id}')" style="background:rgba(201,132,63,0.1);border:1px solid rgba(201,132,63,0.3);color:#c9843f;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">View / Reply</button>
+            <button onclick="openTicketModal('${t.id}')" style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;">View / Reply</button>
           </td>
         </tr>`;
   }).join('');
@@ -1850,10 +1850,10 @@ function renderTicketMessages(messages){
   return (messages || []).map(m => {
     const isAdmin = m.sender_type === 'admin';
     return `
-      <div style="align-self:${isAdmin ? 'flex-end' : 'flex-start'};max-width:80%;background:${isAdmin ? 'rgba(184,134,11,0.08)' : '#1c1712'};border:1px solid ${isAdmin ? 'rgba(184,134,11,0.25)' : '#2e2717'};border-radius:10px;padding:10px 12px;">
-        <div style="font-size:11px;font-weight:600;color:${isAdmin ? '#b8860b' : '#a89f8a'};margin-bottom:4px;">${isAdmin ? '🛟 ' + escapeHtml(m.sender_name || 'Admin') : escapeHtml(m.sender_name || 'User')}</div>
+      <div style="align-self:${isAdmin ? 'flex-end' : 'flex-start'};max-width:80%;background:${isAdmin ? 'rgba(0,201,167,0.08)' : '#1c1712'};border:1px solid ${isAdmin ? 'rgba(0,201,167,0.25)' : '#1e1e35'};border-radius:10px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:600;color:${isAdmin ? '#00c9a7' : '#8888aa'};margin-bottom:4px;">${isAdmin ? '🛟 ' + escapeHtml(m.sender_name || 'Admin') : escapeHtml(m.sender_name || 'User')}</div>
         <div style="font-size:13px;color:#efeade;white-space:pre-wrap;">${escapeHtml(m.message)}</div>
-        <div style="font-size:10px;color:#a89f8a;margin-top:6px;">${formatDateTime(m.created_at)}</div>
+        <div style="font-size:10px;color:#8888aa;margin-top:6px;">${formatDateTime(m.created_at)}</div>
       </div>`;
   }).join('');
 }
@@ -1861,7 +1861,7 @@ function renderTicketMessages(messages){
 function openTicketModal(id){
   currentTicketId = id;
   document.getElementById('ticket-modal-overlay').style.display = 'flex';
-  document.getElementById('ticket-modal-messages').innerHTML = '<div style="color:#a89f8a;font-size:13px;">Loading…</div>';
+  document.getElementById('ticket-modal-messages').innerHTML = '<div style="color:#8888aa;font-size:13px;">Loading…</div>';
   document.getElementById('ticket-modal-reply-text').value = '';
   lastKnownMessageCount = 0;
   loadAdminsList().then(() => {
@@ -2227,7 +2227,7 @@ function loadScenesList(){
           const badge = s.quality_checked_at === null
             ? `<span style="color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:10px;">⚪ Not checked</span>`
             : s.quality_score === 1
-              ? `<span style="color:#b8860b;background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);border-radius:6px;padding:2px 8px;font-size:10px;">✅ Passed</span>`
+              ? `<span style="color:#00c9a7;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);border-radius:6px;padding:2px 8px;font-size:10px;">✅ Passed</span>`
               : `<span style="color:#ff6b6b;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:6px;padding:2px 8px;font-size:10px;" title="${escapeHtml(s.quality_reason||'')}">❌ Failed</span>`;
           const suspiciousBadge = s.flagged_suspicious
             ? `<span style="color:#ffb800;background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.3);border-radius:6px;padding:2px 8px;font-size:10px;margin-left:4px;">⚠️ Suspicious</span>`
@@ -2241,7 +2241,7 @@ function loadScenesList(){
             ? `<div style="font-size:10px;color:#ffb800;background:rgba(255,184,0,0.06);border-radius:5px;padding:4px 6px;margin-bottom:6px;line-height:1.35;">⚠️ ${escapeHtml(s.suspicious_reason)}</div>`
             : '';
           const passBtn = (s.quality_checked_at && s.quality_score === 0)
-            ? `<button onclick="manualPassScene('${s.id}')" style="flex:1;background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.3);color:#b8860b;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;" title="Override — mark this as Passed anyway">✓ Pass</button>`
+            ? `<button onclick="manualPassScene('${s.id}')" style="flex:1;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;" title="Override — mark this as Passed anyway">✓ Pass</button>`
             : '';
           const reviewedBtn = s.flagged_suspicious
             ? `<button onclick="clearSuspicious('${s.id}')" style="flex:1;background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.3);color:#ffb800;padding:5px 0;border-radius:6px;cursor:pointer;font-size:11px;" title="I've reviewed this — clear the suspicious flag">👁️ Reviewed</button>`
@@ -2754,9 +2754,9 @@ function showProgressTracker(){
   const rows = GEOGUESSR_COUNTRIES.slice().sort((a,b) => a.localeCompare(b)).map(country => {
     const g = guideByCountry[country];
     let statusHtml, statusColor;
-    if (g && g.source === 'manual') { statusHtml = '✅ Written'; statusColor = '#b8860b'; }
-    else if (g) { statusHtml = '🤖 AI only'; statusColor = '#6b4e12'; }
-    else { statusHtml = '⬜ Not started'; statusColor = '#8a806c'; }
+    if (g && g.source === 'manual') { statusHtml = '✅ Written'; statusColor = '#00c9a7'; }
+    else if (g) { statusHtml = '🤖 AI only'; statusColor = '#7c3aed'; }
+    else { statusHtml = '⬜ Not started'; statusColor = '#7a7a9a'; }
     return `<div onclick="document.getElementById('progress-tracker-modal').style.display='none';${g ? `editGuide('${g.iso}','${escapeHtml(country)}')` : `openGuideEditor(null);document.getElementById('ge-country').value='${escapeHtml(country)}';`}"
       style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer;">
       <span style="font-size:13px;">${escapeHtml(country)}</span>
@@ -3084,7 +3084,7 @@ function renderBlock(block) {
           ondrop="${isUploading ? '' : `handleDrop(${block.id},event)`}">
           <input type="file" id="file-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this)">
           ${isUploading
-            ? `<div style="padding:24px;color:#b8860b;"><div style="width:28px;height:28px;border:3px solid #241f14;border-top-color:#b8860b;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px;"></div><div style="font-size:13px;">Uploading...</div></div>`
+            ? `<div style="padding:24px;color:#00c9a7;"><div style="width:28px;height:28px;border:3px solid #241f14;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px;"></div><div style="font-size:13px;">Uploading...</div></div>`
             : imgSrc
               ? `<img src="${imgSrc}" style="max-width:100%;border-radius:6px;">`
               : `<div style="color:var(--muted)"><div style="font-size:28px;margin-bottom:6px">🖼️</div><div style="font-size:13px">Click to upload · Drag & drop · <strong>Paste (Ctrl+V)</strong></div></div>`}
@@ -3092,9 +3092,9 @@ function renderBlock(block) {
         <textarea class="be" rows="1" placeholder="Caption (optional)..." style="margin-top:8px;" oninput="syncBlock(${block.id},'caption',this.value);autoResize(this)">${escapeHtml(block.data.caption||'')}</textarea>`;
       break;
     case 'tip':
-      inner = `<div style="background:rgba(184,134,11,0.07);border-left:3px solid #b8860b;border-radius:0 7px 7px 0;padding:10px 12px">
-        <div style="font-size:10px;color:#b8860b;font-weight:700;margin-bottom:6px;text-transform:uppercase">💡 Tip</div>
-        ${fmtToolbar('ta-tip-'+block.id, block.id, 'text')}<textarea id="ta-tip-${block.id}" class="be" rows="3" placeholder="A specific tip or giveaway clue..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(184,134,11,0.2)">${escapeHtml(block.data.text||'')}</textarea>
+      inner = `<div style="background:rgba(0,201,167,0.07);border-left:3px solid #00c9a7;border-radius:0 7px 7px 0;padding:10px 12px">
+        <div style="font-size:10px;color:#00c9a7;font-weight:700;margin-bottom:6px;text-transform:uppercase">💡 Tip</div>
+        ${fmtToolbar('ta-tip-'+block.id, block.id, 'text')}<textarea id="ta-tip-${block.id}" class="be" rows="3" placeholder="A specific tip or giveaway clue..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)" style="background:transparent;border:1px solid rgba(0,201,167,0.2)">${escapeHtml(block.data.text||'')}</textarea>
       </div>${attachToggle(block)}`;
       break;
     case 'warning':
@@ -3123,25 +3123,25 @@ function renderBlock(block) {
         ${attachToggle(block)}
         <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
           <span style="font-size:12px;color:var(--muted);">Image width:</span>
-          <span id="imgwbtns-${block.id}">${['25','33','40','50','60','70','80','90','100'].map(w => `<button data-val="${w}" onclick="setImgWidth(${block.id},'${w}')" style="padding:3px 10px;border-radius:5px;border:1px solid ${imgW===w?'#b8860b':'var(--border)'};background:${imgW===w?'rgba(184,134,11,0.15)':'var(--bg2)'};color:${imgW===w?'#b8860b':'var(--muted)'};cursor:pointer;font-size:12px;">${w}%</button>`).join('')}</span>
+          <span id="imgwbtns-${block.id}">${['25','33','40','50','60','70','80','90','100'].map(w => `<button data-val="${w}" onclick="setImgWidth(${block.id},'${w}')" style="padding:3px 10px;border-radius:5px;border:1px solid ${imgW===w?'#00c9a7':'var(--border)'};background:${imgW===w?'rgba(0,201,167,0.15)':'var(--bg2)'};color:${imgW===w?'#00c9a7':'var(--muted)'};cursor:pointer;font-size:12px;">${w}%</button>`).join('')}</span>
         </div>
         <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
           <span style="font-size:12px;color:var(--muted);">Map badge size:</span>
-          <span id="badgebtns-${block.id}">${['60','80','100','110','130','150','180','220','260','300'].map(s => `<button data-val="${s}" onclick="setMapBadgeSize(${block.id},'${s}')" style="padding:3px 10px;border-radius:5px;border:1px solid ${mapBadgeSize===s?'#b8860b':'var(--border)'};background:${mapBadgeSize===s?'rgba(184,134,11,0.15)':'var(--bg2)'};color:${mapBadgeSize===s?'#b8860b':'var(--muted)'};cursor:pointer;font-size:12px;">${s}px</button>`).join('')}</span>
+          <span id="badgebtns-${block.id}">${['60','80','100','110','130','150','180','220','260','300'].map(s => `<button data-val="${s}" onclick="setMapBadgeSize(${block.id},'${s}')" style="padding:3px 10px;border-radius:5px;border:1px solid ${mapBadgeSize===s?'#00c9a7':'var(--border)'};background:${mapBadgeSize===s?'rgba(0,201,167,0.15)':'var(--bg2)'};color:${mapBadgeSize===s?'#00c9a7':'var(--muted)'};cursor:pointer;font-size:12px;">${s}px</button>`).join('')}</span>
         </div>
         <div id="itgrid-${block.id}" style="display:grid;grid-template-columns:${imgW==='100'?'1fr':imgW+'% 1fr'};gap:14px;align-items:start;">          <div>
             <div style="position:relative;">
               <div class="img-drop-zone" id="dropzone-${block.id}" onclick="document.getElementById('file-it-${block.id}').click()" ondrop="handleDrop(${block.id},event)" ondragover="event.preventDefault()">
                 <input type="file" id="file-it-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this)">
                 ${block.data.src === '__uploading__'
-                  ? `<div style="padding:16px;color:#b8860b;"><div style="width:22px;height:22px;border:2px solid #241f14;border-top-color:#b8860b;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 8px;"></div><div style="font-size:12px">Uploading...</div></div>`
+                  ? `<div style="padding:16px;color:#00c9a7;"><div style="width:22px;height:22px;border:2px solid #241f14;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 8px;"></div><div style="font-size:12px">Uploading...</div></div>`
                   : block.data.src ? `<img src="${block.data.src}" style="width:100%;height:auto;display:block;border-radius:6px;">` : `<div style="color:var(--muted);font-size:12px;padding:16px 0">🖼️<br>Click or paste</div>`}
               </div>
               <div class="map-badge-drop-zone" id="badge-${block.id}" onclick="document.getElementById('file-map-${block.id}').click()" ondrop="handleDrop(${block.id},event,'mapSrc')" ondragover="event.preventDefault()"
                 style="position:absolute;bottom:14px;right:14px;width:${mapBadgeSize}px;height:${mapBadgeSize}px;border-radius:6px;overflow:hidden;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));">
                 <input type="file" id="file-map-${block.id}" accept="image/*" style="display:none" onchange="handleFileSelect(${block.id},this,'mapSrc')">
                 ${mapSrc === '__uploading__'
-                  ? `<div style="width:14px;height:14px;border:2px solid #ddd;border-top-color:#b8860b;border-radius:50%;animation:spin 1s linear infinite;"></div>`
+                  ? `<div style="width:14px;height:14px;border:2px solid #ddd;border-top-color:#00c9a7;border-radius:50%;animation:spin 1s linear infinite;"></div>`
                   : mapSrc ? `<img src="${mapSrc}" style="width:100%;height:100%;object-fit:contain;">` : `<span style="font-size:18px;">🗺️</span>`}
               </div>
               ${mapSrc && mapSrc !== '__uploading__' ? `<button id="badgermv-${block.id}" onclick="event.stopPropagation();syncBlock(${block.id},'mapSrc','')" title="Remove map badge" style="position:absolute;bottom:${parseInt(mapBadgeSize)+22}px;right:12px;width:20px;height:20px;border-radius:50%;background:#1c1712;border:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1;cursor:pointer;">✕</button>` : ''}
@@ -3184,8 +3184,8 @@ function renderBlock(block) {
     case 'spacer':
       const spH = block.data.height || 32;
       inner = `<div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:11px;color:#4a4030;">Space height:</span>
-        ${[16,32,48,64].map(h => `<button onclick="syncBlock(${block.id},'height',${h})" style="padding:3px 10px;border-radius:5px;border:1px solid ${spH===h?'#6b4e12':'#171410'};background:${spH===h?'rgba(107,78,18,0.15)':'#0a0908'};color:${spH===h?'#d9c07a':'#4a4030'};cursor:pointer;font-size:11px;">${h}px</button>`).join('')}
+        <span style="font-size:11px;color:#4a4a6a;">Space height:</span>
+        ${[16,32,48,64].map(h => `<button onclick="syncBlock(${block.id},'height',${h})" style="padding:3px 10px;border-radius:5px;border:1px solid ${spH===h?'#7c3aed':'#171410'};background:${spH===h?'rgba(124,58,237,0.15)':'#0a0908'};color:${spH===h?'#c4b5fd':'#4a4a6a'};cursor:pointer;font-size:11px;">${h}px</button>`).join('')}
       </div>
       <div style="height:${spH}px;border:1px dashed #171410;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#221d10;font-size:11px;margin-top:8px;">${spH}px gap</div>`;
       break;
@@ -3207,7 +3207,7 @@ function renderBlock(block) {
           <button onclick="addRegionTab(${block.id})" style="flex:2;background:var(--bg2);border:1px dashed var(--border);color:var(--muted);padding:6px 16px;border-radius:7px;cursor:pointer;font-size:12px;">+ Add Region</button>
           <button onclick="sortRegionTabsAZ(${block.id})" style="flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;" title="Sort alphabetically">🔤 Sort A-Z</button>
         </div>
-        <div style="margin-top:10px;font-size:11px;color:var(--muted);background:rgba(184,134,11,0.06);border:1px solid rgba(184,134,11,0.15);border-radius:6px;padding:8px 12px;">💡 Each region name must match a <strong style="color:#b8860b">Heading block</strong> below it. Renders as styled tabs in the guide.</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);background:rgba(0,201,167,0.06);border:1px solid rgba(0,201,167,0.15);border-radius:6px;padding:8px 12px;">💡 Each region name must match a <strong style="color:#00c9a7">Heading block</strong> below it. Renders as styled tabs in the guide.</div>
       </div>`;
       break;
     }
@@ -3223,7 +3223,7 @@ function renderBlock(block) {
             </div>`).join('')}
         </div>
         <button onclick="addNavBtn(${block.id})" style="margin-top:10px;background:var(--bg2);border:1px dashed var(--border);color:var(--muted);padding:6px 16px;border-radius:7px;cursor:pointer;font-size:12px;width:100%;">+ Add Button</button>
-        <div style="margin-top:10px;font-size:11px;color:var(--muted);background:rgba(184,134,11,0.06);border:1px solid rgba(184,134,11,0.15);border-radius:6px;padding:8px 12px;">💡 <strong style="color:#b8860b">To link a button:</strong> type the button label exactly the same as a Heading block in your guide. e.g. Button label "Road Meta" → scrolls to a Heading that says "Road Meta".</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);background:rgba(0,201,167,0.06);border:1px solid rgba(0,201,167,0.15);border-radius:6px;padding:8px 12px;">💡 <strong style="color:#00c9a7">To link a button:</strong> type the button label exactly the same as a Heading block in your guide. e.g. Button label "Road Meta" → scrolls to a Heading that says "Road Meta".</div>
       </div>`;
       break;
     }
@@ -3307,7 +3307,7 @@ function startGroupDrag(e, headingBlockId) {
 function beginDragWithIds(blockIds) {
   const cards = blockIds.map(id => document.querySelector(`[data-block-id="${id}"]`)).filter(Boolean);
   if (!cards.length) return;
-  cards.forEach(c => { c.style.opacity = '0.35'; c.style.outline = '2px dashed #6b4e12'; });
+  cards.forEach(c => { c.style.opacity = '0.35'; c.style.outline = '2px dashed #7c3aed'; });
   dragState = { blockIds, cards };
 
   document.addEventListener('mousemove', onDragMove);
@@ -3407,9 +3407,9 @@ function setImgWidth(id, w) {
   const btnGroup = document.getElementById('imgwbtns-' + id);
   if (btnGroup) btnGroup.querySelectorAll('button').forEach(btn => {
     const active = btn.dataset.val === w;
-    btn.style.border = '1px solid ' + (active ? '#b8860b' : 'var(--border)');
-    btn.style.background = active ? 'rgba(184,134,11,0.15)' : 'var(--bg2)';
-    btn.style.color = active ? '#b8860b' : 'var(--muted)';
+    btn.style.border = '1px solid ' + (active ? '#00c9a7' : 'var(--border)');
+    btn.style.background = active ? 'rgba(0,201,167,0.15)' : 'var(--bg2)';
+    btn.style.color = active ? '#00c9a7' : 'var(--muted)';
   });
   updatePreview();
 }
@@ -3481,9 +3481,9 @@ function setMapBadgeSize(id, s) {
   const btnGroup = document.getElementById('badgebtns-' + id);
   if (btnGroup) btnGroup.querySelectorAll('button').forEach(btn => {
     const active = btn.dataset.val === s;
-    btn.style.border = '1px solid ' + (active ? '#b8860b' : 'var(--border)');
-    btn.style.background = active ? 'rgba(184,134,11,0.15)' : 'var(--bg2)';
-    btn.style.color = active ? '#b8860b' : 'var(--muted)';
+    btn.style.border = '1px solid ' + (active ? '#00c9a7' : 'var(--border)');
+    btn.style.background = active ? 'rgba(0,201,167,0.15)' : 'var(--bg2)';
+    btn.style.color = active ? '#00c9a7' : 'var(--muted)';
   });
   updatePreview();
 }
@@ -3778,7 +3778,7 @@ function updatePreview() {
   const iso = document.getElementById('ge-iso').value.toUpperCase();
   let html = `<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #241f14;">
     <div style="font-size:28px;font-weight:800;color:#efeade;">${escapeHtml(country)}</div>
-    <div style="font-size:13px;color:#8a806c;margin-top:2px;">GeoGuessr Country Meta Guide</div>
+    <div style="font-size:13px;color:#7a7a9a;margin-top:2px;">GeoGuessr Country Meta Guide</div>
   </div>`;
   editorBlocks.forEach((b, bIdx) => {
     const prevAttach = bIdx > 0 && editorBlocks[bIdx-1].data && editorBlocks[bIdx-1].data.attachBelow;
@@ -3820,9 +3820,9 @@ function updatePreview() {
         html += `<div style="display:grid;grid-template-columns:${itW==='100'?'1fr':itW+'% 1fr'};gap:18px;align-items:start;margin:${mt} 0 ${mb};">
           <div>
             <div style="position:relative;">
-              ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:auto;display:block;border-radius:8px;">` : '<div style="background:#1c1712;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3220;font-size:12px;">Image</div>'}
+              ${b.data.src ? `<img src="${b.data.src}" style="width:100%;height:auto;display:block;border-radius:8px;">` : '<div style="background:#1c1712;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#3a3a55;font-size:12px;">Image</div>'}
             </div>
-          ${b.data.caption ? `<div style="text-align:center;font-size:11px;color:#8a806c;margin-top:4px;">${escapeHtml(b.data.caption)}</div>` : ''}
+          ${b.data.caption ? `<div style="text-align:center;font-size:11px;color:#7a7a9a;margin-top:4px;">${escapeHtml(b.data.caption)}</div>` : ''}
           ${itMapSrc ? `<img src="${itMapSrc}" style="width:${itMapSz}px;max-width:100%;display:block;margin:8px auto 0;border-radius:6px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.4));">` : ''}
           </div>
           <div class="prev-p" style="margin:0">${mdToHtml(b.data.text||'')}</div>
@@ -3840,11 +3840,11 @@ function updatePreview() {
         if (litems.length) {
           html += `<ul style="padding-left:0;list-style:none;margin:12px 0;">
             ${litems.map(item => `
-              <li style="display:flex;gap:8px;align-items:baseline;margin-bottom:10px;font-size:14px;color:#d9d0bc;">
-                <span style="color:#b8860b;flex-shrink:0;">•</span>
+              <li style="display:flex;gap:8px;align-items:baseline;margin-bottom:10px;font-size:14px;color:#d0d0e8;">
+                <span style="color:#00c9a7;flex-shrink:0;">•</span>
                 <span>
                   <strong style="color:#efeade;">${escapeHtml(item.label)}</strong>
-                  ${item.url ? ` <span style="color:#6b4e12;font-size:12px;">(link)</span>` : ''}
+                  ${item.url ? ` <span style="color:#7c3aed;font-size:12px;">(link)</span>` : ''}
                   ${item.desc ? ` — ${escapeHtml(item.desc)}` : ''}
                 </span>
               </li>`).join('')}
@@ -3854,9 +3854,9 @@ function updatePreview() {
       case 'region-tabs':
         const rtPreview = (b.data.buttons || []).filter(x => x && x.trim());
         if (rtPreview.length) {
-          html += `<div style="display:flex;flex-wrap:wrap;gap:8px;margin:20px 0;padding:16px;background:rgba(107,78,18,0.06);border:1px solid rgba(107,78,18,0.2);border-radius:12px;">
-            <span style="font-size:11px;color:#6b4e12;font-weight:700;text-transform:uppercase;letter-spacing:.5px;width:100%;margin-bottom:6px;">Regions</span>
-            ${rtPreview.map(label => `<div style="background:rgba(107,78,18,0.12);border:1px solid rgba(107,78,18,0.3);color:#d9c07a;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">${escapeHtml(label)}</div>`).join('')}
+          html += `<div style="display:flex;flex-wrap:wrap;gap:8px;margin:20px 0;padding:16px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:12px;">
+            <span style="font-size:11px;color:#7c3aed;font-weight:700;text-transform:uppercase;letter-spacing:.5px;width:100%;margin-bottom:6px;">Regions</span>
+            ${rtPreview.map(label => `<div style="background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">${escapeHtml(label)}</div>`).join('')}
           </div>`;
         }
         break;
@@ -3864,7 +3864,7 @@ function updatePreview() {
         const navBtnsPreview = (b.data.buttons || []).filter(x => x && x.trim());
         if (navBtnsPreview.length) {
           html += `<div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 24px;">
-            ${navBtnsPreview.map(label => `<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:30px;padding:13px 28px;font-size:15px;font-weight:700;color:#d9d0bc;cursor:pointer;letter-spacing:.3px;">${escapeHtml(label)}</div>`).join('')}
+            ${navBtnsPreview.map(label => `<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:30px;padding:13px 28px;font-size:15px;font-weight:700;color:#d0d0e8;cursor:pointer;letter-spacing:.3px;">${escapeHtml(label)}</div>`).join('')}
           </div>`;
         }
         break;
@@ -3913,7 +3913,7 @@ function formatDate(str) {
 function toast(msg, isError) {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.style.borderColor = isError ? '#ff6b6b' : '#b8860b';
+  el.style.borderColor = isError ? '#ff6b6b' : '#00c9a7';
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 3000);
 }
