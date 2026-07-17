@@ -1737,6 +1737,7 @@ async function login() {
 
 // ── Dashboard ─────────────────────────────────────────────
 function goHome() {
+  clearInterval(ticketThreadPollInterval);
   document.getElementById('landing').style.display = '';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('stats-page').style.display = 'none';
@@ -1745,6 +1746,7 @@ function goHome() {
 }
 
 function goToDashboard() {
+  clearInterval(ticketThreadPollInterval);
   closeUserMenu();
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
@@ -1765,6 +1767,7 @@ function goToDashboard() {
 }
 
 function goToStats() {
+  clearInterval(ticketThreadPollInterval);
   closeUserMenu();
   document.getElementById('landing').style.display = 'none';
   document.getElementById('dashboard').style.display = 'none';
@@ -1851,11 +1854,27 @@ function formatTicketDate(iso){
   } catch(e) { return iso; }
 }
 
+let ticketThreadPollInterval = null;
+let lastKnownTicketMessageCount = 0;
+
+function renderTicketThreadMessages(messages){
+  return (messages || []).map(m => {
+    const isAdmin = m.sender_type === 'admin';
+    return `
+      <div style="align-self:${isAdmin ? 'flex-start' : 'flex-end'};max-width:80%;background:${isAdmin ? 'rgba(94,179,255,0.08)' : 'var(--bg)'};border:1px solid ${isAdmin ? 'rgba(94,179,255,0.25)' : 'var(--border)'};border-radius:12px;padding:12px 14px;">
+        <div style="font-size:11px;font-weight:600;color:${isAdmin ? '#5eb3ff' : 'var(--muted)'};margin-bottom:4px;">${isAdmin ? '🛟 ' + escapeHtmlIdx(m.sender_name || 'Support') : escapeHtmlIdx(m.sender_name || 'You')}</div>
+        <div style="font-size:13px;white-space:pre-wrap;">${escapeHtmlIdx(m.message)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px;">${formatTicketDate(m.created_at)}</div>
+      </div>`;
+  }).join('');
+}
+
 async function openTicketThread(id){
   currentTicketId = id;
   document.getElementById('tickets-list-view').style.display = 'none';
   document.getElementById('ticket-thread-view').style.display = 'block';
   document.getElementById('ticket-thread-messages').innerHTML = '<div style="color:var(--muted);font-size:13px;">Loading…</div>';
+  lastKnownTicketMessageCount = 0;
   const token = getToken();
   try {
     const res = await fetch(`${API}/tickets/${id}?token=${encodeURIComponent(token)}`);
@@ -1869,23 +1888,39 @@ async function openTicketThread(id){
     statusEl.textContent = s.label;
     statusEl.style.background = s.bg;
     statusEl.style.color = s.color;
-    document.getElementById('ticket-thread-messages').innerHTML = (data.messages || []).map(m => {
-      const isAdmin = m.sender_type === 'admin';
-      return `
-        <div style="align-self:${isAdmin ? 'flex-start' : 'flex-end'};max-width:80%;background:${isAdmin ? 'rgba(94,179,255,0.08)' : 'var(--bg)'};border:1px solid ${isAdmin ? 'rgba(94,179,255,0.25)' : 'var(--border)'};border-radius:12px;padding:12px 14px;">
-          <div style="font-size:11px;font-weight:600;color:${isAdmin ? '#5eb3ff' : 'var(--muted)'};margin-bottom:4px;">${isAdmin ? '🛟 ' + escapeHtmlIdx(m.sender_name || 'Support') : escapeHtmlIdx(m.sender_name || 'You')}</div>
-          <div style="font-size:13px;white-space:pre-wrap;">${escapeHtmlIdx(m.message)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:6px;">${formatTicketDate(m.created_at)}</div>
-        </div>`;
-    }).join('');
+    document.getElementById('ticket-thread-messages').innerHTML = renderTicketThreadMessages(data.messages);
     document.getElementById('ticket-thread-messages').style.display = 'flex';
+    lastKnownTicketMessageCount = (data.messages || []).length;
   } catch(e) {
     document.getElementById('ticket-thread-messages').innerHTML = `<div style="color:#ff6b6b;font-size:13px;">${e.message}</div>`;
   }
+  // Live updates — poll while this thread's open so an admin's reply
+  // shows up without needing a manual refresh. Only touches the message
+  // list/status, never the reply box, so it won't interrupt typing.
+  clearInterval(ticketThreadPollInterval);
+  ticketThreadPollInterval = setInterval(async () => {
+    if (!currentTicketId) return;
+    try {
+      const res = await fetch(`${API}/tickets/${currentTicketId}?token=${encodeURIComponent(getToken())}`);
+      const data = await res.json();
+      if (!res.ok || data.error) return;
+      const count = (data.messages || []).length;
+      if (count !== lastKnownTicketMessageCount){
+        document.getElementById('ticket-thread-messages').innerHTML = renderTicketThreadMessages(data.messages);
+        lastKnownTicketMessageCount = count;
+      }
+      const s = TICKET_STATUS_STYLE[data.status] || TICKET_STATUS_STYLE.open;
+      const statusEl = document.getElementById('ticket-thread-status');
+      statusEl.textContent = s.label;
+      statusEl.style.background = s.bg;
+      statusEl.style.color = s.color;
+    } catch(e) {}
+  }, 4000);
 }
 
 function closeTicketThread(){
   currentTicketId = null;
+  clearInterval(ticketThreadPollInterval);
   document.getElementById('ticket-thread-view').style.display = 'none';
   document.getElementById('tickets-list-view').style.display = 'block';
   loadMyTickets();
