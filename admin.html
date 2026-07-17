@@ -193,6 +193,7 @@
         <div style="display:flex;gap:8px;">
           <button class="btn btn-sm" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4a0ff;padding:7px 14px;" onclick="showProgressTracker()">📊 Progress</button>
           <button class="btn btn-sm" style="background:rgba(240,165,0,0.15);border:1px solid rgba(240,165,0,0.3);color:#f0a500;padding:7px 14px;" onclick="showBatchScaffold()">🚀 Batch-Scaffold</button>
+          <button class="btn btn-sm" id="export-guides-btn" style="background:rgba(0,150,255,0.15);border:1px solid rgba(0,150,255,0.3);color:#5eb3ff;padding:7px 14px;" onclick="exportAllGuides()">⬇️ Export All Guides</button>
           <button class="btn btn-sm" style="background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.3);color:#00c9a7;padding:7px 14px;" onclick="openGuideEditor(null)">+ Write New Guide</button>
         </div>
       </div>
@@ -1405,6 +1406,35 @@ let allGuides = [];
 let editorBlocks = [];
 let blockIdCounter = 0;
 let dragSrcId = null;
+
+function exportAllGuides() {
+  const btn = document.getElementById('export-guides-btn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Exporting…';
+  fetch(`${API}/admin/export_guides`, {headers: adminHeaders()})
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) throw new Error(data.error);
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().slice(0,10);
+      a.href = url;
+      a.download = `geoanalyzerx-guides-backup-${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      btn.textContent = `✓ Exported ${data.count}`;
+      setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+    })
+    .catch(e => {
+      alert('Export failed: ' + e.message);
+      btn.textContent = originalText;
+      btn.disabled = false;
+    });
+}
 
 function loadGuides() {
   fetch(`${API}/admin/country_metas`, {headers: adminHeaders()})
