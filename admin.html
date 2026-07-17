@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GeoAnalyzerX Admin</title>
+<title>5kable Admin</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #08080f; color: #e0e0f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
@@ -100,7 +100,7 @@
 <div id="login-screen">
   <div class="login-box">
     <div style="font-size:32px;margin-bottom:12px">🌍</div>
-    <h1>GeoAnalyzerX Admin</h1>
+    <h1>5kable Admin</h1>
     <p>Sign in with your admin account</p>
     <input type="email" id="admin-email-input" placeholder="Email" onkeydown="if(event.key==='Enter')doLogin()">
     <input type="password" id="admin-password-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
@@ -114,7 +114,7 @@
 <!-- Dashboard -->
 <div id="dashboard">
   <nav>
-    <h1>GeoAnalyzerX Admin</h1>
+    <h1>5kable Admin</h1>
     <div class="nav-right">
       <span id="nav-status">●</span>
       <span id="nav-time"></span>
@@ -189,7 +189,7 @@
         <button class="tab" onclick="switchLogTab('ai', this)">🤖 AI Usage</button>
         <button class="tab" onclick="switchLogTab('scenes', this)">📸 Scenes</button>
         <button class="tab" onclick="switchLogTab('admin', this)">⚙️ Admin Actions</button>
-        <button class="tab" onclick="switchLogTab('chat', this)">💬 GeoX Chat</button>
+        <button class="tab" onclick="switchLogTab('chat', this)">💬 5K Chat</button>
       </div>
 
       <!-- Activity log table (all tabs except chat) -->
@@ -203,7 +203,7 @@
       <!-- Chat log table (chat tab only) -->
       <div id="log-chat-panel" style="overflow-x:auto;display:none">
         <table>
-          <thead><tr><th>Time</th><th>User</th><th>Correct Location</th><th>Guessed</th><th>Player Said</th><th>GeoX Replied</th></tr></thead>
+          <thead><tr><th>Time</th><th>User</th><th>Correct Location</th><th>Guessed</th><th>Player Said</th><th>5K Replied</th></tr></thead>
           <tbody id="log-chat-tbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
         </table>
       </div>
@@ -933,7 +933,7 @@ function toggleCardCollapse(id){
   const card = document.getElementById(id);
   if (!card) return;
   const collapsed = card.classList.toggle('collapsed');
-  localStorage.setItem('gax_admin_collapsed_' + id, collapsed ? '1' : '0');
+  localStorage.setItem('kbl_admin_collapsed_' + id, collapsed ? '1' : '0');
   const btn = card.querySelector('.card-collapse-btn');
   if (btn) btn.textContent = collapsed ? '▸' : '▾';
 }
@@ -941,7 +941,7 @@ function toggleCardCollapse(id){
 function setAllCardsCollapsed(collapsed){
   document.querySelectorAll('.card[id^="section-"]').forEach(card => {
     card.classList.toggle('collapsed', collapsed);
-    localStorage.setItem('gax_admin_collapsed_' + card.id, collapsed ? '1' : '0');
+    localStorage.setItem('kbl_admin_collapsed_' + card.id, collapsed ? '1' : '0');
     const btn = card.querySelector('.card-collapse-btn');
     if (btn) btn.textContent = collapsed ? '▸' : '▾';
   });
@@ -967,7 +967,7 @@ function setAllCardsCollapsed(collapsed){
     } else {
       header.appendChild(btn);
     }
-    if (localStorage.getItem('gax_admin_collapsed_' + card.id) === '1'){
+    if (localStorage.getItem('kbl_admin_collapsed_' + card.id) === '1'){
       card.classList.add('collapsed');
       btn.textContent = '▸';
     }
@@ -992,10 +992,10 @@ function resetInactivityTimer() { /* no-op */ }
 
 function doLogout(msg) {
   adminKey = ''; adminToken = ''; currentAdminId = null; currentAdminUsername = '';
-  sessionStorage.removeItem('gax_admin_key');
-  sessionStorage.removeItem('gax_admin_token');
-  sessionStorage.removeItem('gax_admin_id');
-  sessionStorage.removeItem('gax_admin_username');
+  sessionStorage.removeItem('kbl_admin_key');
+  sessionStorage.removeItem('kbl_admin_token');
+  sessionStorage.removeItem('kbl_admin_id');
+  sessionStorage.removeItem('kbl_admin_username');
   clearTimeout(inactivityTimer);
   clearInterval(pollInterval);
   clearInterval(ticketPollInterval);
@@ -1016,12 +1016,12 @@ setInterval(() => {
 
 // ── Session restore on refresh ────────────────────────────
 window.addEventListener('load', () => {
-  const savedKey   = sessionStorage.getItem('gax_admin_key');
-  const savedToken = sessionStorage.getItem('gax_admin_token');
+  const savedKey   = sessionStorage.getItem('kbl_admin_key');
+  const savedToken = sessionStorage.getItem('kbl_admin_token');
   if (savedKey && savedToken) {
     adminKey = savedKey; adminToken = savedToken;
-    currentAdminId = sessionStorage.getItem('gax_admin_id');
-    currentAdminUsername = sessionStorage.getItem('gax_admin_username') || '';
+    currentAdminId = sessionStorage.getItem('kbl_admin_id');
+    currentAdminUsername = sessionStorage.getItem('kbl_admin_username') || '';
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
     loadDashboard();
@@ -1105,10 +1105,10 @@ function doLogin() {
     }
     adminKey = key; adminToken = d.admin_token;
     currentAdminId = d.id; currentAdminUsername = d.username;
-    sessionStorage.setItem('gax_admin_key', key);
-    sessionStorage.setItem('gax_admin_token', d.admin_token);
-    sessionStorage.setItem('gax_admin_id', d.id);
-    sessionStorage.setItem('gax_admin_username', d.username || '');
+    sessionStorage.setItem('kbl_admin_key', key);
+    sessionStorage.setItem('kbl_admin_token', d.admin_token);
+    sessionStorage.setItem('kbl_admin_id', d.id);
+    sessionStorage.setItem('kbl_admin_username', d.username || '');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
     loadDashboard();
@@ -1618,7 +1618,7 @@ function exportAllGuides() {
       const a = document.createElement('a');
       const dateStr = new Date().toISOString().slice(0,10);
       a.href = url;
-      a.download = `geoanalyzerx-guides-backup-${dateStr}.json`;
+      a.download = `5kable-guides-backup-${dateStr}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
