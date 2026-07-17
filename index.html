@@ -1329,9 +1329,12 @@ if (sessionStorage.getItem('gax_unlocked') === '1') {
         </div>
         <div id="ticket-thread-messages" style="margin-top:20px;display:flex;flex-direction:column;gap:14px;"></div>
         <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
-          <textarea id="ticket-reply-text" placeholder="Write a reply…" rows="3" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
-          <div id="ticket-reply-error" style="display:none;color:#ff6b6b;font-size:12px;margin-top:6px;"></div>
-          <button id="ticket-reply-btn" class="btn btn-primary" style="margin-top:10px;padding:9px 20px;font-size:13px;" onclick="submitTicketReply()">Send Reply</button>
+          <div id="ticket-reply-box">
+            <textarea id="ticket-reply-text" placeholder="Write a reply…" rows="3" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+            <div id="ticket-reply-error" style="display:none;color:#ff6b6b;font-size:12px;margin-top:6px;"></div>
+            <button id="ticket-reply-btn" class="btn btn-primary" style="margin-top:10px;padding:9px 20px;font-size:13px;" onclick="submitTicketReply()">Send Reply</button>
+          </div>
+          <div id="ticket-reply-closed-msg" style="display:none;color:var(--muted);font-size:13px;">This ticket is closed. If you need further help, please open a new ticket.</div>
         </div>
       </div>
     </div>
@@ -1869,6 +1872,11 @@ function renderTicketThreadMessages(messages){
   }).join('');
 }
 
+function setTicketReplyLocked(isClosed){
+  document.getElementById('ticket-reply-box').style.display = isClosed ? 'none' : 'block';
+  document.getElementById('ticket-reply-closed-msg').style.display = isClosed ? 'block' : 'none';
+}
+
 async function openTicketThread(id){
   currentTicketId = id;
   document.getElementById('tickets-list-view').style.display = 'none';
@@ -1891,6 +1899,7 @@ async function openTicketThread(id){
     document.getElementById('ticket-thread-messages').innerHTML = renderTicketThreadMessages(data.messages);
     document.getElementById('ticket-thread-messages').style.display = 'flex';
     lastKnownTicketMessageCount = (data.messages || []).length;
+    setTicketReplyLocked(data.status === 'closed');
   } catch(e) {
     document.getElementById('ticket-thread-messages').innerHTML = `<div style="color:#ff6b6b;font-size:13px;">${e.message}</div>`;
   }
@@ -1914,6 +1923,7 @@ async function openTicketThread(id){
       statusEl.textContent = s.label;
       statusEl.style.background = s.bg;
       statusEl.style.color = s.color;
+      setTicketReplyLocked(data.status === 'closed');
     } catch(e) {}
   }, 4000);
 }
