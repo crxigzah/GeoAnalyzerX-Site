@@ -309,6 +309,13 @@
     pointer-events:none;
   }
 
+  .map-tooltip{
+    position:fixed; background: var(--panel-2); border:1px solid var(--line);
+    border-radius:8px; padding:8px 12px; font-size:13px; font-weight:700;
+    color: var(--text); pointer-events:none; z-index:200; display:none;
+    white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,0.5);
+  }
+
   /* breadcrumb / back-to-world control */
   .breadcrumb{
     position:absolute; left:16px; top:16px;
@@ -544,6 +551,7 @@
   <main>
     <div class="map-stage" id="mapStage">
       <div class="hud" id="hud">LAT — · LON —</div>
+      <div class="map-tooltip" id="countryHoverTooltip"></div>
       <div class="breadcrumb" id="breadcrumb" style="display:none;">
         <button class="btn" id="backToWorldBtn">← World Map</button>
         <span id="breadcrumbLabel"></span>
@@ -1032,14 +1040,26 @@ function globeUvToLatLon(uv){
 
 globeCanvasEl.addEventListener('mousemove', e => {
   if (globeDragging) return;
+  const tooltipEl = document.getElementById('countryHoverTooltip');
   const hit = globeRaycastAt(e.clientX, e.clientY);
-  if (!hit){ globeCanvasEl.style.cursor = 'grab'; return; }
+  if (!hit){ globeCanvasEl.style.cursor = 'grab'; tooltipEl.style.display = 'none'; return; }
   const [lat, lon] = globeUvToLatLon(hit.uv);
   document.getElementById('hud').textContent = `LAT ${lat.toFixed(2)} · LON ${lon.toFixed(2)}`;
   const idx = globeUvToCountryIndex(hit.uv);
   const feature = idx >= 0 ? globeFeatures[idx] : null;
   const nm = feature ? worldCountryName(feature) : null;
   globeCanvasEl.style.cursor = (nm && coveredSet.has(normalize(nm))) ? 'pointer' : 'grab';
+  if (nm){
+    tooltipEl.textContent = nm;
+    tooltipEl.style.display = 'block';
+    tooltipEl.style.left = (e.clientX + 14) + 'px';
+    tooltipEl.style.top  = (e.clientY - 34) + 'px';
+  } else {
+    tooltipEl.style.display = 'none';
+  }
+});
+globeCanvasEl.addEventListener('mouseleave', () => {
+  document.getElementById('countryHoverTooltip').style.display = 'none';
 });
 
 let globeDownX = 0, globeDownY = 0;
