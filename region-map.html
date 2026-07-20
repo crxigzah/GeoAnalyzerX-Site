@@ -2045,11 +2045,20 @@ function renderPlainCountryFeature(countryName, feature){
   countryLayer.selectAll('*').remove();
   labelLayer.selectAll('*').remove();
 
+  // Render each polygon as its own <path> rather than one path for the
+  // whole (possibly MultiPolygon) geometry — sidesteps any edge case with
+  // multiple disconnected subpaths inside a single path's "d" attribute,
+  // which matters for archipelago-style countries/territories (multiple
+  // separate landmasses, e.g. Hong Kong, Indonesia, the Philippines).
+  const parts = clone.geometry.type === 'MultiPolygon'
+    ? clone.geometry.coordinates.map(coords => ({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: coords } }))
+    : [clone];
+
   countryLayer.selectAll('path')
-    .data([clone])
+    .data(parts)
     .join('path')
     .attr('class', 'subdivision')
-    .attr('data-id', 'sub-0')
+    .attr('data-id', (d, i) => `sub-${i}`)
     .attr('d', localPath);
 
   document.getElementById('breadcrumb').style.display = 'flex';
