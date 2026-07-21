@@ -1933,102 +1933,56 @@ function renderCountryView(countryName, geojson){
     .join('path')
     .attr('class', 'subdivision')
     .attr('data-id', (d, i) => 'sub-' + i)
-    .attr('d', localPath);
+    .attr('d', localPath)
+    .on('mousemove', (event, d) => {
+      const i = features.indexOf(d);
+      const tooltipEl = document.getElementById('countryHoverTooltip');
+      tooltipEl.textContent = subdivisionName(d.properties, i);
+      tooltipEl.style.display = 'block';
+      tooltipEl.style.left = (event.clientX + 14) + 'px';
+      tooltipEl.style.top  = (event.clientY - 34) + 'px';
+    })
+    .on('mouseleave', () => {
+      document.getElementById('countryHoverTooltip').style.display = 'none';
+    });
 
   // Show every region's label immediately — no click/selection needed.
-  // With densely-divided countries (e.g. Spain's 17 communities, Indonesia's
-  // 30+ provinces) labels placed at raw centroids overlap heavily, so we
-  // run a lightweight force-based decluttering pass: labels gently repel
-  // each other when they overlap, while a weak spring pulls each one back
-  // toward its true location. A thin leader line connects the label back
-  // to its region if it had to move.
-  // Label box size must match whichever theme is active — Google-style
-  // renders notably bigger text, so the decluttering algorithm needs
-  // proportionally bigger reserved space or labels will overlap again.
   const isGoogleTheme = document.body.classList.contains('google-theme');
   const labelFontPx = isGoogleTheme ? 14 : 9;
-  const CHAR_W = 5.4 * (labelFontPx / 9), LABEL_H = 11 * (labelFontPx / 9);
-  const fontScale = features.length > 45 ? 0.68 : features.length > 30 ? 0.78 : features.length > 18 ? 0.9 : 1;
+  const MIN_FONT = labelFontPx * 0.55, MAX_FONT = labelFontPx * 1.25;
+  const CHAR_W_RATIO = 0.62; // rough average glyph width as a fraction of font-size, for this font
 
+  // Labels sit directly on their own region, sized to actually fit within
+  // it — rather than in a side column with a leader line pointing back.
+  // Font size is solved per-region from its own bounding box (via
+  // localPath.bounds) so a large county gets a readably large label and a
+  // tiny one gets a small one, clamped to a minimum below which text
+  // wouldn't be legible anyway. Below that minimum, no static label is
+  // drawn — the region relies on the hover tooltip via #countryHoverTooltip
+  // instead of forcing text that would just overflow into its neighbours
+  // and become a jumble in a densely-divided, tightly-packed country.
   const labelData = features.map((d, i) => {
     const nm = subdivisionName(d.properties, i);
     const [ox, oy] = localPath.centroid(d);
-    const w = nm.length * CHAR_W * fontScale + 10;
-    const h = LABEL_H * fontScale;
-    return { id: 'sub-' + i, name: nm, ox, oy, x: ox, y: oy, w, h };
-  });
-
-  // Two-column layout: every label anchors to a fixed x position in the
-  // left or right margin (whichever side of the landmass it's actually
-  // on), with a leader line back to its true centroid — the standard
-  // atlas convention for labeling many small regions. Replaces an earlier
-  // general 2D repulsion approach that worked for wide/round countries
-  // but broke down for tall, narrow, densely-divided ones (Taiwan, Chile,
-  // Vietnam, Italy...): with almost no horizontal room to spread inside a
-  // narrow landmass, pairwise repulsion cascaded everything into one
-  // overlapping stack down one side instead of spreading cleanly. Fixed
-  // margins per column sidestep that entirely — there's no 2D cascade to
-  // go wrong, just a bounded 1D spacing pass within each column.
-  // Split by median x (not the midpoint of the min/max range) so the two
-  // columns end up roughly balanced in count regardless of outliers —
-  // Taiwan's outlying islands (Kinmen, Matsu) sit far to the west of the
-  // main island, which drags a min/max-based midpoint way off-center and
-  // put nearly every mainland county in one column with a handful of
-  // island labels in the other, giving one huge stack and one empty side.
-  const sortedX = labelData.map(l => l.ox).sort((a, b) => a - b);
-  const mid = Math.floor(sortedX.length / 2);
-  const midX = sortedX.length % 2 ? sortedX[mid] : (sortedX[mid - 1] + sortedX[mid]) / 2;
-  const leftCol  = labelData.filter(l => l.ox <  midX).sort((a, b) => a.oy - b.oy);
-  const rightCol = labelData.filter(l => l.ox >= midX).sort((a, b) => a.oy - b.oy);
-  // Anchor columns just outside the landmass's own bounding box, not the
-  // full canvas edges. fitExtent scales a tall/narrow shape like Taiwan to
-  // fill the available height, which leaves large unused horizontal
-  // margins on both sides within the wider canvas — anchoring at the
-  // canvas edges meant leader lines crossed all that empty space
-  // needlessly instead of just reaching to just past the coastline.
-  let landMinX = Infinity, landMaxX = -Infinity;
-  features.forEach(d => {
     const b = localPath.bounds(d);
-    landMinX = Math.min(landMinX, b[0][0]);
-    landMaxX = Math.max(landMaxX, b[1][0]);
+    const bw = b[1][0] - b[0][0], bh = b[1][1] - b[0][1];
+    const padding = 6;
+    const fitByWidth  = (bw - padding) / Math.max(1, nm.length * CHAR_W_RATIO);
+    const fitByHeight = bh - padding;
+    let fontSize = Math.min(labelFontPx, fitByWidth, fitByHeight);
+    fontSize = Math.min(MAX_FONT, fontSize);
+    const fits = fontSize >= MIN_FONT;
+    return { id: 'sub-' + i, name: nm, ox, oy, fontSize: fits ? fontSize : 0, fits };
   });
-  const gap = 24;
-  const leftAnchorX  = Math.max(8, landMinX - gap);
-  const rightAnchorX = Math.min(width - 8, landMaxX + gap);
-
-  function layoutColumn(col, anchorX, isLeft){
-    // Sequential top-to-bottom spacing: if a label would overlap the one
-    // above it in this same column, push it down just enough to clear —
-    // bounded and predictable, since each label only ever looks at the
-    // one immediately before it in sorted order, rather than every other
-    // label pairwise.
-    let prevBottom = -Infinity;
-    for(const l of col){
-      l.x = anchorX;
-      l.y = Math.max(l.oy, prevBottom + l.h + 2);
-      prevBottom = l.y;
-    }
-    col.forEach(l => { l.anchor = isLeft ? 'end' : 'start'; });
-  }
-  layoutColumn(leftCol, leftAnchorX, true);
-  layoutColumn(rightCol, rightAnchorX, false);
 
   labelData.forEach(l => {
+    if (!l.fits) return;
     const gLabel = labelLayer.append('g').attr('data-id', l.id);
-    // Curved rather than straight leader lines — leaves the source point
-    // vertically, arrives at the label horizontally. Crossing straight
-    // diagonals are hard to individually trace back to their source;
-    // curves with this shape stay visually distinct from each other even
-    // when a couple of them do still have to cross.
-    gLabel.append('path')
-      .attr('d', `M${l.ox},${l.oy} Q${l.ox},${l.y} ${l.x},${l.y}`)
-      .attr('fill', 'none')
-      .attr('stroke', 'var(--muted-2)').attr('stroke-width', 0.6);
-    gLabel.append('circle').attr('cx', l.ox).attr('cy', l.oy).attr('r', 2.5);
     gLabel.append('text')
-      .attr('x', l.x + (l.anchor === 'end' ? -6 : 6)).attr('y', l.y + 3)
-      .attr('text-anchor', l.anchor)
-      .attr('font-size', 9 * fontScale)
+      .attr('x', l.ox).attr('y', l.oy)
+      .attr('text-anchor', 'middle')
+      .attr('dy', '0.35em')
+      .attr('font-size', l.fontSize)
       .text(l.name);
   });
 
