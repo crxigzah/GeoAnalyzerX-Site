@@ -1933,102 +1933,75 @@ function renderCountryView(countryName, geojson){
     .join('path')
     .attr('class', 'subdivision')
     .attr('data-id', (d, i) => 'sub-' + i)
-    .attr('d', localPath)
-    .on('mousemove', (event, d) => {
-      const i = features.indexOf(d);
-      const tooltipEl = document.getElementById('countryHoverTooltip');
-      tooltipEl.textContent = subdivisionName(d.properties, i);
-      tooltipEl.style.display = 'block';
-      tooltipEl.style.left = (event.clientX + 14) + 'px';
-      tooltipEl.style.top  = (event.clientY - 34) + 'px';
-    })
-    .on('mouseleave', () => {
-      document.getElementById('countryHoverTooltip').style.display = 'none';
-    });
+    .attr('d', localPath);
 
   // Show every region's label immediately — no click/selection needed.
+  // With densely-divided countries (e.g. Spain's 17 communities, Indonesia's
+  // 30+ provinces) labels placed at raw centroids overlap heavily, so we
+  // run a lightweight force-based decluttering pass: labels gently repel
+  // each other when they overlap, while a weak spring pulls each one back
+  // toward its true location. A thin leader line connects the label back
+  // to its region if it had to move.
+  // Label box size must match whichever theme is active — Google-style
+  // renders notably bigger text, so the decluttering algorithm needs
+  // proportionally bigger reserved space or labels will overlap again.
   const isGoogleTheme = document.body.classList.contains('google-theme');
   const labelFontPx = isGoogleTheme ? 14 : 9;
-  const MIN_FONT = labelFontPx * 0.55, MAX_FONT = labelFontPx;
-  const CHAR_W_RATIO = 0.62; // rough average glyph width as a fraction of font-size, for this font
-  const LINE_H_RATIO = 1.6; // generous — labels carry a stroked halo outline that extends visually beyond the plain glyph metrics
-  const PAD = 4; // flat px safety margin on top of the proportional sizing above, for the same reason
+  const CHAR_W = 5.4 * (labelFontPx / 9), LABEL_H = 11 * (labelFontPx / 9);
+  const fontScale = features.length > 45 ? 0.68 : features.length > 30 ? 0.78 : features.length > 18 ? 0.9 : 1;
 
-  // Labels sit directly on their own region, sized to fit within it —
-  // rather than in a side column with a leader line pointing back.
-  // Three things a naive per-shape fit gets wrong, all fixed here:
-  //
-  // 1. Sizing off the axis-aligned bounding box punishes elongated or
-  //    diagonal counties that have plenty of actual area but a small
-  //    bounding-box width/height — most of Taiwan's coastal counties are
-  //    exactly this shape, so bbox-based sizing left nearly all of them
-  //    unlabeled. Using the shape's real projected area (via
-  //    localPath.area) is a far more representative size signal.
-  // 2. Fitting within its own shape says nothing about whether a label
-  //    collides with its *neighbours'* labels — Tainan and Kaohsiung are
-  //    adjacent, similarly-sized counties whose centroids sit close
-  //    together, so both independently "fit" their own shape while still
-  //    visually overlapping each other. Fixed with a real greedy
-  //    collision pass below: place the largest regions' labels first,
-  //    shrink or skip anything that would collide with a label already
-  //    placed. The collision box itself also needs real padding, not just
-  //    raw glyph metrics — labels carry a stroked halo outline (for
-  //    contrast against the fill colour) that extends visibly beyond the
-  //    plain text bounding box, so a check using only bare glyph size
-  //    still lets halos visibly touch.
-  // 3. Capping how large even the biggest regions' labels can grow
-  //    (MAX_FONT = 1x base, not larger) so a big metro area doesn't
-  //    claim outsized space and starve every smaller neighbour touching
-  //    it — that's why only 4 labels survived at all in an earlier pass,
-  //    despite plenty of the mid-sized counties having genuine room.
-  const candidates = features.map((d, i) => {
+  const labelData = features.map((d, i) => {
     const nm = subdivisionName(d.properties, i);
     const [ox, oy] = localPath.centroid(d);
-    const b = localPath.bounds(d);
-    const area = localPath.area(d);
-    // Assume ~50% of the polygon's area is usable as a centered rectangle
-    // for text — a reasonable fraction for typical county-shaped blobs
-    // without needing the exact inscribed-rectangle geometry.
-    const areaFont = Math.sqrt((area * 0.5) / Math.max(1, nm.length * CHAR_W_RATIO));
-    const bboxFont = Math.min((b[1][0]-b[0][0]) / Math.max(1, nm.length * CHAR_W_RATIO), b[1][1]-b[0][1]);
-    const fontSize = Math.min(labelFontPx, MAX_FONT, areaFont, bboxFont);
-    return { id: 'sub-' + i, name: nm, ox, oy, area, fontSize };
+    const w = nm.length * CHAR_W * fontScale + 10;
+    const h = LABEL_H * fontScale;
+    return { id: 'sub-' + i, name: nm, ox, oy, x: ox, y: oy, w, h };
   });
 
-  // Largest regions get first pick of label space — they're the most
-  // visually prominent anyway, and starting big avoids a small region
-  // "claiming" space that a much larger neighbour actually needed. Their
-  // own font size is still capped (MAX_FONT above) so this priority
-  // doesn't also mean they get to be oversized.
-  candidates.sort((a, b) => b.area - a.area);
-
-  const placed = [];
-  function overlaps(a, b){
-    const aw = a.name.length * CHAR_W_RATIO * a.fontSize + PAD, ah = a.fontSize * LINE_H_RATIO + PAD;
-    const bw = b.name.length * CHAR_W_RATIO * b.fontSize + PAD, bh = b.fontSize * LINE_H_RATIO + PAD;
-    return Math.abs(a.ox - b.ox) * 2 < (aw + bw) && Math.abs(a.oy - b.oy) * 2 < (ah + bh);
-  }
-
-  const labelData = [];
-  for (const c of candidates) {
-    let fontSize = c.fontSize;
-    while (fontSize >= MIN_FONT && placed.some(p => overlaps({...c, fontSize}, p))) {
-      fontSize -= 0.5; // shrink and retry rather than giving up immediately
+  // Force-based decluttering: a weak spring pulls each label back toward
+  // its true centroid, while overlapping labels repel each other. Tuned to
+  // favour spreading (weak spring, strong repulsion, generous margin,
+  // plenty of iterations) since a slightly-displaced-but-readable label
+  // beats an overlapping one — this applies to every country, not just
+  // especially dense ones, so all region maps stay legible.
+  const iterations = Math.min(1400, 500 + features.length * 12);
+  for(let iter = 0; iter < iterations; iter++){
+    for(const a of labelData){
+      a.x += (a.ox - a.x) * 0.008;
+      a.y += (a.oy - a.y) * 0.008;
     }
-    const fits = fontSize >= MIN_FONT;
-    const entry = { id: c.id, name: c.name, ox: c.ox, oy: c.oy, fontSize: fits ? fontSize : 0, fits };
-    if (fits) placed.push(entry);
-    labelData.push(entry);
+    for(let i = 0; i < labelData.length; i++){
+      for(let j = i + 1; j < labelData.length; j++){
+        const a = labelData[i], b = labelData[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const overlapX = (a.w + b.w) / 2 + 5 - Math.abs(dx);
+        const overlapY = (a.h + b.h) / 2 + 4 - Math.abs(dy);
+        if(overlapX > 0 && overlapY > 0){
+          if(overlapX < overlapY){
+            const push = overlapX / 2 * 1.5 * (dx < 0 ? -1 : 1) || 0.7;
+            a.x -= push; b.x += push;
+          } else {
+            const push = overlapY / 2 * 1.5 * (dy < 0 ? -1 : 1) || 0.7;
+            a.y -= push; b.y += push;
+          }
+        }
+      }
+    }
   }
 
   labelData.forEach(l => {
-    if (!l.fits) return;
     const gLabel = labelLayer.append('g').attr('data-id', l.id);
+    const moved = Math.hypot(l.x - l.ox, l.y - l.oy) > 6;
+    if(moved){
+      gLabel.append('line')
+        .attr('x1', l.ox).attr('y1', l.oy)
+        .attr('x2', l.x).attr('y2', l.y)
+        .attr('stroke', 'var(--muted-2)').attr('stroke-width', 0.6);
+    }
+    gLabel.append('circle').attr('cx', l.ox).attr('cy', l.oy).attr('r', 2.5);
     gLabel.append('text')
-      .attr('x', l.ox).attr('y', l.oy)
-      .attr('text-anchor', 'middle')
-      .attr('dy', '0.35em')
-      .attr('font-size', l.fontSize)
+      .attr('x', l.x + 6).attr('y', l.y + 3)
+      .attr('font-size', 9 * fontScale)
       .text(l.name);
   });
 
