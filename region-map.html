@@ -1969,10 +1969,32 @@ function renderCountryView(countryName, geojson){
   // overlapping stack down one side instead of spreading cleanly. Fixed
   // margins per column sidestep that entirely — there's no 2D cascade to
   // go wrong, just a bounded 1D spacing pass within each column.
-  const midX = (d3.min(labelData, l => l.ox) + d3.max(labelData, l => l.ox)) / 2;
+  // Split by median x (not the midpoint of the min/max range) so the two
+  // columns end up roughly balanced in count regardless of outliers —
+  // Taiwan's outlying islands (Kinmen, Matsu) sit far to the west of the
+  // main island, which drags a min/max-based midpoint way off-center and
+  // put nearly every mainland county in one column with a handful of
+  // island labels in the other, giving one huge stack and one empty side.
+  const sortedX = labelData.map(l => l.ox).sort((a, b) => a - b);
+  const mid = Math.floor(sortedX.length / 2);
+  const midX = sortedX.length % 2 ? sortedX[mid] : (sortedX[mid - 1] + sortedX[mid]) / 2;
   const leftCol  = labelData.filter(l => l.ox <  midX).sort((a, b) => a.oy - b.oy);
   const rightCol = labelData.filter(l => l.ox >= midX).sort((a, b) => a.oy - b.oy);
-  const marginX = 8;
+  // Anchor columns just outside the landmass's own bounding box, not the
+  // full canvas edges. fitExtent scales a tall/narrow shape like Taiwan to
+  // fill the available height, which leaves large unused horizontal
+  // margins on both sides within the wider canvas — anchoring at the
+  // canvas edges meant leader lines crossed all that empty space
+  // needlessly instead of just reaching to just past the coastline.
+  let landMinX = Infinity, landMaxX = -Infinity;
+  features.forEach(d => {
+    const b = localPath.bounds(d);
+    landMinX = Math.min(landMinX, b[0][0]);
+    landMaxX = Math.max(landMaxX, b[1][0]);
+  });
+  const gap = 24;
+  const leftAnchorX  = Math.max(8, landMinX - gap);
+  const rightAnchorX = Math.min(width - 8, landMaxX + gap);
 
   function layoutColumn(col, anchorX, isLeft){
     // Sequential top-to-bottom spacing: if a label would overlap the one
@@ -1988,8 +2010,8 @@ function renderCountryView(countryName, geojson){
     }
     col.forEach(l => { l.anchor = isLeft ? 'end' : 'start'; });
   }
-  layoutColumn(leftCol, marginX, true);
-  layoutColumn(rightCol, width - marginX, false);
+  layoutColumn(leftCol, leftAnchorX, true);
+  layoutColumn(rightCol, rightAnchorX, false);
 
   labelData.forEach(l => {
     const gLabel = labelLayer.append('g').attr('data-id', l.id);
