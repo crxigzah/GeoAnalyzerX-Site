@@ -2015,9 +2015,14 @@ function renderCountryView(countryName, geojson){
 
   labelData.forEach(l => {
     const gLabel = labelLayer.append('g').attr('data-id', l.id);
-    gLabel.append('line')
-      .attr('x1', l.ox).attr('y1', l.oy)
-      .attr('x2', l.x).attr('y2', l.y)
+    // Curved rather than straight leader lines — leaves the source point
+    // vertically, arrives at the label horizontally. Crossing straight
+    // diagonals are hard to individually trace back to their source;
+    // curves with this shape stay visually distinct from each other even
+    // when a couple of them do still have to cross.
+    gLabel.append('path')
+      .attr('d', `M${l.ox},${l.oy} Q${l.ox},${l.y} ${l.x},${l.y}`)
+      .attr('fill', 'none')
       .attr('stroke', 'var(--muted-2)').attr('stroke-width', 0.6);
     gLabel.append('circle').attr('cx', l.ox).attr('cy', l.oy).attr('r', 2.5);
     gLabel.append('text')
