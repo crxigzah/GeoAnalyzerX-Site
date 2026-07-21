@@ -1951,29 +1951,63 @@ function renderCountryView(countryName, geojson){
   const labelFontPx = isGoogleTheme ? 14 : 9;
   const MIN_FONT = labelFontPx * 0.55, MAX_FONT = labelFontPx * 1.25;
   const CHAR_W_RATIO = 0.62; // rough average glyph width as a fraction of font-size, for this font
+  const LINE_H_RATIO = 1.2;
 
-  // Labels sit directly on their own region, sized to actually fit within
-  // it — rather than in a side column with a leader line pointing back.
-  // Font size is solved per-region from its own bounding box (via
-  // localPath.bounds) so a large county gets a readably large label and a
-  // tiny one gets a small one, clamped to a minimum below which text
-  // wouldn't be legible anyway. Below that minimum, no static label is
-  // drawn — the region relies on the hover tooltip via #countryHoverTooltip
-  // instead of forcing text that would just overflow into its neighbours
-  // and become a jumble in a densely-divided, tightly-packed country.
-  const labelData = features.map((d, i) => {
+  // Labels sit directly on their own region, sized to fit within it —
+  // rather than in a side column with a leader line pointing back.
+  // Two things a naive per-shape fit gets wrong, both fixed here:
+  //
+  // 1. Sizing off the axis-aligned bounding box punishes elongated or
+  //    diagonal counties that have plenty of actual area but a small
+  //    bounding-box width/height — most of Taiwan's coastal counties are
+  //    exactly this shape, so bbox-based sizing left nearly all of them
+  //    unlabeled. Using the shape's real projected area (via
+  //    localPath.area) is a far more representative size signal.
+  // 2. Fitting within its own shape says nothing about whether a label
+  //    collides with its *neighbours'* labels — Tainan and Kaohsiung are
+  //    adjacent, similarly-sized counties whose centroids sit close
+  //    together, so both independently "fit" their own shape while still
+  //    visually overlapping each other. Fixed with a real greedy
+  //    collision pass below: place the largest regions' labels first,
+  //    shrink or skip anything that would collide with a label already
+  //    placed.
+  const candidates = features.map((d, i) => {
     const nm = subdivisionName(d.properties, i);
     const [ox, oy] = localPath.centroid(d);
     const b = localPath.bounds(d);
-    const bw = b[1][0] - b[0][0], bh = b[1][1] - b[0][1];
-    const padding = 6;
-    const fitByWidth  = (bw - padding) / Math.max(1, nm.length * CHAR_W_RATIO);
-    const fitByHeight = bh - padding;
-    let fontSize = Math.min(labelFontPx, fitByWidth, fitByHeight);
-    fontSize = Math.min(MAX_FONT, fontSize);
-    const fits = fontSize >= MIN_FONT;
-    return { id: 'sub-' + i, name: nm, ox, oy, fontSize: fits ? fontSize : 0, fits };
+    const area = localPath.area(d);
+    // Assume ~40% of the polygon's area is usable as a centered rectangle
+    // for text — a reasonable fraction for typical county-shaped blobs
+    // without needing the exact inscribed-rectangle geometry.
+    const areaFont = Math.sqrt((area * 0.4) / Math.max(1, nm.length * CHAR_W_RATIO));
+    const bboxFont = Math.min((b[1][0]-b[0][0]) / Math.max(1, nm.length * CHAR_W_RATIO), b[1][1]-b[0][1]);
+    const fontSize = Math.min(labelFontPx, MAX_FONT, areaFont, bboxFont);
+    return { id: 'sub-' + i, name: nm, ox, oy, area, fontSize };
   });
+
+  // Largest regions get first pick of label space — they're the most
+  // visually prominent anyway, and starting big avoids a small region
+  // "claiming" space that a much larger neighbour actually needed.
+  candidates.sort((a, b) => b.area - a.area);
+
+  const placed = [];
+  function overlaps(a, b){
+    const aw = a.name.length * CHAR_W_RATIO * a.fontSize, ah = a.fontSize * LINE_H_RATIO;
+    const bw = b.name.length * CHAR_W_RATIO * b.fontSize, bh = b.fontSize * LINE_H_RATIO;
+    return Math.abs(a.ox - b.ox) * 2 < (aw + bw) && Math.abs(a.oy - b.oy) * 2 < (ah + bh);
+  }
+
+  const labelData = [];
+  for (const c of candidates) {
+    let fontSize = c.fontSize;
+    while (fontSize >= MIN_FONT && placed.some(p => overlaps({...c, fontSize}, p))) {
+      fontSize -= 0.5; // shrink and retry rather than giving up immediately
+    }
+    const fits = fontSize >= MIN_FONT;
+    const entry = { id: c.id, name: c.name, ox: c.ox, oy: c.oy, fontSize: fits ? fontSize : 0, fits };
+    if (fits) placed.push(entry);
+    labelData.push(entry);
+  }
 
   labelData.forEach(l => {
     if (!l.fits) return;
