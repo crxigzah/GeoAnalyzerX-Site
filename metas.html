@@ -142,6 +142,8 @@ nav { position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.92);backdrop-fi
     <button id="zoom-out" style="background:var(--card);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">−</button>
   </div>
 
+  <div id="country-list" style="max-width:1000px;margin:40px auto 0;padding:0 20px;"></div>
+
 </div>
 
 <div id="country-view">
@@ -753,6 +755,45 @@ function showMap() {
   globeIsVisible = true;
   resizeGlobeRenderer();
 }
+
+// ── Continent-grouped country list — a click-instead-of-globe alternative
+// for the same set of countries/territories, using the exact same COUNTRIES
+// data and navigateTo() the search bar and globe already use, so this can
+// never drift out of sync with what's actually clickable on the globe.
+const CONTINENT_GROUPS = [
+  { name: 'Africa', slugs: ['botswana','eswatini','ghana','kenya','lesotho','madagascar','namibia','nigeria','rwanda','sao-tome-and-principe','senegal','south-africa','tunisia','uganda'] },
+  { name: 'Asia', slugs: ['bangladesh','bhutan','cambodia','christmas-island','cyprus','georgia','hong-kong','india','indonesia','israel','japan','jordan','kazakhstan','kyrgyzstan','laos','lebanon','malaysia','mongolia','nepal','oman','philippines','qatar','russia','singapore','south-korea','sri-lanka','taiwan','thailand','united-arab-emirates','vietnam'] },
+  { name: 'Europe', slugs: ['albania','andorra','austria','belgium','bosnia','bulgaria','croatia','czech-republic','denmark','estonia','faroe-islands','finland','france','germany','gibraltar','greece','hungary','iceland','ireland','isle-of-man','italy','jersey','latvia','liechtenstein','lithuania','luxembourg','malta','monaco','montenegro','netherlands','north-macedonia','norway','poland','portugal','romania','san-marino','serbia','slovakia','slovenia','spain','sweden','switzerland','turkey','ukraine','united-kingdom'] },
+  { name: 'North America', slugs: ['canada','costa-rica','curacao','dominican-republic','greenland','guatemala','mexico','panama','puerto-rico','united-states','hawaii','alaska','us-virgin-islands'] },
+  { name: 'Oceania', slugs: ['american-samoa','australia','guam','new-zealand','northern-mariana-islands'] },
+  { name: 'South America', slugs: ['argentina','bolivia','brazil','chile','colombia','ecuador','paraguay','peru','uruguay'] },
+];
+
+function renderCountryList(){
+  const container = document.getElementById('country-list');
+  if (!container) return;
+  container.innerHTML = CONTINENT_GROUPS.map(group => {
+    const items = group.slugs
+      .map(slug => slugToCountry[slug])
+      .filter(Boolean)
+      .map(c => `
+        <a href="javascript:void(0)" data-slug="${c.slug}" class="country-list-item"
+          style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;transition:background .15s;"
+          onmouseover="this.style.background='var(--card)'" onmouseout="this.style.background='none'">
+          ${flagImg(c.iso, 18)}<span>${escapeHtml(c.name)}</span>
+        </a>`)
+      .join('');
+    return `
+      <div style="margin-bottom:24px;">
+        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 10px;">${group.name}</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px;">${items}</div>
+      </div>`;
+  }).join('');
+  container.querySelectorAll('.country-list-item').forEach(el => {
+    el.addEventListener('click', () => navigateTo(el.dataset.slug));
+  });
+}
+renderCountryList();
 
 let currentCountryName = null;
 
