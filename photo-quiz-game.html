@@ -45,8 +45,17 @@
     width:100%; background:var(--panel); border:1px solid var(--border); border-radius:16px;
     padding:20px; box-shadow:0 20px 50px rgba(0,0,0,0.35);
   }
-  .quiz-img-wrap{ width:100%; border-radius:12px; overflow:hidden; background:var(--panel2); height:min(60vh,560px); min-height:320px; display:flex; align-items:center; justify-content:center; }
-  .quiz-img-wrap img{ width:100%; height:100%; object-fit:contain; display:block; }
+  .quiz-img-wrap{
+    width:100%; border-radius:12px; overflow:hidden; background:var(--panel2);
+    height:min(60vh,560px); min-height:320px; position:relative;
+  }
+  .quiz-img-wrap .quiz-img-bg{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    filter:blur(35px) brightness(0.55) saturate(1.1); transform:scale(1.15);
+  }
+  .quiz-img-wrap .quiz-img-fg{
+    position:relative; z-index:1; width:100%; height:100%; object-fit:contain; display:block;
+  }
 
   .options{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; }
   @media (max-width:520px){ .options{ grid-template-columns:1fr; } }
@@ -147,10 +156,32 @@ async function loadNext(){
       return;
     }
     current = data;
+
+    // Keep at most 4 options, always including the correct answer.
+    let opts = data.options.slice();
+    if (opts.length > 4) {
+      const correct = current.correct_country;
+      const others = opts.filter(o => o !== correct);
+      // shuffle the wrong answers, then take enough to make 4 total
+      for (let i = others.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [others[i], others[j]] = [others[j], others[i]];
+      }
+      opts = [correct, ...others.slice(0, 3)];
+      // shuffle final order so the correct answer isn't always first
+      for (let i = opts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [opts[i], opts[j]] = [opts[j], opts[i]];
+      }
+    }
+
     document.getElementById('quiz-body').innerHTML = `
-      <div class="quiz-img-wrap"><img src="${data.image_url}"></div>
+      <div class="quiz-img-wrap">
+        <img class="quiz-img-bg" src="${data.image_url}" aria-hidden="true">
+        <img class="quiz-img-fg" src="${data.image_url}">
+      </div>
       <div class="options" id="options-wrap">
-        ${data.options.map(opt => `<button class="opt-btn" data-country="${opt}" onclick="submitAnswer('${opt.replace(/'/g,"\\'")}')">${opt}</button>`).join('')}
+        ${opts.map(opt => `<button class="opt-btn" data-country="${opt}" onclick="submitAnswer('${opt.replace(/'/g,"\\'")}')">${opt}</button>`).join('')}
       </div>
       <div class="feedback" id="feedback"></div>
       <button class="next-btn" id="next-btn" onclick="loadNext()">Next Scene →</button>
