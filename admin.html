@@ -2077,7 +2077,7 @@ async function deleteCameraQuizImage(id){
 // ── Phone Code Map: per-country dialing-code region graphics ─────
 function populateDialMapCountrySelect(){
   const sel = document.getElementById('dial-map-country-select');
-  sel.innerHTML = GEOGUESSR_COUNTRIES.slice().sort((a,b)=>a.localeCompare(b))
+  sel.innerHTML = SUPPORTED_COUNTRIES.slice().sort((a,b)=>a.localeCompare(b))
     .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
 }
 
@@ -2144,7 +2144,7 @@ async function deleteDialRegionMap(country){
 // ── Country-guess training games (Bollard/Plate) ─
 function populatePhotoQuizCountrySelect(){
   const sel = document.getElementById('photo-quiz-country-select');
-  sel.innerHTML = GEOGUESSR_COUNTRIES.slice().sort((a,b)=>a.localeCompare(b))
+  sel.innerHTML = SUPPORTED_COUNTRIES.slice().sort((a,b)=>a.localeCompare(b))
     .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
 }
 
@@ -2600,7 +2600,7 @@ async function deleteGuide(iso, country) {
 
 // Same ~114-country coverage list used by region-map.html, so "started
 // vs not started" always reflects the real set of countries that matter.
-const GEOGUESSR_COUNTRIES = [
+const SUPPORTED_COUNTRIES = [
   "Albania","Andorra","Argentina","Australia","Austria","Bangladesh","Belgium",
   "Bhutan","Bolivia","Botswana","Brazil","Bulgaria","Cambodia","Canada","Chile",
   "Colombia","Costa Rica","Croatia","Cyprus","Czechia","Denmark",
@@ -2719,7 +2719,7 @@ const ISO2 = {
 function showBatchScaffold(){
   const guideByCountry = {};
   (allGuides || []).forEach(g => { guideByCountry[g.country] = g; });
-  const notStarted = GEOGUESSR_COUNTRIES.filter(c => !guideByCountry[c]).sort((a,b) => a.localeCompare(b));
+  const notStarted = SUPPORTED_COUNTRIES.filter(c => !guideByCountry[c]).sort((a,b) => a.localeCompare(b));
 
   document.getElementById('batch-scaffold-list').innerHTML = notStarted.map(c => `
     <label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;font-size:13px;">
@@ -2767,7 +2767,7 @@ function showProgressTracker(){
   const guideByCountry = {};
   (allGuides || []).forEach(g => { guideByCountry[g.country] = g; });
 
-  const rows = GEOGUESSR_COUNTRIES.slice().sort((a,b) => a.localeCompare(b)).map(country => {
+  const rows = SUPPORTED_COUNTRIES.slice().sort((a,b) => a.localeCompare(b)).map(country => {
     const g = guideByCountry[country];
     let statusHtml, statusColor;
     if (g && g.source === 'manual') { statusHtml = '✅ Written'; statusColor = '#00c9a7'; }
@@ -2780,13 +2780,13 @@ function showProgressTracker(){
     </div>`;
   }).join('');
 
-  const written = GEOGUESSR_COUNTRIES.filter(c => guideByCountry[c] && guideByCountry[c].source === 'manual').length;
-  document.getElementById('progress-summary').textContent = `${written} / ${GEOGUESSR_COUNTRIES.length} countries written`;
+  const written = SUPPORTED_COUNTRIES.filter(c => guideByCountry[c] && guideByCountry[c].source === 'manual').length;
+  document.getElementById('progress-summary').textContent = `${written} / ${SUPPORTED_COUNTRIES.length} countries written`;
   document.getElementById('progress-list').innerHTML = rows;
   modal.style.display = 'flex';
 }
 
-// Commonly-confused GeoGuessr country pairs — not exhaustive, but covers
+// Commonly-confused country pairs — not exhaustive, but covers
 // the pairings that come up constantly in community meta discussions.
 const CONFUSE_WITH = {
   "Australia":["New Zealand"], "New Zealand":["Australia"],
@@ -2878,7 +2878,7 @@ const SCAFFOLD_ISO3 = {
   "Christmas Island":"CXR","Réunion":"REU"
 };
 
-// Objective, publicly-verifiable facts (not GeoGuessr-community trivia) —
+// Objective, publicly-verifiable facts (not community trivia) —
 // safe to auto-fill, unlike bollards/signs/road-lines which genuinely vary
 // and need real research per country.
 const DRIVING_SIDE = {
@@ -3088,7 +3088,7 @@ function renderBlock(block) {
       inner = `<textarea class="be be-heading" rows="1" placeholder="Section heading..." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>`;
       break;
     case 'text':
-      inner = `${fmtToolbar('ta-text-'+block.id, block.id, 'text')}<textarea id="ta-text-${block.id}" class="be" rows="6" placeholder="Write your guide content here. Describe what to look for, specific visual clues, regional differences, tips — anything you know about this country in GeoGuessr." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>`;
+      inner = `${fmtToolbar('ta-text-'+block.id, block.id, 'text')}<textarea id="ta-text-${block.id}" class="be" rows="6" placeholder="Write your guide content here. Describe what to look for, specific visual clues, regional differences, tips — anything you know about this country." oninput="syncBlock(${block.id},'text',this.value);autoResize(this)">${escapeHtml(block.data.text||'')}</textarea>`;
       break;
     case 'image':
       const imgSrc = block.data.src;
@@ -3794,7 +3794,7 @@ function updatePreview() {
   const iso = document.getElementById('ge-iso').value.toUpperCase();
   let html = `<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #241f14;">
     <div style="font-size:28px;font-weight:800;color:#efeade;">${escapeHtml(country)}</div>
-    <div style="font-size:13px;color:#7a7a9a;margin-top:2px;">GeoGuessr Country Meta Guide</div>
+    <div style="font-size:13px;color:#7a7a9a;margin-top:2px;">Country Meta Guide</div>
   </div>`;
   editorBlocks.forEach((b, bIdx) => {
     const prevAttach = bIdx > 0 && editorBlocks[bIdx-1].data && editorBlocks[bIdx-1].data.attachBelow;
