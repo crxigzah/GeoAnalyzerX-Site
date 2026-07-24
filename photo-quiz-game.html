@@ -114,7 +114,57 @@ const GAME_META = {
   bollard:        { title: '🚧 Bollard Bingo',        sub: 'Guess the country from the bollard alone.' },
   sign_shape:     { title: '🚸 Sign Shape Sprint',    sub: 'Guess the country from the road/warning sign shape and color.' },
   vegetation:     { title: '🌿 Vegetation Snap',       sub: 'Guess the country/region from the landscape alone — no roads or signage to rely on.' },
-  license_plate:  { title: '🚗 License Plate Guess',  sub: 'Guess the country from the license plate style.' }
+  license_plate:  { title: '🚗 License Plate Guess',  sub: 'Guess the country from the license plate style.' },
+  fifty_fifty:    { title: '🎲 50/50',                sub: 'One photo. Two countries. Pick the right one.' },
+  google_car:     { title: '🚙 Guess the Google Car', sub: 'One photo of the Street View car. Guess the country from four options.' }
+};
+
+// Commonly-confused country pairs, used by 50/50 to pick the one wrong
+// option that actually matters instead of a random unrelated country.
+// Kept in sync with the CONFUSE_WITH table in admin.html.
+const CONFUSE_WITH = {
+  "Australia":["New Zealand"], "New Zealand":["Australia"],
+  "United States of America":["Canada"], "Canada":["United States of America"],
+  "Argentina":["Chile","Uruguay"], "Chile":["Argentina"], "Uruguay":["Argentina"],
+  "Brazil":["Argentina"],
+  "Spain":["Portugal"], "Portugal":["Spain"],
+  "Czechia":["Slovakia","Poland"], "Slovakia":["Czechia","Hungary"],
+  "Poland":["Czechia","Lithuania","Germany"],
+  "Croatia":["Slovenia"], "Slovenia":["Croatia","Austria"],
+  "Sweden":["Norway","Finland"], "Norway":["Sweden"], "Finland":["Sweden","Estonia"],
+  "Estonia":["Latvia","Finland"], "Latvia":["Estonia","Lithuania"], "Lithuania":["Latvia","Poland"],
+  "Germany":["Austria","Netherlands"], "Austria":["Germany","Switzerland"],
+  "Switzerland":["Austria","France"], "Netherlands":["Belgium","Germany"], "Belgium":["Netherlands","France"],
+  "Malaysia":["Indonesia","Thailand"], "Indonesia":["Malaysia"],
+  "Thailand":["Laos","Cambodia"], "Laos":["Thailand","Cambodia","Vietnam"],
+  "Cambodia":["Thailand","Laos","Vietnam"], "Vietnam":["Laos","Cambodia"],
+  "Kenya":["Uganda"], "Uganda":["Kenya","Rwanda"], "Rwanda":["Uganda"],
+  "Nigeria":["Ghana"], "Ghana":["Nigeria","Senegal"], "Senegal":["Ghana"],
+  "South Africa":["Namibia","Lesotho","Eswatini","Botswana"],
+  "Namibia":["South Africa","Botswana"], "Botswana":["Namibia","South Africa"],
+  "Lesotho":["South Africa"], "Eswatini":["South Africa"],
+  "Bangladesh":["India"], "India":["Bangladesh","Pakistan","Nepal"], "Pakistan":["India"],
+  "Nepal":["India","Bhutan"], "Bhutan":["Nepal"], "Sri Lanka":["India"],
+  "Bolivia":["Peru"], "Peru":["Bolivia","Ecuador"], "Ecuador":["Peru","Colombia"],
+  "Colombia":["Ecuador","Panama"], "Panama":["Costa Rica","Colombia"], "Costa Rica":["Panama"],
+  "Guatemala":["Mexico"],
+  "Romania":["Bulgaria"], "Bulgaria":["Romania","Serbia"],
+  "Serbia":["Bulgaria","Montenegro","North Macedonia"],
+  "Montenegro":["Serbia","Croatia"], "North Macedonia":["Serbia","Bulgaria","Greece"],
+  "Greece":["North Macedonia","Albania","Turkey"], "Albania":["Greece","Montenegro","North Macedonia"],
+  "Turkey":["Greece","Bulgaria"],
+  "Ukraine":["Russia","Poland","Romania"], "Russia":["Ukraine","Kazakhstan"],
+  "Kazakhstan":["Russia","Kyrgyzstan","Mongolia"], "Kyrgyzstan":["Kazakhstan"], "Mongolia":["Russia","Kazakhstan"],
+  "Japan":["South Korea"], "South Korea":["Japan"],
+  "Mexico":["United States of America","Guatemala"],
+  "Denmark":["Netherlands","Germany","Sweden"], "Iceland":["Greenland","Norway"],
+  "Greenland":["Iceland","Canada"], "Ireland":["United Kingdom"], "United Kingdom":["Ireland"],
+  "Israel":["Jordan","Palestine"], "Jordan":["Israel"], "Palestine":["Israel","Jordan"],
+  "Lebanon":["Jordan","Israel"],
+  "Qatar":["United Arab Emirates","Oman"], "United Arab Emirates":["Qatar","Oman"], "Oman":["United Arab Emirates"],
+  "Cyprus":["Malta","Greece"], "Malta":["Cyprus"],
+  "Andorra":["Liechtenstein","Monaco","San Marino"], "Liechtenstein":["Andorra","Monaco","San Marino"],
+  "Monaco":["Andorra","Liechtenstein","San Marino"], "San Marino":["Andorra","Liechtenstein","Monaco"]
 };
 
 const params = new URLSearchParams(location.search);
@@ -157,21 +207,46 @@ async function loadNext(){
     }
     current = data;
 
-    // Keep at most 4 options, always including the correct answer.
-    let opts = data.options.slice();
-    if (opts.length > 4) {
-      const correct = current.correct_country;
-      const others = opts.filter(o => o !== correct);
-      // shuffle the wrong answers, then take enough to make 4 total
-      for (let i = others.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [others[i], others[j]] = [others[j], others[i]];
+    const correct = current.correct_country;
+    let opts;
+
+    if (quizType === 'fifty_fifty') {
+      // Always exactly two options: the correct country, and one genuine
+      // mixup pulled from CONFUSE_WITH — never a random unrelated country.
+      const candidates = CONFUSE_WITH[correct] || [];
+      let decoy = null;
+      if (candidates.length) {
+        decoy = candidates[Math.floor(Math.random() * candidates.length)];
+      } else {
+        // Fallback for a country with no defined mixups yet: fall back to
+        // whatever the backend returned, minus the correct answer.
+        const backendOthers = data.options.filter(o => o !== correct);
+        decoy = backendOthers.length
+          ? backendOthers[Math.floor(Math.random() * backendOthers.length)]
+          : null;
       }
-      opts = [correct, ...others.slice(0, 3)];
-      // shuffle final order so the correct answer isn't always first
+      opts = decoy ? [correct, decoy] : [correct];
+      // shuffle so the correct answer isn't always on the same side
       for (let i = opts.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [opts[i], opts[j]] = [opts[j], opts[i]];
+      }
+    } else {
+      // Keep at most 4 options, always including the correct answer.
+      opts = data.options.slice();
+      if (opts.length > 4) {
+        const others = opts.filter(o => o !== correct);
+        // shuffle the wrong answers, then take enough to make 4 total
+        for (let i = others.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [others[i], others[j]] = [others[j], others[i]];
+        }
+        opts = [correct, ...others.slice(0, 3)];
+        // shuffle final order so the correct answer isn't always first
+        for (let i = opts.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [opts[i], opts[j]] = [opts[j], opts[i]];
+        }
       }
     }
 
